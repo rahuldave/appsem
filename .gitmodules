@@ -1,0 +1,3 @@
+[submodule "static/ajax-solr/ajax-solr"]
+	path = static/ajax-solr/ajax-solr
+	url = git@github.com:rahuldave/ajax-solr.git

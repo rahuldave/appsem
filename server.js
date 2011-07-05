@@ -3,6 +3,8 @@
 
 var SOLRHOST='labs.adsabs.harvard.edu'
 var SOLRURL='/semanticsolr2/solr'
+var SOLRHOST='localhost'
+var SOLRURL='/solr'
 var ADSHOST='adsabs.harvard.edu'
 var ADSURL='/cgi-bin/insert_login/credentials/'
 var TDIR=__dirname + '/static/ajax-solr/templates/'
@@ -119,7 +121,7 @@ var solrrouter=connect(
            var solroptions={
                 host:SOLRHOST,
                 path:SOLRURL+req.url,
-                //port:8983
+                port:8983
             };
            doProxy(solroptions, req, res);
        }); 

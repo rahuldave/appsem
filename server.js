@@ -121,7 +121,7 @@ var solrrouter=connect(
            var solroptions={
                 host:SOLRHOST,
                 path:SOLRURL+req.url,
-                port:8983
+                port:3001
             };
            doProxy(solroptions, req, res);
        }); 

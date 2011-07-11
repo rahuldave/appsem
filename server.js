@@ -1,6 +1,8 @@
 /* A NodeJS server that statically serves javascript out, proxies solr requests,
  and handles authentication through the ADS */
-
+var SITEPREFIX='';
+var SITEPREFIX='/semantic2/alpha';
+var STATICPREFIX='/static';
 var SOLRHOST='labs.adsabs.harvard.edu';
 var SOLRURL='/semanticsolr2/solr';
 var SOLRHOST='localhost';
@@ -379,9 +381,9 @@ function doPublications(req, res, next){
     var camefrom=url.parse(req.url, true).query.camefrom;
     console.log("I CAME FROM:",camefrom)
     var view={
-        pagehead:{pagetype:'Publications'},
-        bodyhead:{isitchosenpublications:'chosen', current_url:req.url},
-        bodybody:{bodyright:{}},
+        pagehead:{pagetype:'Publications', siteprefix: SITEPREFIX, staticprefix: SITEPREFIX+STATICPREFIX},
+        bodyhead:{isitchosenpublications:'chosen', current_url:req.url, siteprefix: SITEPREFIX, staticprefix: SITEPREFIX+STATICPREFIX},
+        bodybody:{bodyright:{siteprefix: SITEPREFIX, staticprefix: SITEPREFIX+STATICPREFIX}},
     };
     var lpartials=JSON.parse(globpartialsjson);
     lpartials['bodybody']=bodybodypub;
@@ -396,9 +398,9 @@ function doSaved(req, res, next){
     console.log("In do Search",this);
     var logincookie=req.cookies['logincookie'];
     var view={
-        pagehead:{pagetype:'Saved'},
-        bodyhead:{isitchosensaved:'chosen', current_url:req.url},
-        bodybody:{},
+        pagehead:{pagetype:'Saved', siteprefix: SITEPREFIX, staticprefix: SITEPREFIX+STATICPREFIX},
+        bodyhead:{isitchosensaved:'chosen', current_url:req.url, siteprefix: SITEPREFIX, staticprefix: SITEPREFIX+STATICPREFIX},
+        bodybody:{siteprefix: SITEPREFIX, staticprefix: SITEPREFIX+STATICPREFIX},
     };
     var lpartials=JSON.parse(globpartialsjson);
     lpartials['bodybody']=bodybodysaved;
@@ -453,19 +455,19 @@ server.use(connect.cookieParser());
 //Especially since we dont seem to know how not to reextend the time for session cookies.
 //thats prolly right behavior for session cookies since the more people use the more we wanna keep them on
 //server.use(connect.session({ store: new RedisStore, secret: 'keyboard cat', cookie :{maxAge: 31536000000} }));
-server.use('/', connect.static(__dirname + '/static/ajax-solr/'));
-server.use('/solr/', solrrouter);
-server.use('/explorer/', explorouter);
-server.use('/adsjsonp', makeADSJSONPCall);
+server.use(SITEPREFIX+STATICPREFIX+'/', connect.static(__dirname + '/static/ajax-solr/'));
+server.use(SITEPREFIX+'/solr/', solrrouter);
+server.use(SITEPREFIX+'/explorer/', explorouter);
+server.use(SITEPREFIX+'/adsjsonp', makeADSJSONPCall);
 //using get to put into redis:BAD but just for testing
-server.use('/addtoredis', addToRedis);
-server.use('/getuser', getUser);
-server.use('/logout', logoutUser);
-server.use('/login', loginUser);
-server.use('/savesearch', saveSearchToRedis);
-server.use('/savedsearches', getSavedSearches);
-server.use('/savepub', savePubToRedis);
-server.use('/savedpubs', getSavedPubs);
+server.use(SITEPREFIX+'/addtoredis', addToRedis);
+server.use(SITEPREFIX+'/getuser', getUser);
+server.use(SITEPREFIX+'/logout', logoutUser);
+server.use(SITEPREFIX+'/login', loginUser);
+server.use(SITEPREFIX+'/savesearch', saveSearchToRedis);
+server.use(SITEPREFIX+'/savedsearches', getSavedSearches);
+server.use(SITEPREFIX+'/savepub', savePubToRedis);
+server.use(SITEPREFIX+'/savedpubs', getSavedPubs);
 server.listen(3000);
 
 //http://adsabs.harvard.edu/cgi-bin/nph-manage_account?man_cmd=logout&man_url=http%3A//labs.adsabs.harvard.edu/ui/%3Frefresh%3D1eec2387-96cb-11e0-a591-842b2b65702a

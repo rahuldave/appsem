@@ -1,4 +1,6 @@
 var Manager;
+var SITEPREFIX='';
+var SITEPREFIX='/semantic2/alpha';
 (function() {
    function nop() {}
    if (! ("console" in window) || !("firebug" in console)) {
@@ -20,7 +22,7 @@ var Manager;
       //solrUrl: 'http://boom.dyndns.org:8983/solr/'
 	  //solrUrl: 'http://adslabs.nareau.com:8983/solr/'
 	  //solrUrl: 'http://labs.adsabs.harvard.edu/semanticsolr2/solr/'
-	  solrUrl: '/solr/'
+	  solrUrl: SITEPREFIX+'/solr/'
     });
     Manager.addWidget(new AjaxSolr.ResultWidget({
       id: 'result',
@@ -35,7 +37,7 @@ var Manager;
       renderHeader: function (perPage, offset, total) {
         $('#pager-header').html($('<span/>').text('displaying ' + Math.min(total, offset + 1) + ' to ' + Math.min(total, offset + perPage) + ' of ' + total+' ')).append($('<a class="save" id="save-search" href="#">save search</a>')).append($('<a class="save" id="get-data" href="#">get data</a>'));
         $('#save-search').click(function(){
-            $.post('/savesearch', JSON.stringify({'savedsearch':location.href.split("#")[1]}), function(data){
+            $.post(SITEPREFIX+'/savesearch', JSON.stringify({'savedsearch':location.href.split("#")[1]}), function(data){
                 //should we decode uri component above? We do it on server so perhaps not.
                 if (data['success']!='undefined'){
                     $('#save-search').text("Saved");
@@ -50,7 +52,7 @@ var Manager;
         });
         console.log("HAHAHAHAHAHAHAHAHA");
         //this gets called all the time. How to avoid this?
-        $.getJSON('/savedsearches', function(data){
+        $.getJSON(SITEPREFIX+'/savedsearches', function(data){
             var thissearchurl=location.href.split("#")[1];
             console.log("THISSEARCHURL", thissearchurl);
             //alert(thissearchurl);
@@ -162,14 +164,14 @@ var Manager;
         //window.location.href="http://adsabs.harvard.edu/cgi-bin/nph-manage_account?man_cmd=login&man_url="+loc;
         //window.location.href="/login?currenturl="+loc;
         $.ajax({
-            url: "http://labs.adsabs.harvard.edu/semantic2/adsjsonp?callback=?",
+            url: "http://labs.adsabs.harvard.edu"+SITEPREFIX+"/adsjsonp?callback=?",
             dataType: 'jsonp',
             jsonpcallback: myjsonp,
             success:    function(data) {
                 if (data['email']!=''){
                     $('a#loginhref').text(data['email']);
-                    $('a#loginhref').text(data['email']).attr('href', '/explorer/saved');
-                    $.post('/addtoredis', JSON.stringify(data), function(){
+                    $('a#loginhref').text(data['email']).attr('href', SITEPREFIX+'/explorer/saved');
+                    $.post(SITEPREFIX+'/addtoredis', JSON.stringify(data), function(){
                         //not correct as it dosent do anything on nonpublication pages
                         var thisloc=window.location;
                         //Manager.doRequest();
@@ -180,7 +182,7 @@ var Manager;
                     $('a#loginhref').click(function(){
                         var thispage=window.location;
                         var prefix=thispage.protocol+'//'+location.host;
-                        var loc=encodeURIComponent(prefix+"/login?redirect="+window.location);
+                        var loc=encodeURIComponent(prefix+SITEPREFIX+"/login?redirect="+window.location);
                         window.location.href="http://adsabs.harvard.edu/cgi-bin/nph-manage_account?man_cmd=login&man_url="+loc;
                         //window.location.href="/login?redirect="+loc;
                     });
@@ -193,15 +195,15 @@ var Manager;
     $('a#logouthref').click(function(){
         var loc=encodeURIComponent(window.location);
         console.log("loc",loc);
-        window.location.href="/logout?redirect="+loc;
+        window.location.href=SITEPREFIX+"/logout?redirect="+loc;
     });
 
     console.log('Hi');
 
-        $.getJSON('/getuser', function(data){
+        $.getJSON(SITEPREFIX+'/getuser', function(data){
             console.log("DADATA",data);
             if (data['email']!='null' && data['email'] != 'undefined'){
-                $('a#loginhref').text(data['email']).attr('href', '/explorer/saved');
+                $('a#loginhref').text(data['email']).attr('href', SITEPREFIX+'/explorer/saved');
                 userhasbeengot=true;
                 
             }
@@ -212,15 +214,15 @@ var Manager;
                 console.log("making ajax call to jsonp callback");
                 if (data['startup']!='undefined'){
                 $.ajax({
-                    url: "http://labs.adsabs.harvard.edu/semantic2/adsjsonp?callback=?",
+                    url: "http://labs.adsabs.harvard.edu"+SITEPREFIX+"/adsjsonp?callback=?",
                     dataType: 'jsonp',
                     jsonpcallback: myjsonp,
                     success:    function(data) {
                         //$.cookie('startup', null);//should it be only on success?
                         if (data['email']!=''){
                             $('a#loginhref').text(data['email']);
-                            $('a#loginhref').text(data['email']).attr('href', '/explorer/saved');
-                            $.post('/addtoredis', JSON.stringify(data));
+                            $('a#loginhref').text(data['email']).attr('href', SITEPREFIX+'/explorer/saved');
+                            $.post(SITEPREFIX+'/addtoredis', JSON.stringify(data));
                         }
                         
                     }

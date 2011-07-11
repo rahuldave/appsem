@@ -3,14 +3,14 @@
     <h1>Saved Searches</h1><br/>
 	<ul>
 	{{#savedsearches}}
-	<li><a href="/explorer/publications#{{.}}">{{.}}</a></li>
+	<li><a href="{{ siteprefix }}/explorer/publications#{{.}}">{{.}}</a></li>
 	{{/savedsearches}}
 	</ul>
 	<br/>
     <h1>Saved Publications</h1><br/>
 	<ul>
 	{{#savedpubs}}
-	<li><a href="/explorer/publications#fq=id%3A{{.}}&q=*%3A*">{{.}}</a></li>
+	<li><a href="{{ siteprefix }}/explorer/publications#fq=id%3A{{.}}&q=*%3A*">{{.}}</a></li>
 	{{/savedpubs}}
 	</ul>
 

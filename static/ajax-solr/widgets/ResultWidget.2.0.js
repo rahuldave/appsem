@@ -1,3 +1,6 @@
+var SITEPREFIX='';
+var SITEPREFIX='/semantic2/alpha';
+
 (function ($) {
 
 AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
@@ -20,7 +23,7 @@ AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
       docids.push(doc.id);
     }
     console.log("DOCIDS", docids);
-    $.getJSON('/savedpubs', function(data){
+    $.getJSON(SITEPREFIX+'/savedpubs', function(data){
         if (data['savedpubs']!='undefined'){
             var savedpubarray=data['savedpubs'];
             console.log("SAVEDPUBARRAY", savedpubarray);
@@ -74,7 +77,7 @@ AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
         
       var thedoc=doc;
       return function(){
-            $.post('/savepub', JSON.stringify({'savedpub':thedoc.id}), function(data){
+            $.post(SITEPREFIX+'/savepub', JSON.stringify({'savedpub':thedoc.id}), function(data){
                 if (data['success']!='undefined'){
                     $('#savepub_'+thedoc.id).text("Saved");
                     $('#savepub_'+thedoc.id).css("background","grey");

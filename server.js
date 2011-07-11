@@ -1,15 +1,16 @@
 /* A NodeJS server that statically serves javascript out, proxies solr requests,
  and handles authentication through the ADS */
 
-var SOLRHOST='labs.adsabs.harvard.edu'
-var SOLRURL='/semanticsolr2/solr'
-var SOLRHOST='localhost'
-var SOLRURL='/solr'
-var ADSHOST='adsabs.harvard.edu'
-var ADSURL='/cgi-bin/insert_login/credentials/'
-var TDIR=__dirname + '/static/ajax-solr/templates/'
-//SOLRHOST='localhost'
-//SOLRURL='/solr'
+var SOLRHOST='labs.adsabs.harvard.edu';
+var SOLRURL='/semanticsolr2/solr';
+var SOLRHOST='localhost';
+var SOLRURL='/solr';
+var SOLRPORT=8983;
+var ADSHOST='adsabs.harvard.edu';
+var ADSURL='/cgi-bin/insert_login/credentials/';
+var TDIR=__dirname + '/static/ajax-solr/templates/';
+//SOLRHOST='localhost';
+//SOLRURL='/solr';
 var connect=require('connect');
 var connectutils=connect.utils;
 var http=require('http');
@@ -121,7 +122,7 @@ var solrrouter=connect(
            var solroptions={
                 host:SOLRHOST,
                 path:SOLRURL+req.url,
-                port:3001
+                port:SOLRPORT
             };
            doProxy(solroptions, req, res);
        }); 

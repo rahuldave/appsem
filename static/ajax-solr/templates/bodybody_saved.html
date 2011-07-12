@@ -3,14 +3,15 @@
     <h1>Saved Searches</h1><br/>
 	<ul>
 	{{#savedsearches}}
-	<li><a href="{{ siteprefix }}/explorer/publications#{{.}}">{{.}}</a></li>
+	<!--Fullpath below works around mustache not getting parent scopes. Choose other mustache compatible templating library later-->
+	<li><a href="/semantic2/alpha/explorer/publications#{{.}}">{{.}}</a></li>
 	{{/savedsearches}}
 	</ul>
 	<br/>
     <h1>Saved Publications</h1><br/>
 	<ul>
 	{{#savedpubs}}
-	<li><a href="{{ siteprefix }}/explorer/publications#fq=id%3A{{.}}&q=*%3A*">{{.}}</a></li>
+	<li><a href="/semantic2/alpha/explorer/publications#fq=id%3A{{.}}&q=*%3A*">{{.}}</a></li>
 	{{/savedpubs}}
 	</ul>
 

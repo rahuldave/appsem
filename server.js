@@ -400,7 +400,7 @@ function doSaved(req, res, next){
     var view={
         pagehead:{pagetype:'Saved', siteprefix: SITEPREFIX, staticprefix: SITEPREFIX+STATICPREFIX},
         bodyhead:{isitchosensaved:'chosen', current_url:req.url, siteprefix: SITEPREFIX, staticprefix: SITEPREFIX+STATICPREFIX},
-        bodybody:{siteprefix: SITEPREFIX, staticprefix: SITEPREFIX+STATICPREFIX},
+        bodybody:{siteprefix: SITEPREFIX, staticprefix: SITEPREFIX+STATICPREFIX, hello: 'World'},
     };
     var lpartials=JSON.parse(globpartialsjson);
     lpartials['bodybody']=bodybodysaved;

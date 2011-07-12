@@ -91,7 +91,8 @@ var $jqlist2=$('<p><b>Objects</b>: </p>');
 for (var ele in objlinks){
 	$jqlist2=$jqlist2.append(objlinks[ele]);
 } 
-var $output2=$('<p></p>').append($jqlist2).append($('<br/>')).append($jqlist).append($obsall).append($('<br/><b>Abstract</b>: '+doc.abstract));
+//alert("Abstract:"+doc.abstract);
+var $output2=$('<p></p>').append($jqlist2).append($('<br/>')).append($jqlist).append($obsall).append($('<p><br/><b>Abstract</b>: '+doc.abstract+'</p>'));
 return [$(output), $output2];
 };
 

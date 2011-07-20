@@ -262,15 +262,24 @@ font-size: 140%;
 font-size: 145%;
 }
 
-/* How should the object and mission data be styled? */
+/*
+ * How should information within each paper be styled?
+ *
+ * One common change is to override the justification; perhaps
+ * text-align:justify should only be applied to the abstract?
+ */
+
+p.links {
+    text-align: left;
+}
 
 div.objectdataarea {
-    text-align: left; /* override parent justify setting */
+    text-align: left;
 }
 
 div.missiondataarea {
     padding-left: 2em;
-    text-align: left; /* override parent justify setting */
+    text-align: left;
 }
 
 span.missionname {

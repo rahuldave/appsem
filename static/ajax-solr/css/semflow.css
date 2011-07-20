@@ -261,3 +261,15 @@ font-size: 140%;
 .tagcloud_size_10 {
 font-size: 145%;
 }
+
+/* How should the mission data be styled? */
+
+div.missiondataarea {
+    padding-left: 2em;
+    text-align: left; /* override parent justify setting */
+}
+
+span.missionname {
+    position: relative;
+    left: -1em;
+}

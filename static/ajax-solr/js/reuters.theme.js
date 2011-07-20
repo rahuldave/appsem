@@ -61,12 +61,12 @@ AjaxSolr.theme.prototype.snippet = function (doc) {
 	);
  }
  if (obsids==undefined){
-     obsids="None";
-     var obsarray=[];
+     obsids = "None";
+     // var obsarray=[];
      // var obslinks=[];
      var $obsarea = $('<span>None</span>');
      // var $obsall = $('<span>None</span>');
-     var $obsall = $('');
+     // var $obsall = $('');
  } else {
 
      // we sort so that the same missions get grouped together
@@ -84,29 +84,47 @@ AjaxSolr.theme.prototype.snippet = function (doc) {
      */
 
      // the following is not intended to be efficient or idiomatic javascript
-     // it's also not creating the HTML I want
+     // it's also not creating the HTML I want [do I really need $foo = $foo.append(..)?]
+     //
+     var missionmap = {};
      var curmission = "";
-     var $obsarea = $('<div>');
      for (var e1 in obsarray) {
 	 var mission = obsarray[e1][0];
 	 var obsid   = obsarray[e1][1];
-	 if (mission !== curmission) {
-	     if (curmission !== "") { $obsarea.append("</div>"); }
-	     $obsarea.append("<div><i>" + mission + ":</i> "); // could add all link here if rework things
-	     curmission = mission;
-	 }
-
-	 if (mission == "CHANDRA") {
-	     $obsarea.append($('<a class="iframe" href="http://cda.harvard.edu/chaser/ocatList.do?obsid='+obsid+'">'+obsid+'</a> ').fancybox({autoDimensions: false, width:1024, height:768}));
+	 if (mission === curmission) {
+	     missionmap[mission].push(obsid);
 	 } else {
-	     $obsarea.append('<span>' + obsid + '</span> ');
+	     curmission = mission;
+	     missionmap[mission] = [obsid];
 	 }
      }
-     $obsarea.append("</div></div>")
+
+     var $obsarea = $('<div class="missiondataarea"></div>');
+     for (var mission in missionmap) {
+	 var mobsids = missionmap[mission];
+	 
+	 var $obsbody = $('<div class="missiondata"></div>').append($('<span class="missionname">' + mission + ':</i>'));
+
+	 // do we want a "download all obsids" link?
+	 if (mission == "CHANDRA" && mobsids.length > 1) {
+	     $obsbody.append($(' <a class="iframe" href="http://cda.harvard.edu/chaser/ocatList.do?obsid='+mobsids.join(',')+'">All</a>').fancybox({autoDimensions: false, width:1024, height:768}));
+	 }
+	 $obsbody.append($('<br/>'));
+
+	 // now the individual obsids
+	 if (mission == "CHANDRA") {
+	     for (var idx in mobsids) {
+		 $obsbody.append($('<a class="iframe" href="http://cda.harvard.edu/chaser/ocatList.do?obsid='+mobsids[idx]+'">'+mobsids[idx]+'</a> ').fancybox({autoDimensions: false, width:1024, height:768}));
+	     }
+	 } else {
+	     for (var idx in mobsids) {
+		 $obsbody.append('<span class="obsid">' + mobsids[idx] + '</span> ');
+	     }
+	 }
+
+	 $obsarea.append($obsbody);
+     }
 	     
-     // Should think about doing the "all" list within the loop above
-     //obsids=obslinks.join(",");
-     var $obsall=$('<a class="iframe" href="http://cda.harvard.edu/chaser/ocatList.do?obsid='+obsarray.join(',')+'">All</a>').fancybox({autoDimensions: false, width:1024, height:768});
  }
  //console.log("output="+output);
  //var output2='<p><b>Objects</b>: '+objectnames+'<br/><b>Datasets</b>: '+obsids+" "+obsall+'<br/><b>Abstract</b>: '+doc.abstract+"</p>";
@@ -122,7 +140,8 @@ for (var ele in objlinks){
 	$jqlist2=$jqlist2.append(objlinks[ele]);
 } 
 //alert("Abstract:"+doc.abstract);
-var $output2=$('<p></p>').append($jqlist2).append($('<br/>')).append($jqlist).append($obsall).append($('<p><br/><b>Abstract</b>: '+doc.abstract+'</p>'));
+// var $output2=$('<p></p>').append($jqlist2).append($('<br/>')).append($jqlist).append($obsall).append($('<p><br/><b>Abstract</b>: '+doc.abstract+'</p>'));
+var $output2=$('<p></p>').append($jqlist2).append($('<br/>')).append($jqlist).append($('<p><br/><b>Abstract</b>: '+doc.abstract+'</p>'));
 return [$(output), $output2];
 };
 

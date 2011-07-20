@@ -451,6 +451,7 @@ function cookieFunc(req, res, next){
 var server = connect.createServer();
 //server.use(connect.logger());
 server.use(connect.cookieParser());
+
 //Not sure we need to use session middleware, more like login moddleware cookies.
 //Especially since we dont seem to know how not to reextend the time for session cookies.
 //thats prolly right behavior for session cookies since the more people use the more we wanna keep them on
@@ -468,6 +469,12 @@ server.use(SITEPREFIX+'/savesearch', saveSearchToRedis);
 server.use(SITEPREFIX+'/savedsearches', getSavedSearches);
 server.use(SITEPREFIX+'/savepub', savePubToRedis);
 server.use(SITEPREFIX+'/savedpubs', getSavedPubs);
+
+// not sure of the best way to do this, but want to privide access to
+// ajax-loader.gif and this way avoids hacking ResultWidget.2.0.js
+//
+server.use('/images', connect.static(__dirname + '/static/ajax-solr/images/'));
+
 server.listen(3000);
 
 //http://adsabs.harvard.edu/cgi-bin/nph-manage_account?man_cmd=logout&man_url=http%3A//labs.adsabs.harvard.edu/ui/%3Frefresh%3D1eec2387-96cb-11e0-a591-842b2b65702a

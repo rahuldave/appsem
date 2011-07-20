@@ -135,10 +135,18 @@ for (var ele in obslinks){
     $jqlist = $jqlist.append(obslinks[ele]);
 }
 */
-var $jqlist2=$('<p><b>Objects</b>: </p>');
+// TODO: perhaps do not display an objects section if there are no objects associated with the paper?
+var $jqlist3 = $('<div class="objectdataarea"></div>');
 for (var ele in objlinks){
-	$jqlist2=$jqlist2.append(objlinks[ele]);
+	$jqlist3.append(objlinks[ele]);
 } 
+var $jqlist2=$('<p><b>Objects</b>: </p>');
+    if (objlinks.length == 0) {
+	$jqlist2.append($("<span>None</span>"));
+    } else {
+	$jqlist2.append($jqlist3);
+    }
+
 //alert("Abstract:"+doc.abstract);
 // var $output2=$('<p></p>').append($jqlist2).append($('<br/>')).append($jqlist).append($obsall).append($('<p><br/><b>Abstract</b>: '+doc.abstract+'</p>'));
 var $output2=$('<p></p>').append($jqlist2).append($('<br/>')).append($jqlist).append($('<p><br/><b>Abstract</b>: '+doc.abstract+'</p>'));

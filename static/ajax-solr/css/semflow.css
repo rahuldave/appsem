@@ -262,7 +262,11 @@ font-size: 140%;
 font-size: 145%;
 }
 
-/* How should the mission data be styled? */
+/* How should the object and mission data be styled? */
+
+div.objectdataarea {
+    text-align: left; /* override parent justify setting */
+}
 
 div.missiondataarea {
     padding-left: 2em;

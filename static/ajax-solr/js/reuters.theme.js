@@ -115,7 +115,7 @@ AjaxSolr.theme.prototype.snippet = function (doc) {
 	 // do we want a "download all obsids" link?
 	 if (mobsids.length > 1) {
 	     if (mission == "CHANDRA") {
-		 $obsbody.append($(' <a class="iframe" href="http://cda.harvard.edu/chaser/ocatList.do?obsid='+mobsids.join(',')+'">All</a>').fancybox({autoDimensions: false, width:1024, height:768}));
+		 $obsbody.append($(' <a class="iframe" href="http://cda.harvard.edu/chaser/ocatList.do?obsid='+mobsids.join(',')+'">All ('+mobsids.length+')</a>').fancybox({autoDimensions: false, width:1024, height:768}));
 	     } else if (idfieldmap[mission]) {
 		 // This assumes we only have Chandra or MAST; will need to be fixed.
 		 //
@@ -125,32 +125,51 @@ AjaxSolr.theme.prototype.snippet = function (doc) {
 		 //
 		 var $form = $('<form action="http://archive.stsci.edu/'+mission+'/search.php" method="post"></form>');
 		 $form.append($('<input type="hidden" name="'+idfieldmap[mission]+'" value="'+mobsids.join(',')+'">'));
-		 $form.append($('<input type="submit" name="action" value="All">'));
+		 $form.append($('<input type="submit" name="action" value="All ('+mobsids.length+')">'));
 		 $obsbody.append($form);
 	     }
 	 }
 	 $obsbody.append($('<br/>'));
 
+	 // ad-hoc collection of MAST missions for which the data link is known to
+	 // not work (we exclude rather than include to allow testing/easy addition of
+	 // new missions).
+	 var mastmissionmap = { };
+
 	 // now the individual obsids; this should be made more modular
-	 if (mission == "CHANDRA") {
+	 if (mission === "CHANDRA") {
 	     for (var idx in mobsids) {
 		 $obsbody.append($('<a class="iframe" href="http://cda.harvard.edu/chaser/ocatList.do?obsid='+mobsids[idx]+'">'+mobsids[idx]+'</a> ').fancybox({autoDimensions: false, width:1024, height:768}));
 	     }
 	 } else {
 	     // Assuming MAST, which will eventually be wrong
-	     for (var idx in mobsids) {
-		 // This link is nice because the MAST page includes useful visualization,
-		 // but it looks like the data links don't match those from the obsid page,
-		 // for the one obsid from EUVE that Doug looked at.
-		 $obsbody.append($('<a class="iframe" href="http://archive.stsci.edu/cgi-bin/mastpreview?mission='+mission+'&dataid='+mobsids[idx]+'">'+mobsids[idx]+'</a> ').fancybox({autoDimensions: false, width:1024, height:768}));
+	     // and all this mission-specific knowledge is not ideal
+	     
+	     if (mission in mastmissionmap) {
+		 for (var idx in mobsids) {
+		     $obsbody.append('<span class="obsid">' + mobsids[idx] + '</span> ');
+		 }
+	     } else {
+		 for (var idx in mobsids) {
+		     // This link is nice because the MAST page includes useful visualization,
+		     // but it looks like the data links don't match those from the obsid page,
+		     // for the one obsid from EUVE that Doug looked at.
+
+		     var obsidlnk = mobsids[idx]; // should we change the text too?
+		     if (mission === "hpol") {
+			 obsidlnk = obsidlnk.slice(8, obsidlnk.length-3);
+		     } else if (mission === "hut") {
+			 // remove the time value, but this doesn't always create a working link
+			 obsidlnk = obsidlnk.split("=")[0];
+		     } else if (mission === "iue") {
+			 obsidlnk = obsidlnk.slice(0, obsidlnk.length-4);
+		     }
+
+		     $obsbody.append($('<a class="iframe" href="http://archive.stsci.edu/cgi-bin/mastpreview?mission='+mission+'&dataid='+obsidlnk+'">'+mobsids[idx]+'</a> ').fancybox({autoDimensions: false, width:1024, height:768}));
+		 }
 	     }
 	 }
-	 /*
-	     for (var idx in mobsids) {
-		 $obsbody.append('<span class="obsid">' + mobsids[idx] + '</span> ');
-	     }
-	 */
-
+		 
 	 $obsarea.append($obsbody);
      }
 	     

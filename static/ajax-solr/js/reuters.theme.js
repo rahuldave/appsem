@@ -99,6 +99,13 @@ AjaxSolr.theme.prototype.snippet = function (doc) {
 	 }
      }
 
+     // somewhat hacky way to determine what the correct field name is
+     var idfieldmap = { "euve": "euve_data_id", 
+			// "fuse": "fes_data_set_name"  does not seem to work
+			// "iue": "iue_data_id"         does not seem to work
+			// I have not bothered checking the other missions
+		      };
+
      var $obsarea = $('<div class="missiondataarea"></div>');
      for (var mission in missionmap) {
 	 var mobsids = missionmap[mission];
@@ -106,21 +113,43 @@ AjaxSolr.theme.prototype.snippet = function (doc) {
 	 var $obsbody = $('<div class="missiondata"></div>').append($('<span class="missionname">' + mission + ':</i>'));
 
 	 // do we want a "download all obsids" link?
-	 if (mission == "CHANDRA" && mobsids.length > 1) {
-	     $obsbody.append($(' <a class="iframe" href="http://cda.harvard.edu/chaser/ocatList.do?obsid='+mobsids.join(',')+'">All</a>').fancybox({autoDimensions: false, width:1024, height:768}));
+	 if (mobsids.length > 1) {
+	     if (mission == "CHANDRA") {
+		 $obsbody.append($(' <a class="iframe" href="http://cda.harvard.edu/chaser/ocatList.do?obsid='+mobsids.join(',')+'">All</a>').fancybox({autoDimensions: false, width:1024, height:768}));
+	     } else if (idfieldmap[mission]) {
+		 // This assumes we only have Chandra or MAST; will need to be fixed.
+		 //
+		 // Can we hack up a form to POST the search? I had hoped that this would take
+		 // the user to the actual search results rather than the filled-in search page
+		 // which it creates. It also doesn't use the fancybox magic.
+		 //
+		 var $form = $('<form action="http://archive.stsci.edu/'+mission+'/search.php" method="post"></form>');
+		 $form.append($('<input type="hidden" name="'+idfieldmap[mission]+'" value="'+mobsids.join(',')+'">'));
+		 $form.append($('<input type="submit" name="action" value="All">'));
+		 $obsbody.append($form);
+	     }
 	 }
 	 $obsbody.append($('<br/>'));
 
-	 // now the individual obsids
+	 // now the individual obsids; this should be made more modular
 	 if (mission == "CHANDRA") {
 	     for (var idx in mobsids) {
 		 $obsbody.append($('<a class="iframe" href="http://cda.harvard.edu/chaser/ocatList.do?obsid='+mobsids[idx]+'">'+mobsids[idx]+'</a> ').fancybox({autoDimensions: false, width:1024, height:768}));
 	     }
 	 } else {
+	     // Assuming MAST, which will eventually be wrong
+	     for (var idx in mobsids) {
+		 // This link is nice because the MAST page includes useful visualization,
+		 // but it looks like the data links don't match those from the obsid page,
+		 // for the one obsid from EUVE that Doug looked at.
+		 $obsbody.append($('<a class="iframe" href="http://archive.stsci.edu/cgi-bin/mastpreview?mission='+mission+'&dataid='+mobsids[idx]+'">'+mobsids[idx]+'</a> ').fancybox({autoDimensions: false, width:1024, height:768}));
+	     }
+	 }
+	 /*
 	     for (var idx in mobsids) {
 		 $obsbody.append('<span class="obsid">' + mobsids[idx] + '</span> ');
 	     }
-	 }
+	 */
 
 	 $obsarea.append($obsbody);
      }
@@ -147,9 +176,15 @@ var $jqlist2=$('<p><b>Objects</b>: </p>');
 	$jqlist2.append($jqlist3);
     }
 
+    // do we need to HTML escape this text?
+    // Escaping based on ajax-solr's escapeOnce(); does not work
+    var abtext = doc.abstract;
+    // abtext += '';
+    // abtext.replace(/"/g, '"').replace(/>/g, '>').replace(/</g, '<').replace(/&(?!([a-zA-Z]+|#\d+);)/g, '&');
+
 //alert("Abstract:"+doc.abstract);
 // var $output2=$('<p></p>').append($jqlist2).append($('<br/>')).append($jqlist).append($obsall).append($('<p><br/><b>Abstract</b>: '+doc.abstract+'</p>'));
-var $output2=$('<p></p>').append($jqlist2).append($('<br/>')).append($jqlist).append($('<p><br/><b>Abstract</b>: '+doc.abstract+'</p>'));
+    var $output2=$('<p></p>').append($jqlist2).append($('<br/>')).append($jqlist).append($('<p><br/><b>Abstract</b>: '+abtext+'</p>'));
 return [$(output), $output2];
 };
 

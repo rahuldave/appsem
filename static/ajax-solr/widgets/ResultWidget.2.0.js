@@ -47,7 +47,12 @@ AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
     var links = [];
     if (facet_values) {
         for (var i = 0, l = facet_values.length; i < l; i++) {
-            links.push(AjaxSolr.theme('facet_link', '"'+facet_values[i]+'"', this.facetHandler(facet_field, '"'+facet_values[i]+'"')));
+            links.push(AjaxSolr.theme('facet_link',
+				      /*  Doug thinks the quotes are visually distracting
+					 '"'+facet_values[i]+'"', 
+				      */
+				      facet_values[i],
+				      this.facetHandler(facet_field, '"'+facet_values[i]+'"')));
         }
     }
     //alert(links);

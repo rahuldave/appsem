@@ -23,6 +23,7 @@ AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
       docids.push(doc.id);
     }
     console.log("DOCIDS", docids);
+    // Find out which papers have been saved so that we can change the Saved text/icon
     $.getJSON(SITEPREFIX+'/savedpubs', function(data){
         if (data['savedpubs']!='undefined'){
             var savedpubarray=data['savedpubs'];
@@ -82,7 +83,11 @@ AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
         
       var thedoc=doc;
       return function(){
-            $.post(SITEPREFIX+'/savepub', JSON.stringify({'savedpub':thedoc.id}), function(data){
+	  $.post(SITEPREFIX+'/savepub', JSON.stringify({
+		      'savedpub':thedoc.id, 
+			  'pubbibcode':thedoc.bibcode,
+			  'pubtitle':thedoc.title
+			  }), function(data){
                 if (data['success']!='undefined'){
                     $('#savepub_'+thedoc.id).text("Saved");
                     $('#savepub_'+thedoc.id).css("background","grey");

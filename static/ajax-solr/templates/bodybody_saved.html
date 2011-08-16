@@ -11,7 +11,12 @@
     <h1>Saved Publications</h1><br/>
 	<ul>
 	{{#savedpubs}}
-	<li><a href="/semantic2/alpha/explorer/publications#fq=id%3A{{.}}&q=*%3A*">{{.}}</a></li>
+	<li>
+	  <!-- <a href="/semantic2/alpha/explorer/publications#fq=id%3A{{.}}&q=*%3A*"> -->
+	  <a href="/semantic2/alpha/explorer/publications#fq=bibcode%3A{{bibcode}}&q=*%3A*">
+	    {{title}} ({{bibcode}})
+	  </a>
+	</li>
 	{{/savedpubs}}
 	</ul>
 

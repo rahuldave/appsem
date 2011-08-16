@@ -195,6 +195,8 @@ function savePub(jsonpayload, req, res, next){
     var logincookie=req.cookies['logincookie'];
     var jsonobj=JSON.parse(jsonpayload);
     var savedpub=jsonobj['savedpub'];
+    var bibcode=jsonobj['pubbibcode'];
+    var title=jsonobj['pubtitle'];
     var email;
     var sendback={};
     if (logincookie==undefined){
@@ -208,6 +210,15 @@ function savePub(jsonpayload, req, res, next){
         email=reply;
         //the reason this must be done here is that its only in the response to the next call
         //that email is set. Not in the request.
+
+	// Doug is trying to save info about the publication in a global
+	// hash. In production use it may be better to have this info saved
+	// per user, but that has its own issues
+	//
+	// Should worry about failures here, but not for now.
+	redis_client.hset('bibcodes', savedpub, bibcode)
+	redis_client.hset('titles', savedpub, title)
+
         redis_client.sadd('savedpub:'+email, savedpub, function(err, reply){
             console.log("is email set", email);
             res.writeHead(200, "OK", {'Content-Type': 'application/json'});
@@ -319,13 +330,18 @@ function getSavedSearches(req, res, next){
 
 }
 
+/*
+ * We only return the document ids here; for the full document info
+ * see doSaved.
+ */
+  
 function getSavedPubs(req, res, next){
     console.log("::::::::::getSavedPubsCookies", req.cookies);
     var logincookie=req.cookies['logincookie'];
     var email;
     var sendback={};
     //this punts on the issue of having to make this extra call
-    if (logincookie==undefined){
+    if (logincookie===undefined){
         res.writeHead(200, "OK", {'Content-Type': 'application/json'});
         sendback['savedpubs']='undefined';
         res.end(JSON.stringify(sendback));
@@ -343,8 +359,6 @@ function getSavedPubs(req, res, next){
     });
 
 }
-
-
 
 function makeADSJSONPCall(req, res, next){
     //Add logic if the appropriate cookie is not defined
@@ -410,6 +424,7 @@ function doSaved(req, res, next){
     var html;
     res.writeHead(200, { 'Content-Type': 'text/html' });
     if (logincookie!=undefined){
+	/*** original code before Doug messed around with it
         redis_client.get('email:'+logincookie, function(err, reply){
             email=reply;
             redis_client.smembers('savedsearch:'+email, function(err, reply){
@@ -418,11 +433,56 @@ function doSaved(req, res, next){
                     savedpubs=reply;
                     view['savedsearches']=savedsearches;
                     view['savedpubs']=savedpubs;
+		    console.log("CALLING MUSTACHE");
                     html=mustache.to_html(maint, view, lpartials);
                     res.end(html);
                 });
             });
         });
+	***/
+
+	var pubtitles;
+	var pubcodes;
+	redis_client.get('email:'+logincookie,function(err, reply){
+		email=reply;
+
+		redis_client.smembers('savedsearch:'+email, function(err, reply){
+			savedsearches=reply;
+			redis_client.smembers('savedpub:'+email, function(err, reply){
+				savedpubs=reply;
+
+				// want the bibcodes and titles for these publications
+				//
+				redis_client.hmget('titles', savedpubs, function(err, reply){
+					// console.log("Saved publication titles: ", reply);
+					pubtitles=reply;
+
+					redis_client.hmget('bibcodes', savedpubs, function(err, reply){
+						//console.log("Saved bibcode titles: ", reply);
+						bibcodes = reply;
+						
+						/* consolidate the values for the templates */
+						
+						view['savedsearches'] = savedsearches;
+						view['savedpubs'] = new Array(savedpubs.length);
+						for (var i = 0; i < savedpubs.length; i++) {
+						    var pubid = savedpubs[i];
+						    var pubtitle = pubtitles[i];
+						    var bibcode = bibcodes[i];
+						    view['savedpubs'][i] = {'pubid': pubid, 'title': pubtitle, 'bibcode': bibcode};
+						}
+				
+						console.log("HACK: mustache view = ", view);
+						console.log("CALLING MUSTACHE");
+						html=mustache.to_html(maint, view, lpartials);
+						res.end(html);
+
+					    });
+				    });
+			    });
+		    });
+	    });
+
     } else {
         view['savedsearches']=[];
         view['savedpubs']=[];

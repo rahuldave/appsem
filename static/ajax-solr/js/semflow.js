@@ -35,13 +35,23 @@ var SITEPREFIX='/semantic2/alpha';
       nextLabel: '&gt;',
       innerWindow: 1,
       renderHeader: function (perPage, offset, total) {
-        $('#pager-header').html($('<span/>').text('displaying ' + Math.min(total, offset + 1) + ' to ' + Math.min(total, offset + perPage) + ' of ' + total+' ')).append($('<a class="save" id="save-search" href="#">save search</a>')).append($('<a class="save" id="get-data" href="#">get data</a>'));
+          $('#pager-header').html($('<span/>').text('displaying ' + Math.min(total, offset + 1) + ' to ' + Math.min(total, offset + perPage) + ' of ' + total+' ')).append($('<a class="save" id="save-search" href="#">save search</a>')).append($('<a class="delete" id="delete-search" style="display:none" href="#">delete search</a>')).append($('<a class="save" id="get-data" href="#">get data</a>'));
         $('#save-search').click(function(){
             $.post(SITEPREFIX+'/savesearch', JSON.stringify({'savedsearch':location.href.split("#")[1]}), function(data){
                 //should we decode uri component above? We do it on server so perhaps not.
-                if (data['success']!='undefined'){
-                    $('#save-search').text("Saved");
-                    $('#save-search').css("background","grey");
+                if (data['success']==='defined'){
+		    $('#save-search').hide();
+		    $('#delete-search').show();
+                }
+            });  
+            return false;
+        });
+        $('#delete-search').click(function(){
+            $.post(SITEPREFIX+'/deletesearch', JSON.stringify({'savedsearch':location.href.split("#")[1]}), function(data){
+                //should we decode uri component above? We do it on server so perhaps not.
+                if (data['success']==='defined'){
+		    $('#delete-search').hide();
+		    $('#save-search').show();
                 }
             });  
             return false;
@@ -61,11 +71,12 @@ var SITEPREFIX='/semantic2/alpha';
                 console.log("SAVEDSEARCHARRAY", savedsearcharray);
                 if (_.indexOf(savedsearcharray, thissearchurl)!=-1){
                     console.log("ELE",thissearchurl);
-                    $('#save-search').text("Saved");
-                    $('#save-search').css("background","grey");
+		    $('#save-search').hide();
+		    $('#delete-search').show();
                 }
             } else {
                 $('#save-search').hide();
+                $('#delete-search').hide();
                 $('#get-data').hide();
             }
         });

@@ -167,6 +167,7 @@ function insertUser(jsonpayload, req, res, next){
 
 function saveSearch(jsonpayload, req, res, next){
     console.log("savedsearchcookies", req.cookies, jsonpayload);
+
     var logincookie=req.cookies['logincookie'];
     var jsonobj=JSON.parse(jsonpayload);
     var savedsearch=jsonobj['savedsearch'];
@@ -386,9 +387,12 @@ function savePubToRedis(req, res, next){
 function deletePubFromRedis(req, res, next){
     postHandler(req, res, deletePub);
 }
+function deleteSearchFromRedis(req, res, next){
+    postHandler(req, res, deleteSearch);
+}
 
 function deletePub(jsonpayload, req, res, next) {
-    console.log(">> In deletePubFromRedis");
+    console.log(">> In deletePub");
     // console.log(">>   cookies = ", req.cookies);
     // console.log(">>   payload = ", jsonpayload);
 
@@ -423,6 +427,39 @@ function deletePub(jsonpayload, req, res, next) {
 		    res.end(JSON.stringify(sendback));
 		});
 	    });
+	});
+    });
+
+}
+
+function deleteSearch(jsonpayload, req, res, next) {
+    console.log(">> In deleteSearch");
+    // console.log(">>   cookies = ", req.cookies);
+    // console.log(">>   payload = ", jsonpayload);
+
+    var jsonobj = JSON.parse(jsonpayload);
+    var logincookie = req.cookies['logincookie'];
+    var searchid = jsonobj['savedsearch'];
+    console.log("logincookie:", logincookie, " search:", searchid);
+    var sendback = {};
+
+    if (logincookie===undefined || searchid===undefined){
+        res.writeHead(200, "OK", {'Content-Type': 'application/json'});
+        sendback['success']='undefined';
+        res.end(JSON.stringify(sendback));
+        return; 
+    }
+
+    var email;
+    redis_client.get('email:'+logincookie,function(err, reply){
+        email=reply;
+
+	redis_client.srem('savedsearch:'+email, searchid, function(err,reply){
+	    console.log("Assumed we have removed " + searchid + " from user's savedsearch list");
+
+	    res.writeHead(200, "OK", {'Content-Type': 'application/json'});
+	    sendback['success']='defined';
+	    res.end(JSON.stringify(sendback));
 	});
     });
 
@@ -472,7 +509,7 @@ function searchToText(searchTerm) {
 }
 
 function doSaved(req, res, next){
-    console.log("In do Saved",this);
+    console.log("In do Saved");
     var logincookie=req.cookies['logincookie'];
     var view={
         pagehead:{pagetype:'Saved', siteprefix: SITEPREFIX, staticprefix: SITEPREFIX+STATICPREFIX},
@@ -553,8 +590,8 @@ function doSaved(req, res, next){
 
 			    }
 				
-			    console.log("HACK: mustache view = ", view);
-			    console.log("CALLING MUSTACHE");
+			    // console.log("HACK: mustache view = ", view);
+			    // console.log("CALLING MUSTACHE");
 			    html=mustache.to_html(maint, view, lpartials);
 			    // TODO: can I process the html to add in callbacks for the remove links?
 			    res.end(html);
@@ -611,6 +648,7 @@ server.use(SITEPREFIX+'/savesearch', saveSearchToRedis);
 server.use(SITEPREFIX+'/savedsearches', getSavedSearches);
 server.use(SITEPREFIX+'/savepub', savePubToRedis);
 
+server.use(SITEPREFIX+'/deletesearch', deleteSearchFromRedis);
 server.use(SITEPREFIX+'/deletepub', deletePubFromRedis);
 
 server.use(SITEPREFIX+'/savedpubs', getSavedPubs);

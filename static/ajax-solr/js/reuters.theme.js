@@ -14,9 +14,10 @@ AjaxSolr.theme.prototype.result = function (doc, snippet, thetitlelink, thepivot
   var $morea=$('<a href="#" class="less" id="am_'+doc.id+'">more</a>').click(thedocthis.moreHandler(doc));
   var $lessa=$('<a href="#" id="al_'+doc.id+'" style="display:none">less</a>').click(thedocthis.lessHandler(doc));
   var $bookmark=$('<a href="#" class="save" id="savepub_'+doc.id+'">save</a>').click(thedocthis.saveHandler(doc));
+  var $unbookmark=$('<a href="#" class="delete" id="delpub_'+doc.id+'" style="display:none">delete</a>').click(thedocthis.deleteHandler(doc));
   var $data=$('<a href="#" class="save" id="data_'+doc.id+'">data</a>').click(thedocthis.dataHandler(doc));
   var $morepara=$('<p id="p_'+doc.id+'" style="display:none"></p>').append(snippet[1]);
-  var $lessmore=$('<div class="lessmore"></div>').append($bookmark).append($data).append($morea).append($lessa).append($morepara);
+  var $lessmore=$('<div class="lessmore"></div>').append($bookmark).append($unbookmark).append($data).append($morea).append($lessa).append($morepara);
   //return output;
   console.log("hi")
   return $thisdiv.append($h2).append($linkoutput).append(snippet[0]).append($lessmore);

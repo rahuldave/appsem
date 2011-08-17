@@ -52,6 +52,16 @@ a.save {
     background: #FAF8CC;
     border-radius: 10px;
 }
+
+a.delete {
+    color: #333;
+    border: 1px solid;
+    padding-left: 5px;
+    padding-right: 5px;
+    background: grey; /* #FAF8CC; */
+    border-radius: 10px;
+}
+
 a:hover {
   color: #000;
   text-decoration: underline;

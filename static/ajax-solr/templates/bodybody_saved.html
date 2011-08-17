@@ -12,10 +12,8 @@
 	<ul>
 	{{#savedpubs}}
 	<li>
-	  <!-- <a href="/semantic2/alpha/explorer/publications#fq=id%3A{{.}}&q=*%3A*"> -->
-	  <a href="/semantic2/alpha/explorer/publications#fq=bibcode%3A{{bibcode}}&q=*%3A*">
-	    {{title}} ({{bibcode}})
-	  </a>
+	  <a href="/semantic2/alpha/explorer/publications#fq={{linkuri}}&q=*%3A*">{{linktext}}</a>
+	  [Should be a 'Remove' link here]
 	</li>
 	{{/savedpubs}}
 	</ul>

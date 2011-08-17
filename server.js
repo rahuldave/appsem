@@ -389,6 +389,42 @@ function savePubToRedis(req, res, next){
     postHandler(req, res, savePub);
 }
 
+function deletePubFromRedis(req, res, next){
+    postHandler(req, res, deletePub);
+}
+
+function deletePub(jsonpayload, req, res, next) {
+    console.log(">> In deletePubFromRedis");
+    // console.log(">>   cookies = ", req.cookies);
+    // console.log(">>   payload = ", jsonpayload);
+
+    var jsonobj = JSON.parse(jsonpayload);
+    var logincookie = req.cookies['logincookie'];
+    var docid = jsonobj['savedpub'];
+    console.log("logincookie:", logincookie, " docid:", docid);
+    var sendback = {};
+
+    if (logincookie===undefined || docid===undefined){
+        res.writeHead(200, "OK", {'Content-Type': 'application/json'});
+        sendback['success']='undefined';
+        res.end(JSON.stringify(sendback));
+        return; 
+    }
+
+    var email;
+    redis_client.get('email:'+logincookie,function(err, reply){
+        email=reply;
+
+	redis_client.srem('savedpub:'+email, docid, function(err,reply){
+	    console.log("Assumed we have removed " + docid + " from user's store");
+            res.writeHead(200, "OK", {'Content-Type': 'application/json'});
+            sendback['success']='defined';
+            res.end(JSON.stringify(sendback));
+	});
+    });
+
+}
+
 //why do we not bake logincookie stuff into doPublications? Could simplify some JS shenanigans. Philosophy?
 function doPublications(req, res, next){
     console.log("=====================In do Publications", req.url, req.headers.referer, req.originalUrl);
@@ -409,7 +445,7 @@ function doPublications(req, res, next){
 }
 
 function doSaved(req, res, next){
-    console.log("In do Search",this);
+    console.log("In do Saved",this);
     var logincookie=req.cookies['logincookie'];
     var view={
         pagehead:{pagetype:'Saved', siteprefix: SITEPREFIX, staticprefix: SITEPREFIX+STATICPREFIX},
@@ -469,12 +505,39 @@ function doSaved(req, res, next){
 						    var pubid = savedpubs[i];
 						    var pubtitle = pubtitles[i];
 						    var bibcode = bibcodes[i];
-						    view['savedpubs'][i] = {'pubid': pubid, 'title': pubtitle, 'bibcode': bibcode};
-						}
+						    var linktext;
+						    var linkuri;
+
+						    // In development code we can have entries without a title or
+						    // bibcode, so "hide" this. It may be sensible for general use
+						    // case anyway. It also seems that we have to protect the 
+						    // text used to create the bibcode link, even though I thought
+						    // Mustache handled this.
+						    //
+						    if (bibcode === null) {
+							linkuri = "id%3A" + pubid;
+							if (pubtitle === null) {
+							    linktext = "Unknown";
+							} else {
+							    linktext = pubtitle;
+							}
+						    } else {
+							linkuri = "bibcode%3A" + bibcode.replace(/&/g, '%26');
+							if (pubtitle === null) {
+							    linktext = "Unknown title";
+							} else {
+							    linktext = pubtitle;
+							}
+
+							linktext += " (" + bibcode + ")";
+						    }
+
+						    view['savedpubs'][i] = {'pubid': pubid, 'linktext': linktext, 'linkuri': linkuri };										}
 				
 						console.log("HACK: mustache view = ", view);
 						console.log("CALLING MUSTACHE");
 						html=mustache.to_html(maint, view, lpartials);
+						// TODO: can I process the html to add in callbacks for the remove links?
 						res.end(html);
 
 					    });
@@ -528,6 +591,9 @@ server.use(SITEPREFIX+'/login', loginUser);
 server.use(SITEPREFIX+'/savesearch', saveSearchToRedis);
 server.use(SITEPREFIX+'/savedsearches', getSavedSearches);
 server.use(SITEPREFIX+'/savepub', savePubToRedis);
+
+server.use(SITEPREFIX+'/deletepub', deletePubFromRedis);
+
 server.use(SITEPREFIX+'/savedpubs', getSavedPubs);
 
 // not sure of the best way to do this, but want to privide access to

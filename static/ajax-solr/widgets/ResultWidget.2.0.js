@@ -23,7 +23,8 @@ AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
       docids.push(doc.id);
     }
     console.log("DOCIDS", docids);
-    // Find out which papers have been saved so that we can change the Saved text/icon
+    // Find out which papers have been saved so that we can change the 
+    // Saved text/icon to delete.
     $.getJSON(SITEPREFIX+'/savedpubs', function(data){
         if (data['savedpubs']!='undefined'){
             var savedpubarray=data['savedpubs'];
@@ -31,14 +32,15 @@ AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
             _.each(docids, function(ele){
                 if (_.indexOf(savedpubarray, ele)!=-1){
                     //console.log("ELE",ele);
-                    $('#savepub_'+ele).text("Saved");
-                    $('#savepub_'+ele).css("background","grey");
+		    $('#savepub_'+ele).hide();
+		    $('#delpub_'+ele).show();
                 }
             });
         } else {
             _.each(docids, function(ele){
                 //console.log("ELE",ele);
                 $('#savepub_'+ele).hide();
+                $('#delpub_'+ele).hide(); // should already be hidden but just in case
                 $('#data_'+ele).hide();
             });
         }
@@ -79,8 +81,8 @@ AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
 		return false;
 	};
   },
+  // Save a publication
   saveHandler: function(doc){
-        
       var thedoc=doc;
       return function(){
 	  $.post(SITEPREFIX+'/savepub', JSON.stringify({
@@ -88,9 +90,23 @@ AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
 			  'pubbibcode':thedoc.bibcode,
 			  'pubtitle':thedoc.title
 			  }), function(data){
-                if (data['success']!='undefined'){
-                    $('#savepub_'+thedoc.id).text("Saved");
-                    $('#savepub_'+thedoc.id).css("background","grey");
+                if (data['success']==='defined'){
+                    $('#savepub_'+thedoc.id).hide();
+                    $('#delpub_'+thedoc.id).show();
+                }
+            });
+            return false;
+      }
+  },
+  // Delete a saved publication
+  deleteHandler: function(doc){
+      var thedoc=doc;
+      return function(){
+	  $.post(SITEPREFIX+'/deletepub', JSON.stringify({
+		      'savedpub':thedoc.id }), function(data){
+                if (data['success']==='defined'){
+                    $('#savepub_'+thedoc.id).show();
+                    $('#delpub_'+thedoc.id).hide();
                 }
             });
             return false;

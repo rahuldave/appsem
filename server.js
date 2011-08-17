@@ -211,13 +211,13 @@ function savePub(jsonpayload, req, res, next){
         //the reason this must be done here is that its only in the response to the next call
         //that email is set. Not in the request.
 
-	// Doug is trying to save info about the publication in a global
-	// hash. In production use it may be better to have this info saved
-	// per user, but that has its own issues
+	// Moved to a per-user database for titles and bibcodes so that we can delete
+	// search information. Let's see how this goes compared to "global" values for the
+	// bibcodes and titles hash arrays.
 	//
 	// Should worry about failures here, but not for now.
-	redis_client.hset('bibcodes', savedpub, bibcode)
-	redis_client.hset('titles', savedpub, title)
+	redis_client.hset('savedbibcodes:'+email, savedpub, bibcode)
+	redis_client.hset('savedtitles:'+email, savedpub, title)
 
         redis_client.sadd('savedpub:'+email, savedpub, function(err, reply){
             console.log("is email set", email);
@@ -226,12 +226,6 @@ function savePub(jsonpayload, req, res, next){
             res.end(JSON.stringify(sendback));
         });
     });
-    /*redis_client.sadd('savedpub:'+email, savedpub, function(err, reply){
-        console.log("is email set", email);
-        res.writeHead(200, "OK", {'Content-Type': 'application/json'
-        });
-        res.end();
-    });*/
 }
 
 function loginUser(req, res, next){
@@ -416,10 +410,19 @@ function deletePub(jsonpayload, req, res, next) {
         email=reply;
 
 	redis_client.srem('savedpub:'+email, docid, function(err,reply){
-	    console.log("Assumed we have removed " + docid + " from user's store");
-            res.writeHead(200, "OK", {'Content-Type': 'application/json'});
-            sendback['success']='defined';
-            res.end(JSON.stringify(sendback));
+	    console.log("Assumed we have removed " + docid + " from user's savedpub list");
+	    
+	    redis_client.hdel('savedtitles:'+email, docid, function(err,reply){
+		console.log("Assumed we have removed " + docid + " from user's savedtitles hash");
+
+		redis_client.hdel('savedbibcodes:'+email, docid, function(err,reply){
+		    console.log("Assumed we have removed " + docid + " from user's savedbibcodes hash");
+
+		    res.writeHead(200, "OK", {'Content-Type': 'application/json'});
+		    sendback['success']='defined';
+		    res.end(JSON.stringify(sendback));
+		});
+	    });
 	});
     });
 
@@ -489,11 +492,11 @@ function doSaved(req, res, next){
 
 				// want the bibcodes and titles for these publications
 				//
-				redis_client.hmget('titles', savedpubs, function(err, reply){
+				redis_client.hmget('savedtitles:'+email, savedpubs, function(err, reply){
 					// console.log("Saved publication titles: ", reply);
 					pubtitles=reply;
 
-					redis_client.hmget('bibcodes', savedpubs, function(err, reply){
+					redis_client.hmget('savedbibcodes:'+email, savedpubs, function(err, reply){
 						//console.log("Saved bibcode titles: ", reply);
 						bibcodes = reply;
 						

@@ -447,6 +447,30 @@ function doPublications(req, res, next){
     res.end(html);    
 }
 
+/*
+ * Given a saved search, which looks something like
+ * "fq=keywords_s%3A%22stars%20luminosity%20function%3Bmass%20function%22&fq=author_s%3A%22Stahl%2C%20O%22&fq=instruments_s%3AMAST%2FIUE%2FLWR&q=*%3A*"
+ * return a (hopefully) human-readable version.
+ */
+function searchToText(searchTerm) {
+    // lazy way to remove the trailing search term
+    var s = "&" + searchTerm;
+    s = s.replace('&q=*%3A*', '');
+
+    // only decode after the initial split to protect against the
+    // unlikely event that &fq= appears as part of a search term.
+    var terms = s.split(/&fq=/);
+
+    // ignore the first entry as '' by construction
+    var out = "";
+    for (var i = 1; i < terms.length; i++) {
+	var toks = decodeURIComponent(terms[i]).split(':', 2);
+	out += toks[0] + "=" + toks[1] + " ";
+    }
+
+    return out;
+}
+
 function doSaved(req, res, next){
     console.log("In do Saved",this);
     var logincookie=req.cookies['logincookie'];
@@ -462,92 +486,84 @@ function doSaved(req, res, next){
     var email;
     var html;
     res.writeHead(200, { 'Content-Type': 'text/html' });
-    if (logincookie!=undefined){
-	/*** original code before Doug messed around with it
-        redis_client.get('email:'+logincookie, function(err, reply){
-            email=reply;
-            redis_client.smembers('savedsearch:'+email, function(err, reply){
-                savedsearches=reply;
-                redis_client.smembers('savedpub:'+email, function(err, reply){
-                    savedpubs=reply;
-                    view['savedsearches']=savedsearches;
-                    view['savedpubs']=savedpubs;
-		    console.log("CALLING MUSTACHE");
-                    html=mustache.to_html(maint, view, lpartials);
-                    res.end(html);
-                });
-            });
-        });
-	***/
-
+    if (logincookie!==undefined){
 	var pubtitles;
 	var pubcodes;
 	redis_client.get('email:'+logincookie,function(err, reply){
-		email=reply;
+	    email=reply;
 
-		redis_client.smembers('savedsearch:'+email, function(err, reply){
-			savedsearches=reply;
-			redis_client.smembers('savedpub:'+email, function(err, reply){
-				savedpubs=reply;
+	    redis_client.smembers('savedsearch:'+email, function(err, reply){
+		savedsearches=reply;
+		redis_client.smembers('savedpub:'+email, function(err, reply){
+		    savedpubs=reply;
 
-				// want the bibcodes and titles for these publications
-				//
-				redis_client.hmget('savedtitles:'+email, savedpubs, function(err, reply){
-					// console.log("Saved publication titles: ", reply);
-					pubtitles=reply;
+		    // want the bibcodes and titles for these publications
+		    //
+		    redis_client.hmget('savedtitles:'+email, savedpubs, function(err, reply){
+			// console.log("Saved publication titles: ", reply);
+			pubtitles=reply;
 
-					redis_client.hmget('savedbibcodes:'+email, savedpubs, function(err, reply){
-						//console.log("Saved bibcode titles: ", reply);
-						bibcodes = reply;
+			redis_client.hmget('savedbibcodes:'+email, savedpubs, function(err, reply){
+			    //console.log("Saved bibcode titles: ", reply);
+			    bibcodes = reply;
 						
-						/* consolidate the values for the templates */
+			    /* consolidate the values for the templates */
 						
-						view['savedsearches'] = savedsearches;
-						view['savedpubs'] = new Array(savedpubs.length);
-						for (var i = 0; i < savedpubs.length; i++) {
-						    var pubid = savedpubs[i];
-						    var pubtitle = pubtitles[i];
-						    var bibcode = bibcodes[i];
-						    var linktext;
-						    var linkuri;
+			    view['savedsearches'] = new Array(savedsearches.length);
+			    for (var i = 0; i < savedsearches.length; i++) {
+				var searchuri = savedsearches[i];
+				var searchtext = searchToText(searchuri);
 
-						    // In development code we can have entries without a title or
-						    // bibcode, so "hide" this. It may be sensible for general use
-						    // case anyway. It also seems that we have to protect the 
-						    // text used to create the bibcode link, even though I thought
-						    // Mustache handled this.
-						    //
-						    if (bibcode === null) {
-							linkuri = "id%3A" + pubid;
-							if (pubtitle === null) {
-							    linktext = "Unknown";
-							} else {
-							    linktext = pubtitle;
-							}
-						    } else {
-							linkuri = "bibcode%3A" + bibcode.replace(/&/g, '%26');
-							if (pubtitle === null) {
-							    linktext = "Unknown title";
-							} else {
-							    linktext = pubtitle;
-							}
+				view['savedsearches'][i] = { 'searchuri':searchuri, 'searchtext':searchtext };
+			    }
 
-							linktext += " (" + bibcode + ")";
-						    }
-
-						    view['savedpubs'][i] = {'pubid': pubid, 'linktext': linktext, 'linkuri': linkuri };										}
+			    view['savedpubs'] = new Array(savedpubs.length);
+			    for (var i = 0; i < savedpubs.length; i++) {
+				var pubid = savedpubs[i];
+				var pubtitle = pubtitles[i];
+				var bibcode = bibcodes[i];
+				var linktext;
+				var linkuri;
 				
-						console.log("HACK: mustache view = ", view);
-						console.log("CALLING MUSTACHE");
-						html=mustache.to_html(maint, view, lpartials);
-						// TODO: can I process the html to add in callbacks for the remove links?
-						res.end(html);
+				// In development code we can have entries without a title or
+				// bibcode, so "hide" this. It may be sensible for general use
+				// case anyway. It also seems that we have to protect the 
+				// text used to create the bibcode link, even though I thought
+				// Mustache handled this.
+				//
+				if (bibcode === null) {
+				    linkuri = "id%3A" + pubid;
+				    if (pubtitle === null) {
+					linktext = "Unknown";
+				    } else {
+					linktext = pubtitle;
+				    }
+				} else {
+				    linkuri = "bibcode%3A" + bibcode.replace(/&/g, '%26');
+				    if (pubtitle === null) {
+					linktext = "Unknown title";
+				    } else {
+					linktext = pubtitle;
+				    }
+				    
+				    linktext += " (" + bibcode + ")";
+				}
+				
+				view['savedpubs'][i] = {'pubid': pubid, 'linktext': linktext, 'linkuri': linkuri };
 
-					    });
-				    });
-			    });
+			    }
+				
+			    console.log("HACK: mustache view = ", view);
+			    console.log("CALLING MUSTACHE");
+			    html=mustache.to_html(maint, view, lpartials);
+			    // TODO: can I process the html to add in callbacks for the remove links?
+			    res.end(html);
+			    
+			});
 		    });
+		});
 	    });
+	});
 
     } else {
         view['savedsearches']=[];

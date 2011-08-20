@@ -522,7 +522,7 @@ function doSaved(req, res, next){
     var savedpubs;
     var email;
     var html;
-    res.writeHead(200, { 'Content-Type': 'text/html' });
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=UTF-8' });
     if (logincookie!==undefined){
 	var pubtitles;
 	var pubcodes;

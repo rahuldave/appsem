@@ -448,24 +448,17 @@ function deletePub(jsonpayload, req, res, next) {
     redis_client.get('email:'+logincookie,function(err, reply){
         email=reply;
 
-	redis_client.srem('savedpub:'+email, docid, function(err,reply){
-	    console.log("Assumed we have removed " + docid + " from user's savedpub list");
-	    
-	    redis_client.hdel('savedtitles:'+email, docid, function(err,reply){
-		console.log("Assumed we have removed " + docid + " from user's savedtitles hash");
+	var margs = [["srem", 'savedpub:'+email, docid],
+		     ["hdel", 'savedtitles:'+email, docid],
+		     ["hdel", 'savedtimes:'+email, docid],
+		     ["hdel", 'savedbibcodes:'+email, docid]
+		     ];
+	redis_client.multi(margs).exec(function(err,reply){
+		console.log("Assumed we have removed " + docid + " from user's saved publication list");
 
-	        redis_client.hdel('savedtimes:'+email, docid, function(err,reply){
-		    console.log("Assumed we have removed " + docid + " from user's savedtimes hash");
-
-		    redis_client.hdel('savedbibcodes:'+email, docid, function(err,reply){
-		        console.log("Assumed we have removed " + docid + " from user's savedbibcodes hash");
-
-		        res.writeHead(200, "OK", {'Content-Type': 'application/json'});
-		        sendback['success']='defined';
-		        res.end(JSON.stringify(sendback));
-			});
-		    });
-		});
+		res.writeHead(200, "OK", {'Content-Type': 'application/json'});
+		sendback['success']='defined';
+		res.end(JSON.stringify(sendback));
 	    });
 	});
 
@@ -493,18 +486,17 @@ function deleteSearch(jsonpayload, req, res, next) {
     redis_client.get('email:'+logincookie,function(err, reply){
         email=reply;
 
-	redis_client.hdel('savedtimes:'+email, searchid, function(err,reply){
-	    console.log("Assumed we have removed " + searchid + " from user's savedtimes hash");
-
-	    redis_client.srem('savedsearch:'+email, searchid, function(err,reply){
-	        console.log("Assumed we have removed " + searchid + " from user's savedsearch list");
+	var margs = [["hdel", 'savedtimes:'+email, searchid],
+		     ["srem", 'savedsearch:'+email, searchid]
+		     ];
+	redis_client.multi(margs).exec(function(err,reply){
+		console.log("Assumed we have removed " + searchid + " from user's saved search list");
 
 		res.writeHead(200, "OK", {'Content-Type': 'application/json'});
 		sendback['success']='defined';
 		res.end(JSON.stringify(sendback));
 	    });
 	});
-    });
 
 }
 

@@ -170,9 +170,6 @@ function saveSearch(jsonpayload, req, res, next){
     console.log("savedsearchcookies", req.cookies, jsonpayload);
 
     var logincookie=req.cookies['logincookie'];
-    var jsonobj=JSON.parse(jsonpayload);
-    var savedsearch=jsonobj['savedsearch'];
-    var email;
     var sendback={};
     if (logincookie==undefined){
         res.writeHead(200, "OK", {'Content-Type': 'application/json'});
@@ -180,12 +177,22 @@ function saveSearch(jsonpayload, req, res, next){
         res.end(JSON.stringify(sendback));
         return; 
     }
+
+    var jsonobj=JSON.parse(jsonpayload);
+    var savedsearch=jsonobj['savedsearch'];
+    var email;
+
+    // see savePub for a discussion of saved-times
+    var serverdate = new Date();
+
     redis_client.get('email:'+logincookie,function(err, reply){
         email=reply;
-        redis_client.sadd('savedsearch:'+email, savedsearch, function(err, reply){
-            res.writeHead(200, "OK", {'Content-Type': 'application/json'});
-            sendback['success']='defined';
-            res.end(JSON.stringify(sendback));
+	redis_client.hset('savedtimes:'+email, savedsearch, serverdate.toUTCString(), function(err,reply){
+            redis_client.sadd('savedsearch:'+email, savedsearch, function(err, reply){
+                res.writeHead(200, "OK", {'Content-Type': 'application/json'});
+                sendback['success']='defined';
+                res.end(JSON.stringify(sendback));
+	    });
         });    
     });
     
@@ -195,11 +202,7 @@ function saveSearch(jsonpayload, req, res, next){
 function savePub(jsonpayload, req, res, next){
     console.log("savedpubcookies", req.cookies, jsonpayload);
     var logincookie=req.cookies['logincookie'];
-    var jsonobj=JSON.parse(jsonpayload);
-    var savedpub=jsonobj['savedpub'];
-    var bibcode=jsonobj['pubbibcode'];
-    var title=jsonobj['pubtitle'];
-    var email;
+
     var sendback={};
     if (logincookie==undefined){
         res.writeHead(200, "OK", {'Content-Type': 'application/json'});
@@ -207,6 +210,33 @@ function savePub(jsonpayload, req, res, next){
         res.end(JSON.stringify(sendback));
         return; 
     }
+
+    var jsonobj=JSON.parse(jsonpayload);
+    var savedpub=jsonobj['savedpub'];
+    var bibcode=jsonobj['pubbibcode'];
+    var title=jsonobj['pubtitle'];
+
+    // Approximate the save time as the time we process the request
+    // on the server, rather than when it was made (in case the user's
+    // clock is not set sensibly). 
+    //
+    // For now we save the UTC version of the time and provide no
+    // way to change this to something meaningful to the user.
+    //
+    // Alternatives include:
+    //
+    // *  the client could send the time as a string, including the
+    //    time zone, but this relies on their clock being okay
+    //
+    // *  the client can send in the local timezone info which can
+    //    then be used to format the server-side derived time
+    //    Not sure if can trust the time zone offset from the client
+    //    if can not trust the time itself. Calculating a useful display
+    //    string from the timezone offset is fiddly.
+    //
+    var serverdate = new Date();
+
+    var email;
     redis_client.get('email:'+logincookie,function(err, reply){
         console.log("REPLY", reply);
         email=reply;
@@ -218,16 +248,20 @@ function savePub(jsonpayload, req, res, next){
 	// bibcodes and titles hash arrays.
 	//
 	// Should worry about failures here, but not for now.
-	redis_client.hset('savedbibcodes:'+email, savedpub, bibcode)
-	redis_client.hset('savedtitles:'+email, savedpub, title)
+	redis_client.hset('savedbibcodes:'+email, savedpub, bibcode, function(err,reply){
+	    redis_client.hset('savedtitles:'+email, savedpub, title, function(err,reply){
+	        redis_client.hset('savedtimes:'+email, savedpub, serverdate.toUTCString(), function(err,reply){
+                    redis_client.sadd('savedpub:'+email, savedpub, function(err, reply){
+                        console.log("is email set", email);
+                        res.writeHead(200, "OK", {'Content-Type': 'application/json'});
+			sendback['success']='defined';
+			res.end(JSON.stringify(sendback));
+			});
+		    });
+		});
+	    });
+	});
 
-        redis_client.sadd('savedpub:'+email, savedpub, function(err, reply){
-            console.log("is email set", email);
-            res.writeHead(200, "OK", {'Content-Type': 'application/json'});
-            sendback['success']='defined';
-            res.end(JSON.stringify(sendback));
-        });
-    });
 }
 
 function loginUser(req, res, next){
@@ -420,16 +454,20 @@ function deletePub(jsonpayload, req, res, next) {
 	    redis_client.hdel('savedtitles:'+email, docid, function(err,reply){
 		console.log("Assumed we have removed " + docid + " from user's savedtitles hash");
 
-		redis_client.hdel('savedbibcodes:'+email, docid, function(err,reply){
-		    console.log("Assumed we have removed " + docid + " from user's savedbibcodes hash");
+	        redis_client.hdel('savedtimes:'+email, docid, function(err,reply){
+		    console.log("Assumed we have removed " + docid + " from user's savedtimes hash");
 
-		    res.writeHead(200, "OK", {'Content-Type': 'application/json'});
-		    sendback['success']='defined';
-		    res.end(JSON.stringify(sendback));
+		    redis_client.hdel('savedbibcodes:'+email, docid, function(err,reply){
+		        console.log("Assumed we have removed " + docid + " from user's savedbibcodes hash");
+
+		        res.writeHead(200, "OK", {'Content-Type': 'application/json'});
+		        sendback['success']='defined';
+		        res.end(JSON.stringify(sendback));
+			});
+		    });
 		});
 	    });
 	});
-    });
 
 }
 
@@ -455,12 +493,16 @@ function deleteSearch(jsonpayload, req, res, next) {
     redis_client.get('email:'+logincookie,function(err, reply){
         email=reply;
 
-	redis_client.srem('savedsearch:'+email, searchid, function(err,reply){
-	    console.log("Assumed we have removed " + searchid + " from user's savedsearch list");
+	redis_client.hdel('savedtimes:'+email, searchid, function(err,reply){
+	    console.log("Assumed we have removed " + searchid + " from user's savedtimes hash");
 
-	    res.writeHead(200, "OK", {'Content-Type': 'application/json'});
-	    sendback['success']='defined';
-	    res.end(JSON.stringify(sendback));
+	    redis_client.srem('savedsearch:'+email, searchid, function(err,reply){
+	        console.log("Assumed we have removed " + searchid + " from user's savedsearch list");
+
+		res.writeHead(200, "OK", {'Content-Type': 'application/json'});
+		sendback['success']='defined';
+		res.end(JSON.stringify(sendback));
+	    });
 	});
     });
 
@@ -527,6 +569,8 @@ function doSaved(req, res, next){
     if (logincookie!==undefined){
 	var pubtitles;
 	var pubcodes;
+	var savepubtimes;
+	var savesearchtimes;
 	redis_client.get('email:'+logincookie,function(err, reply){
 	    email=reply;
 
@@ -535,7 +579,7 @@ function doSaved(req, res, next){
 		redis_client.smembers('savedpub:'+email, function(err, reply){
 		    savedpubs=reply;
 
-		    // want the bibcodes and titles for these publications
+		    // want the bibcodes, titles amd times, for these publications
 		    //
 		    redis_client.hmget('savedtitles:'+email, savedpubs, function(err, reply){
 			// console.log("Saved publication titles: ", reply);
@@ -545,58 +589,86 @@ function doSaved(req, res, next){
 			    //console.log("Saved bibcode titles: ", reply);
 			    bibcodes = reply;
 						
-			    /* consolidate the values for the templates */
+			    redis_client.hmget('savedtimes:'+email, savedpubs, function(err, reply){
+			        //console.log("Saved bibcode titles: ", reply);
+			        savepubtimes = reply;
+
+			        redis_client.hmget('savedtimes:'+email, savedsearches, function(err, reply){
+			            savesearchtimes = reply;
+
+				    /* consolidate the values for the templates */
 						
-			    view['savedsearches'] = new Array(savedsearches.length);
-			    for (var i = 0; i < savedsearches.length; i++) {
-				var searchuri = savedsearches[i];
-				var searchtext = searchToText(searchuri);
+				    view['savedsearches'] = new Array(savedsearches.length);
+				    for (var i = 0; i < savedsearches.length; i++) {
+					var searchuri = savedsearches[i];
+					var searchtext = searchToText(searchuri);
+					var searchpre;
 
-				view['savedsearches'][i] = { 'searchuri':searchuri, 'searchtext':searchtext };
-			    }
+					if (savesearchtimes[i] === null) {
+					    searchpre = "";
+					} else {
+					    searchpre = savesearchtimes[i];
+					}
 
-			    view['savedpubs'] = new Array(savedpubs.length);
-			    for (var i = 0; i < savedpubs.length; i++) {
-				var pubid = savedpubs[i];
-				var pubtitle = pubtitles[i];
-				var bibcode = bibcodes[i];
-				var linktext;
-				var linkuri;
-				
-				// In development code we can have entries without a title or
-				// bibcode, so "hide" this. It may be sensible for general use
-				// case anyway. It also seems that we have to protect the 
-				// text used to create the bibcode link, even though I thought
-				// Mustache handled this.
-				//
-				if (bibcode === null) {
-				    linkuri = "id%3A" + pubid;
-				    if (pubtitle === null) {
-					linktext = "Unknown";
-				    } else {
-					linktext = pubtitle;
+					view['savedsearches'][i] = { 'searchuri':searchuri, 'searchtext':searchtext, 'searchpre':searchpre };
 				    }
-				} else {
-				    linkuri = "bibcode%3A" + bibcode.replace(/&/g, '%26');
-				    if (pubtitle === null) {
-					linktext = "Unknown title";
-				    } else {
-					linktext = pubtitle;
-				    }
-				    
-				    linktext += " (" + bibcode + ")";
-				}
-				
-				view['savedpubs'][i] = {'pubid': pubid, 'linktext': linktext, 'linkuri': linkuri };
 
-			    }
+				    view['savedpubs'] = new Array(savedpubs.length);
+				    for (var i = 0; i < savedpubs.length; i++) {
+					var pubid = savedpubs[i];
+					var pubtitle = pubtitles[i];
+					var bibcode = bibcodes[i];
+					var linkpre;
+					var linktext;
+					var linkuri;
 				
-			    // console.log("HACK: mustache view = ", view);
-			    // console.log("CALLING MUSTACHE");
-			    html=mustache.to_html(maint, view, lpartials);
-			    // TODO: can I process the html to add in callbacks for the remove links?
-			    res.end(html);
-			    
+					// In development code we may not have all the required
+					// information so provide "useful" defaults. It is also useful
+					// in case there was a problem that caused a partial deletion
+					// of a search (although perhaps we should always delete the search/doc
+					// id first in this case so that it does really get deleted).
+					// Or we use Redis transactions for deletion/addition.
+					//
+					// It also seems that we have to protect the 
+					// text used to create the bibcode link, even though I thought
+					// Mustache handled this.
+					//
+					if (bibcode === null) {
+					    linkuri = "id%3A" + pubid;
+					    if (pubtitle === null) {
+						linktext = "Unknown";
+					    } else {
+						linktext = pubtitle;
+					    }
+					} else {
+					    linkuri = "bibcode%3A" + bibcode.replace(/&/g, '%26');
+					    if (pubtitle === null) {
+						linktext = "Unknown title";
+					    } else {
+						linktext = pubtitle;
+					    }
+					    
+					    linktext += " (" + bibcode + ")";
+					}
+					
+					if (savepubtimes[i] === null) {
+					    linkpre = "";
+					} else {
+					    linkpre = savepubtimes[i];
+					}
+					
+					view['savedpubs'][i] = {'pubid': pubid, 'linktext': linktext, 'linkuri': linkuri, 'linkpre': linkpre };
+
+				    }
+				
+				    // console.log("HACK: mustache view = ", view);
+				    // console.log("CALLING MUSTACHE");
+				    html=mustache.to_html(maint, view, lpartials);
+				    // TODO: can I process the html to add in callbacks for the remove links?
+				    res.end(html);
+
+				});
+			    });
 			});
 		    });
 		});

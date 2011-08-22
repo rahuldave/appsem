@@ -4,8 +4,9 @@
 	<ul>
 	{{#savedsearches}}
 	  <li>
-	  <a href="/semantic2/alpha/explorer/publications#{{searchuri}}">{{searchtext}}</a>
-	  [Should be a 'Remove' link here]
+	    {{searchpre}}
+	    <a href="/semantic2/alpha/explorer/publications#{{searchuri}}">{{searchtext}}</a>
+	    [Remove link]
 	  </li>
 	{{/savedsearches}}
 	</ul>
@@ -14,8 +15,9 @@
 	<ul>
 	{{#savedpubs}}
 	<li>
+	  {{linkpre}}
 	  <a href="/semantic2/alpha/explorer/publications#fq={{linkuri}}&q=*%3A*">{{linktext}}</a>
-	  [Should be a 'Remove' link here]
+	  [Remove link]
 	</li>
 	{{/savedpubs}}
 	</ul>

@@ -187,16 +187,18 @@ function saveSearch(jsonpayload, req, res, next){
 
     redis_client.get('email:'+logincookie,function(err, reply){
         email=reply;
-	redis_client.hset('savedtimes:'+email, savedsearch, serverdate.toUTCString(), function(err,reply){
-            redis_client.sadd('savedsearch:'+email, savedsearch, function(err, reply){
+
+	var margs = [["hset", 'savedtimes:'+email, savedsearch, serverdate.toUTCString()],
+		     ["sadd", 'savedsearch:'+email, savedsearch]
+		     ];
+	redis_client.multi(margs).exec(function(err,reply){
                 res.writeHead(200, "OK", {'Content-Type': 'application/json'});
                 sendback['success']='defined';
                 res.end(JSON.stringify(sendback));
 	    });
-        });    
-    });
     
-    
+	});
+
 }
 
 function savePub(jsonpayload, req, res, next){
@@ -248,18 +250,20 @@ function savePub(jsonpayload, req, res, next){
 	// bibcodes and titles hash arrays.
 	//
 	// Should worry about failures here, but not for now.
-	redis_client.hset('savedbibcodes:'+email, savedpub, bibcode, function(err,reply){
-	    redis_client.hset('savedtitles:'+email, savedpub, title, function(err,reply){
-	        redis_client.hset('savedtimes:'+email, savedpub, serverdate.toUTCString(), function(err,reply){
-                    redis_client.sadd('savedpub:'+email, savedpub, function(err, reply){
-                        console.log("is email set", email);
-                        res.writeHead(200, "OK", {'Content-Type': 'application/json'});
-			sendback['success']='defined';
-			res.end(JSON.stringify(sendback));
-			});
-		    });
-		});
+	//
+
+	var margs = [["hset", 'savedbibcodes:'+email, savedpub, bibcode],
+		     ["hset", 'savedtitles:'+email, savedpub, title],
+		     ["hset", 'savedtimes:'+email, savedpub, serverdate.toUTCString()],
+		     ["sadd", 'savedpub:'+email, savedpub]
+		     ];
+	redis_client.multi(margs).exec(function(err,reply){
+		console.log("Saving publication: ", title);
+		res.writeHead(200, "OK", {'Content-Type': 'application/json'});
+		sendback['success']='defined';
+		res.end(JSON.stringify(sendback));
 	    });
+
 	});
 
 }

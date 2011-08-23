@@ -223,8 +223,8 @@ function saveSearch(jsonpayload, req, res, next){
 
     redis_client.get('email:'+logincookie,function(err, email){
 
-	var margs = [["hset", 'savedtimes:'+email, savedsearch, sorttime],
-		     ["zadd", 'savedsearch:'+email, sorttime, savedsearch]
+	// keep as a multi even though now a single addition
+	var margs = [["zadd", 'savedsearch:'+email, sorttime, savedsearch]
 		     ];
 	redis_client.multi(margs).exec(function(err,reply){
                 res.writeHead(200, "OK", {'Content-Type': 'application/json'});
@@ -267,7 +267,6 @@ function savePub(jsonpayload, req, res, next){
 
 	var margs = [["hset", 'savedbibcodes:'+email, savedpub, bibcode],
 		     ["hset", 'savedtitles:'+email, savedpub, title],
-		     ["hset", 'savedtimes:'+email, savedpub, sorttime],
 		     ["zadd", 'savedpub:'+email, sorttime, savedpub]
 		     ];
 	redis_client.multi(margs).exec(function(err,reply){
@@ -368,6 +367,35 @@ function getSortedElements(flag, key, cb) {
 	    redis_client.zrange(key, 0, reply, cb);
 	} else {
 	    redis_client.zrevrange(key, 0, reply, cb);
+	}
+    });
+}
+
+/*
+ * As getSortedElements but the values sent to the callback is
+ * a hash with two elements:
+ *    elements  - the elements
+ *    scores    - the scores
+ */
+function getSortedElementsAndScores(flag, key, cb) {
+
+    redis_client.zcard(key, function(err, nelem) {
+
+	function splitIt(err, values) {
+	    var response = { "elements": new Array(nelem), "scores": new Array(nelem) };
+	    for (var i = 0; i < nelem; i++) {
+		response["elements"][i] = values[i*2];
+		response["scores"][i]   = values[i*2 + 1];
+	    }
+	    cb(err, response);
+	}
+
+	// could subtract 1 from reply but it looks like
+	// Redis stops at the end of the list
+	if (flag === true) {
+	    redis_client.zrange(key, 0, nelem, "withscores", splitIt);
+	} else {
+	    redis_client.zrevrange(key, 0, nelem, "withscores", splitIt);
 	}
     });
 }
@@ -483,7 +511,6 @@ function deletePub(jsonpayload, req, res, next) {
 
 	var margs = [["zrem", 'savedpub:'+email, docid],
 		     ["hdel", 'savedtitles:'+email, docid],
-		     ["hdel", 'savedtimes:'+email, docid],
 		     ["hdel", 'savedbibcodes:'+email, docid]
 		     ];
 	redis_client.multi(margs).exec(function(err,reply){
@@ -519,8 +546,8 @@ function deleteSearch(jsonpayload, req, res, next) {
     redis_client.get('email:'+logincookie,function(err, reply){
         email=reply;
 
-	var margs = [["hdel", 'savedtimes:'+email, searchid],
-		     ["zrem", 'savedsearch:'+email, searchid]
+	// keep as a multi for now
+	var margs = [["zrem", 'savedsearch:'+email, searchid]
 		     ];
 	redis_client.multi(margs).exec(function(err,reply){
 		console.log("Assumed we have removed " + searchid + " from user's saved search list");
@@ -629,86 +656,86 @@ function doSaved(req, res, next){
 	// var nowDate = Date().now;
 	var nowDate = new Date().getTime();
 	redis_client.get('email:'+logincookie,function(err, email){
-	    getSortedElements(false, 'savedsearch:'+email, function(err, savedsearches) {
-		getSortedElements(false, 'savedpub:'+email, function(err, savedpubs) {
-		    // want the bibcodes, titles amd times, for these publications
+	    getSortedElementsAndScores(false, 'savedsearch:'+email, function(err, savedsearches) {
+		var searchkeys = savedsearches["elements"];
+		var searchtimes = savedsearches["scores"];
+		getSortedElementsAndScores(false, 'savedpub:'+email, function(err, savedpubs) {
+		    var pubkeys = savedpubs["elements"];
+		    var pubtimes = savedpubs["scores"];
+
+		    // want the bibcodes and titles for these publications
 		    //
-		    redis_client.hmget('savedtitles:'+email, savedpubs, function(err, pubtitles){
-			redis_client.hmget('savedbibcodes:'+email, savedpubs, function(err, bibcodes){
-			    redis_client.hmget('savedtimes:'+email, savedpubs, function(err, pubtimes){
-			        redis_client.hmget('savedtimes:'+email, savedsearches, function(err, searchtimes){
-				    /* consolidate the values for the templates */
-				    view['savedsearches'] = new Array(savedsearches.length);
-				    for (var i = 0; i < savedsearches.length; i++) {
-					var searchuri = savedsearches[i];
-					var searchtext = searchToText(searchuri);
-					var searchpre;
-
-					if (searchtimes[i] === null) {
-					    searchpre = "";
-					} else {
-					    searchpre = timeToText(nowDate, searchtimes[i]);
-					}
-
-					view['savedsearches'][i] = { 'searchuri':searchuri, 'searchtext':searchtext, 'searchpre':searchpre };
-				    }
-
-				    view['savedpubs'] = new Array(savedpubs.length);
-				    for (var i = 0; i < savedpubs.length; i++) {
-					var pubid = savedpubs[i];
-					var pubtitle = pubtitles[i];
-					var bibcode = bibcodes[i];
-					var linkpre;
-					var linktext;
-					var linkuri;
+		    redis_client.hmget('savedtitles:'+email, pubkeys, function(err, pubtitles){
+			redis_client.hmget('savedbibcodes:'+email, pubkeys, function(err, bibcodes){
+			    /* consolidate the values for the templates */
+			    var nsearch = searchkeys.length;
+			    view['savedsearches'] = new Array(nsearch);
+			    for (var i = 0; i < nsearch; i++) {
+				var searchuri = searchkeys[i];
+				var searchtext = searchToText(searchuri);
+				var searchpre;
 				
-					// In development code we may not have all the required
-					// information so provide "useful" defaults. It is also useful
-					// in case there was a problem that caused a partial deletion
-					// of a search (although perhaps we should always delete the search/doc
-					// id first in this case so that it does really get deleted).
-					// Or we use Redis transactions for deletion/addition.
-					//
-					// It also seems that we have to protect the 
-					// text used to create the bibcode link, even though I thought
-					// Mustache handled this.
-					//
-					if (bibcode === null) {
-					    linkuri = "id%3A" + pubid;
-					    if (pubtitle === null) {
-						linktext = "Unknown";
-					    } else {
-						linktext = pubtitle;
-					    }
-					} else {
-					    linkuri = "bibcode%3A" + bibcode.replace(/&/g, '%26');
-					    if (pubtitle === null) {
-						linktext = "Unknown title";
-					    } else {
-						linktext = pubtitle;
-					    }
-					    
-					    linktext += " (" + bibcode + ")";
-					}
-					
-					if (pubtimes[i] === null) {
-					    linkpre = "";
-					} else {
-					    linkpre = timeToText(nowDate, pubtimes[i]);
-					}
-					
-					view['savedpubs'][i] = {'pubid': pubid, 'linktext': linktext, 'linkuri': linkuri, 'linkpre': linkpre };
-
-				    }
+				if (searchtimes[i] === null) {
+				    searchpre = "";
+				} else {
+				    searchpre = timeToText(nowDate, searchtimes[i]);
+				}
 				
-				    // console.log("HACK: mustache view = ", view);
-				    // console.log("CALLING MUSTACHE");
-				    html=mustache.to_html(maint, view, lpartials);
-				    // TODO: can I process the html to add in callbacks for the remove links?
-				    res.end(html);
-
-				});
-			    });
+				view['savedsearches'][i] = { 'searchuri':searchuri, 'searchtext':searchtext, 'searchpre':searchpre };
+			    }
+			    
+			    var npub = pubkeys.length;
+			    view['savedpubs'] = new Array(npub);
+			    for (var i = 0; i < npub; i++) {
+				var pubid = pubkeys[i];
+				var pubtitle = pubtitles[i];
+				var bibcode = bibcodes[i];
+				var linkpre;
+				var linktext;
+				var linkuri;
+				
+				// In development code we may not have all the required
+				// information so provide "useful" defaults.
+				//
+				// It also seems that we have to protect the 
+				// text used to create the bibcode link, even though I thought
+				// Mustache handled this. Unfortunately titles can contain HTML
+				// formatting so need to be careful.
+				//
+				if (bibcode === null) {
+				    linkuri = "id%3A" + pubid;
+				    if (pubtitle === null) {
+					linktext = "Unknown";
+				    } else {
+					linktext = pubtitle;
+				    }
+				} else {
+				    linkuri = "bibcode%3A" + bibcode.replace(/&/g, '%26');
+				    if (pubtitle === null) {
+					linktext = "Unknown title";
+				    } else {
+					linktext = pubtitle;
+				    }
+				    
+				    linktext += " (" + bibcode + ")";
+				}
+				
+				if (pubtimes[i] === null) {
+				    linkpre = "";
+				} else {
+				    linkpre = timeToText(nowDate, pubtimes[i]);
+				}
+				
+				view['savedpubs'][i] = {'pubid': pubid, 'linktext': linktext, 'linkuri': linkuri, 'linkpre': linkpre };
+				
+			    }
+			    
+			    // console.log("HACK: mustache view = ", view);
+			    // console.log("CALLING MUSTACHE");
+			    html=mustache.to_html(maint, view, lpartials);
+			    // TODO: can I process the html to add in callbacks for the remove links?
+			    res.end(html);
+			    
 			});
 		    });
 		});
@@ -722,7 +749,6 @@ function doSaved(req, res, next){
         res.end(html);
         return;
     }
-   
     
 }
 

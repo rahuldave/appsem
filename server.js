@@ -216,7 +216,7 @@ function saveSearch(jsonpayload, req, res, next){
     var jsonobj=JSON.parse(jsonpayload);
     var savedsearch=jsonobj['savedsearch'];
 
-    var sorttime = Date.now();
+    var sorttime = new Date().getTime();
 
     redis_client.get('email:'+logincookie,function(err, email){
 
@@ -250,7 +250,7 @@ function savePub(jsonpayload, req, res, next){
     var bibcode=jsonobj['pubbibcode'];
     var title=jsonobj['pubtitle'];
 
-    var sorttime = Date.now();
+    var sorttime = new Date().getTime();
 
     redis_client.get('email:'+logincookie,function(err, email){
         console.log("REPLY", email);
@@ -576,16 +576,38 @@ function searchToText(searchTerm) {
 /*
  * Returns a string representation of timeString, which
  * should be a string containing the time in milliseconds,
- * nowDate is a Date object containing the reference time
- * (currently unused).
+ * nowDate is the "current" date in milliseconds.
  *
- * The intention is to convert to "2 minutes ago" where
- * appropriate.
  */
 function timeToText(nowDate, timeString) {
     var t = parseInt(timeString);
-    var d = new Date(t);
-    return d.toUTCString();
+    var delta = nowDate - t;
+    var h, m, s, out;
+    if (delta <= 0) {
+	return "Now";
+    } else if (delta < 60000) {
+	return String(Math.floor(delta/1000)) + "s ago";
+    } else if (delta < 60000 * 60) {
+	m = Math.floor(delta / 60000);
+	s = Math.floor((delta - m * 60000) /1000);
+	out = String(m) + "m ";
+	if (s !== 0) {
+	    out += String(s) + "s ";
+	}
+	return out + "ago";
+    } else if (delta < 60000 * 60 * 24) {
+	h = Math.floor(delta / (60000 * 60));
+	delta = delta - h * 60000 * 60;
+	m = Math.floor(delta / 60000);
+	out = String(h) + "h ";
+	if (m !== 0) {
+	    out += String(m) + "m ";
+	}
+	return out + "ago";
+    } else {
+	var d = new Date(t);
+	return d.toUTCString();
+    }
 }
 
 function doSaved(req, res, next){
@@ -601,7 +623,8 @@ function doSaved(req, res, next){
     var html;
     res.writeHead(200, { 'Content-Type': 'text/html; charset=UTF-8' });
     if (logincookie!==undefined){
-	var nowDate = new Date();
+	// var nowDate = Date().now;
+	var nowDate = new Date().getTime();
 	redis_client.get('email:'+logincookie,function(err, email){
 	    getSortedElements(false, 'savedsearch:'+email, function(err, savedsearches) {
 		getSortedElements(false, 'savedpub:'+email, function(err, savedpubs) {

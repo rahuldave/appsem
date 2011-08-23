@@ -135,7 +135,10 @@ var solrrouter=connect(
 function makelogincookie(cookiename,  cookievalue, days){
     var secs=days*24*60*60;
     var milisecs=secs*1000;
-    var expdate=new Date(Date.now()+milisecs);
+    // I've seen some funny behaviour with Date.now() so switching
+    // to a more explicit method which has worked elsewhere.
+    //var expdate=new Date(Date.now()+milisecs);
+    var expdate=new Date(new Date().getTime() + milisecs);
     var cookie=connectutils.serializeCookie(cookiename, cookievalue, {'expires':expdate, 'path': '/'});
     return {unique:cookievalue, cookie:cookie, expdateinsecs:secs};
 }

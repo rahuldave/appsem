@@ -752,11 +752,27 @@ function doSaved(req, res, next){
     
 }
 
-// TODO: add a page for just .../explorer/
+// This is just temporary code:
+//   could add in a timeout and message
+function quickRedirect(newloc) {
+    return function(req, res, next) {
+	res.writeHead(302, "Redirect", {
+	    // does this lose any cookies?
+	    'Location': newloc
+	});
+	res.statusCode = 302;
+	res.end();
+    };
+}
+
 var explorouter=connect(
     connect.router(function(app){
         app.get('/publications', doPublications);
         app.get('/saved', doSaved);
+	app.get('/objects', quickRedirect('publications/'));
+	app.get('/datasets', quickRedirect('publications/'));
+	app.get('/proposals', quickRedirect('publications/'));
+	app.get('/', quickRedirect('publications/'));
     })
 );
 

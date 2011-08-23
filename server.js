@@ -821,6 +821,6 @@ function runServer(port) {
 }
 
 var migration = require('./migration');
-migration.validateRedis(redis_client, function() { runServer(3000); });
+migration.validateRedis(redis_client, function() { runServer(3002); });
 
 //http://adsabs.harvard.edu/cgi-bin/nph-manage_account?man_cmd=logout&man_url=http%3A//labs.adsabs.harvard.edu/ui/%3Frefresh%3D1eec2387-96cb-11e0-a591-842b2b65702a

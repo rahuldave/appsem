@@ -155,16 +155,51 @@ function insertUser(jsonpayload, req, res, next){
     var jsonobj=JSON.parse(mystring);
     var email=jsonobj['email'];
     Object.keys(jsonobj).forEach(function(key){
-            redis_client.hset(email, key, jsonobj[key]);
-            redis_client.hset(email, 'dajson', jsonpayload);
-            redis_client.hset(email, 'cookieval', logincookie['cookie']);
+	// TODO: Do we really need to det dajson and cookieval on each iteration?
+	redis_client.multi([["hset", email, key, jsonobj[key]],
+			    ["hset", email, 'dajson', jsonpayload],
+			    ["hset", email, 'cookieval', logincookie['cookie']]
+			   ]).exec();
     });
+
+    // Store the user details (the unique value and email) in sets to make it
+    // easier to identify them later. This may not be needed. Also, should the
+    // unique value have a time-to-live associated with it (and can this be done
+    // within a set)?
+    //
     //Since thenext set will be the last one the others will have completed.Not that it matters as we dont error handle right now.
     //redis_client.setex('auth:'+logincookie['unique'], logincookie['expdateinsecs'], logincookie['cookie']);
     //on the fly we'll have savedsearches:email and savedpubs:email
-    redis_client.setex('email:'+logincookie['unique'], logincookie['expdateinsecs'], email, responsedo);
+    // redis_client.setex('email:'+logincookie['unique'], logincookie['expdateinsecs'], email, responsedo);
+    //
+    redis_client.multi([["sadd", "useremails", email],
+			["sadd", "userids", logincookie['unique']],
+			["setex", 'email:'+logincookie['unique'], logincookie['expdateinsecs'], email]
+		       ]).exec(responsedo);
 
 }
+
+// A comment on saved times, used in both savePub and saveSearch.
+//
+// Approximate the save time as the time we process the request
+// on the server, rather than when it was made (in case the user's
+// clock is not set sensibly). 
+//
+// For now we save the UTC version of the time and provide no
+// way to change this to something meaningful to the user.
+//
+// Alternatives include:
+//
+// *  the client could send the time as a string, including the
+//    time zone, but this relies on their clock being okay
+//
+// *  the client can send in the local timezone info which can
+//    then be used to format the server-side derived time
+//    Not sure if can trust the time zone offset from the client
+//    if can not trust the time itself. Calculating a useful display
+//    string from the timezone offset is fiddly.
+//
+
 
 function saveSearch(jsonpayload, req, res, next){
     console.log("savedsearchcookies", req.cookies, jsonpayload);
@@ -180,16 +215,13 @@ function saveSearch(jsonpayload, req, res, next){
 
     var jsonobj=JSON.parse(jsonpayload);
     var savedsearch=jsonobj['savedsearch'];
-    var email;
 
-    // see savePub for a discussion of saved-times
-    var serverdate = new Date();
+    var sorttime = Date.now();
 
-    redis_client.get('email:'+logincookie,function(err, reply){
-        email=reply;
+    redis_client.get('email:'+logincookie,function(err, email){
 
-	var margs = [["hset", 'savedtimes:'+email, savedsearch, serverdate.toUTCString()],
-		     ["sadd", 'savedsearch:'+email, savedsearch]
+	var margs = [["hset", 'savedtimes:'+email, savedsearch, sorttime],
+		     ["zadd", 'savedsearch:'+email, sorttime, savedsearch]
 		     ];
 	redis_client.multi(margs).exec(function(err,reply){
                 res.writeHead(200, "OK", {'Content-Type': 'application/json'});
@@ -218,32 +250,10 @@ function savePub(jsonpayload, req, res, next){
     var bibcode=jsonobj['pubbibcode'];
     var title=jsonobj['pubtitle'];
 
-    // Approximate the save time as the time we process the request
-    // on the server, rather than when it was made (in case the user's
-    // clock is not set sensibly). 
-    //
-    // For now we save the UTC version of the time and provide no
-    // way to change this to something meaningful to the user.
-    //
-    // Alternatives include:
-    //
-    // *  the client could send the time as a string, including the
-    //    time zone, but this relies on their clock being okay
-    //
-    // *  the client can send in the local timezone info which can
-    //    then be used to format the server-side derived time
-    //    Not sure if can trust the time zone offset from the client
-    //    if can not trust the time itself. Calculating a useful display
-    //    string from the timezone offset is fiddly.
-    //
-    var serverdate = new Date();
+    var sorttime = Date.now();
 
-    var email;
-    redis_client.get('email:'+logincookie,function(err, reply){
-        console.log("REPLY", reply);
-        email=reply;
-        //the reason this must be done here is that its only in the response to the next call
-        //that email is set. Not in the request.
+    redis_client.get('email:'+logincookie,function(err, email){
+        console.log("REPLY", email);
 
 	// Moved to a per-user database for titles and bibcodes so that we can delete
 	// search information. Let's see how this goes compared to "global" values for the
@@ -254,8 +264,8 @@ function savePub(jsonpayload, req, res, next){
 
 	var margs = [["hset", 'savedbibcodes:'+email, savedpub, bibcode],
 		     ["hset", 'savedtitles:'+email, savedpub, title],
-		     ["hset", 'savedtimes:'+email, savedpub, serverdate.toUTCString()],
-		     ["sadd", 'savedpub:'+email, savedpub]
+		     ["hset", 'savedtimes:'+email, savedpub, sorttime],
+		     ["zadd", 'savedpub:'+email, sorttime, savedpub]
 		     ];
 	redis_client.multi(margs).exec(function(err,reply){
 		console.log("Saving publication: ", title);
@@ -339,10 +349,29 @@ function getUser(req, res, next){
     });
 }
 
+/*
+ * get all the elements for the given key, stored
+ * in a sorted list, and sent it to callback
+ * as cb(err,values). If flag is true then the list is sorted in
+ * ascending order of score (ie zrange rather than zrevrange)
+ * otherwise descending order.
+ */
+function getSortedElements(flag, key, cb) {
+
+    redis_client.zcard(key, function(err, reply) {
+	// could subtract 1 from reply but it looks like
+	// Redis stops at the end of the list
+	if (flag === true) {
+	    redis_client.zrange(key, 0, reply, cb);
+	} else {
+	    redis_client.zrevrange(key, 0, reply, cb);
+	}
+    });
+}
+
 function getSavedSearches(req, res, next){
 
     var logincookie=req.cookies['logincookie'];
-    var email;
     var sendback={};
     //this punts on the issue of having to make this extra call
     if (logincookie==undefined){
@@ -351,14 +380,13 @@ function getSavedSearches(req, res, next){
         res.end(JSON.stringify(sendback));
         return;
     }
-    redis_client.get('email:'+logincookie,function(err, reply){
-        email=reply;
-        redis_client.smembers('savedsearch:'+email,  function(err, reply){
-            res.writeHead(200, "OK", {'Content-Type': 'application/json'});
-            console.log("GETSAVEDSEARCHESREPLY", reply, err);
-            sendback['savedsearches']=reply;
-            //sendback[logincookie]=email;
-            res.end(JSON.stringify(sendback));
+    redis_client.get('email:'+logincookie,function(err, email) {
+	getSortedElements(true, 'savedsearch:'+email, function(err, searches) {
+	    res.writeHead(200, "OK", {'Content-Type': 'application/json'});
+	    console.log("GETSAVEDSEARCHESREPLY", searches, err);
+	    sendback['savedsearches']=searches;
+	    //sendback[logincookie]=email;
+	    res.end(JSON.stringify(sendback));
         });
     });
 
@@ -372,7 +400,6 @@ function getSavedSearches(req, res, next){
 function getSavedPubs(req, res, next){
     console.log("::::::::::getSavedPubsCookies", req.cookies);
     var logincookie=req.cookies['logincookie'];
-    var email;
     var sendback={};
     //this punts on the issue of having to make this extra call
     if (logincookie===undefined){
@@ -381,12 +408,11 @@ function getSavedPubs(req, res, next){
         res.end(JSON.stringify(sendback));
         return;
     }
-    redis_client.get('email:'+logincookie,function(err, reply){
-        email=reply;
-        redis_client.smembers('savedpub:'+email, function(err, reply){
+    redis_client.get('email:'+logincookie,function(err, email) {
+	getSortedElements(true, 'savedpub:'+email, function(err, searches) {
             res.writeHead(200, "OK", {'Content-Type': 'application/json'});
-            console.log("GETSAVEDPUBSREPLY", reply, err);
-            sendback['savedpubs']=reply;
+            console.log("GETSAVEDPUBSREPLY", searches, err);
+            sendback['savedpubs']=searches;
             //sendback[logincookie]=email;
             res.end(JSON.stringify(sendback));
         });
@@ -452,7 +478,7 @@ function deletePub(jsonpayload, req, res, next) {
     redis_client.get('email:'+logincookie,function(err, reply){
         email=reply;
 
-	var margs = [["srem", 'savedpub:'+email, docid],
+	var margs = [["zrem", 'savedpub:'+email, docid],
 		     ["hdel", 'savedtitles:'+email, docid],
 		     ["hdel", 'savedtimes:'+email, docid],
 		     ["hdel", 'savedbibcodes:'+email, docid]
@@ -491,7 +517,7 @@ function deleteSearch(jsonpayload, req, res, next) {
         email=reply;
 
 	var margs = [["hdel", 'savedtimes:'+email, searchid],
-		     ["srem", 'savedsearch:'+email, searchid]
+		     ["zrem", 'savedsearch:'+email, searchid]
 		     ];
 	redis_client.multi(margs).exec(function(err,reply){
 		console.log("Assumed we have removed " + searchid + " from user's saved search list");
@@ -547,6 +573,21 @@ function searchToText(searchTerm) {
     return out;
 }
 
+/*
+ * Returns a string representation of timeString, which
+ * should be a string containing the time in milliseconds,
+ * nowDate is a Date object containing the reference time
+ * (currently unused).
+ *
+ * The intention is to convert to "2 minutes ago" where
+ * appropriate.
+ */
+function timeToText(nowDate, timeString) {
+    var t = parseInt(timeString);
+    var d = new Date(t);
+    return d.toUTCString();
+}
+
 function doSaved(req, res, next){
     console.log("In do Saved");
     var logincookie=req.cookies['logincookie'];
@@ -557,53 +598,30 @@ function doSaved(req, res, next){
     };
     var lpartials=JSON.parse(globpartialsjson);
     lpartials['bodybody']=bodybodysaved;
-    var savedsearches;
-    var savedpubs;
-    var email;
     var html;
     res.writeHead(200, { 'Content-Type': 'text/html; charset=UTF-8' });
     if (logincookie!==undefined){
-	var pubtitles;
-	var pubcodes;
-	var savepubtimes;
-	var savesearchtimes;
-	redis_client.get('email:'+logincookie,function(err, reply){
-	    email=reply;
-
-	    redis_client.smembers('savedsearch:'+email, function(err, reply){
-		savedsearches=reply;
-		redis_client.smembers('savedpub:'+email, function(err, reply){
-		    savedpubs=reply;
-
+	var nowDate = new Date();
+	redis_client.get('email:'+logincookie,function(err, email){
+	    getSortedElements(false, 'savedsearch:'+email, function(err, savedsearches) {
+		getSortedElements(false, 'savedpub:'+email, function(err, savedpubs) {
 		    // want the bibcodes, titles amd times, for these publications
 		    //
-		    redis_client.hmget('savedtitles:'+email, savedpubs, function(err, reply){
-			// console.log("Saved publication titles: ", reply);
-			pubtitles=reply;
-
-			redis_client.hmget('savedbibcodes:'+email, savedpubs, function(err, reply){
-			    //console.log("Saved bibcode titles: ", reply);
-			    bibcodes = reply;
-						
-			    redis_client.hmget('savedtimes:'+email, savedpubs, function(err, reply){
-			        //console.log("Saved bibcode titles: ", reply);
-			        savepubtimes = reply;
-
-			        redis_client.hmget('savedtimes:'+email, savedsearches, function(err, reply){
-			            savesearchtimes = reply;
-
+		    redis_client.hmget('savedtitles:'+email, savedpubs, function(err, pubtitles){
+			redis_client.hmget('savedbibcodes:'+email, savedpubs, function(err, bibcodes){
+			    redis_client.hmget('savedtimes:'+email, savedpubs, function(err, pubtimes){
+			        redis_client.hmget('savedtimes:'+email, savedsearches, function(err, searchtimes){
 				    /* consolidate the values for the templates */
-						
 				    view['savedsearches'] = new Array(savedsearches.length);
 				    for (var i = 0; i < savedsearches.length; i++) {
 					var searchuri = savedsearches[i];
 					var searchtext = searchToText(searchuri);
 					var searchpre;
 
-					if (savesearchtimes[i] === null) {
+					if (searchtimes[i] === null) {
 					    searchpre = "";
 					} else {
-					    searchpre = savesearchtimes[i];
+					    searchpre = timeToText(nowDate, searchtimes[i]);
 					}
 
 					view['savedsearches'][i] = { 'searchuri':searchuri, 'searchtext':searchtext, 'searchpre':searchpre };
@@ -647,10 +665,10 @@ function doSaved(req, res, next){
 					    linktext += " (" + bibcode + ")";
 					}
 					
-					if (savepubtimes[i] === null) {
+					if (pubtimes[i] === null) {
 					    linkpre = "";
 					} else {
-					    linkpre = savepubtimes[i];
+					    linkpre = timeToText(nowDate, pubtimes[i]);
 					}
 					
 					view['savedpubs'][i] = {'pubid': pubid, 'linktext': linktext, 'linkuri': linkuri, 'linkpre': linkpre };
@@ -682,6 +700,7 @@ function doSaved(req, res, next){
     
 }
 
+// TODO: add a page for just .../explorer/
 var explorouter=connect(
     connect.router(function(app){
         app.get('/publications', doPublications);
@@ -727,6 +746,13 @@ server.use(SITEPREFIX+'/savedpubs', getSavedPubs);
 //
 server.use('/images', connect.static(__dirname + '/static/ajax-solr/images/'));
 
-server.listen(3000);
+function runServer(port) {
+    var url = 'http://localhost:' + port + SITEPREFIX + '/explorer/publications/';
+    console.log("Starting server on", url);
+    server.listen(port);
+}
+
+var migration = require('./migration');
+migration.validateRedis(redis_client, function() { runServer(3000); });
 
 //http://adsabs.harvard.edu/cgi-bin/nph-manage_account?man_cmd=logout&man_url=http%3A//labs.adsabs.harvard.edu/ui/%3Frefresh%3D1eec2387-96cb-11e0-a591-842b2b65702a

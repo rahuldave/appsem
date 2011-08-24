@@ -85,7 +85,6 @@ AjaxSolr.theme.prototype.snippet = function (doc) {
      */
 
      // the following is not intended to be efficient or idiomatic javascript
-     // it's also not creating the HTML I want [do I really need $foo = $foo.append(..)?]
      //
      var missionmap = {};
      var curmission = "";
@@ -100,14 +99,29 @@ AjaxSolr.theme.prototype.snippet = function (doc) {
 	 }
      }
 
+     var mastmissions = [];
+     for (var mission in missionmap) {
+	 if (mission !== "CHANDRA") {
+	     mastmissions.push(missionmap[mission].length + " " + mission);
+	 }
+     }
+     var allmasttext = "All MAST (" + mastmissions.join(', ') + ")";
+     // var hasmast = mastmissions.length > 0;
+
+     /***
      // somewhat hacky way to determine what the correct field name is
      var idfieldmap = { "euve": "euve_data_id", 
 			// "fuse": "fes_data_set_name"  does not seem to work
 			// "iue": "iue_data_id"         does not seem to work
 			// I have not bothered checking the other missions
 		      };
-
+     ***/
+     
+     // Currently relying on the fact that only have Chandra or MAST missions,
+     // and that Chandra will appear before any MAST mission
+     //
      var $obsarea = $('<div class="missiondataarea"></div>');
+     // var donemast = false;
      for (var mission in missionmap) {
 	 var mobsids = missionmap[mission];
 	 
@@ -117,18 +131,47 @@ AjaxSolr.theme.prototype.snippet = function (doc) {
 	 if (mobsids.length > 1) {
 	     if (mission == "CHANDRA") {
 		 $obsbody.append($(' <a class="iframe" href="http://cda.harvard.edu/chaser/ocatList.do?obsid='+mobsids.join(',')+'">All ('+mobsids.length+')</a>').fancybox({autoDimensions: false, width:1024, height:768}));
+	     } else {
+		 // Assuming MAST, adding an "all" for each MAST mission
+		 //
+		 // TODO: URI encode the bibcode?
+		 $obsbody.append($(' <a class="iframe" href="http://archive.stsci.edu/mastbibref.php?bibcode='+doc.bibcode+'">' + allmasttext +
+				   '</a>').fancybox({autoDimentions: false, width: 1024, height: 768}));
+		 // donemast = true;
+	     }
+
+             /***
 	     } else if (idfieldmap[mission]) {
 		 // This assumes we only have Chandra or MAST; will need to be fixed.
 		 //
-		 // Can we hack up a form to POST the search? I had hoped that this would take
-		 // the user to the actual search results rather than the filled-in search page
-		 // which it creates. It also doesn't use the fancybox magic.
+		 // Would like the MAST search results to appear in a "fancybox"
+		 // but that requires a POST, and so cross-domain issues.
 		 //
+		 // For now disabling this functionality as have a "all MAST" option
+		 //
+		 var $all = $('<a href="#">All (' + mobsids.length + ')</a>');
+		 $all.click(function() { 
+		     $.fancybox.showActivity();
+		     var map = { "action": "Search" };
+		     map[idfieldmap[mission]] = mobsids.join(',');
+		     $.post('http://archive.stsci.edu/' + mission + '/search.php', map, 
+			    function(data, textStatus) {
+				alert("data=" + String(data));
+				$.fancybox(data);
+			    },
+			    'html'
+			   );
+		     return false;
+		 });
+		 $obsbody.append($all);
+
 		 var $form = $('<form action="http://archive.stsci.edu/'+mission+'/search.php" method="post"></form>');
 		 $form.append($('<input type="hidden" name="'+idfieldmap[mission]+'" value="'+mobsids.join(',')+'">'));
-		 $form.append($('<input type="submit" name="action" value="All ('+mobsids.length+')">'));
+		 $form.append($('<input type="hidden" name="action" value="Search">'));
+		 $form.append($('<input type="submit" value="All ('+mobsids.length+')">'));
 		 $obsbody.append($form);
 	     }
+             ***/
 	 }
 	 $obsbody.append($('<br/>'));
 

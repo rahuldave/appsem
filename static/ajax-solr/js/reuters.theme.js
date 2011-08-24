@@ -105,7 +105,16 @@ AjaxSolr.theme.prototype.snippet = function (doc) {
 	     mastmissions.push(missionmap[mission].length + " " + mission);
 	 }
      }
-     var allmasttext = "All MAST (" + mastmissions.join(', ') + ")";
+     var nmanymast = mastmissions.length > 1;
+     var allmasttest;
+     if (nmanymast) {
+	 allmasttext = "All MAST (" + mastmissions.join(', ') + ")";
+     } else if (mastmissions.length == 1) {
+	 allmasttext = "All (" + missionmap[mission].length + ")";
+     } else {
+	 allmasttext = "";
+     }
+
      // var hasmast = mastmissions.length > 0;
 
      /***
@@ -128,17 +137,19 @@ AjaxSolr.theme.prototype.snippet = function (doc) {
 	 var $obsbody = $('<div class="missiondata"></div>').append($('<span class="missionname">' + mission + ':</i>'));
 
 	 // do we want a "download all obsids" link?
-	 if (mobsids.length > 1) {
-	     if (mission == "CHANDRA") {
+	 var nmany = mobsids.length > 1;
+	 if (mission == "CHANDRA") {
+	     if (nmany) {
 		 $obsbody.append($(' <a class="iframe" href="http://cda.harvard.edu/chaser/ocatList.do?obsid='+mobsids.join(',')+'">All ('+mobsids.length+')</a>').fancybox({autoDimensions: false, width:1024, height:768}));
-	     } else {
-		 // Assuming MAST, adding an "all" for each MAST mission
-		 //
-		 // TODO: URI encode the bibcode?
-		 $obsbody.append($(' <a class="iframe" href="http://archive.stsci.edu/mastbibref.php?bibcode='+doc.bibcode+'">' + allmasttext +
-				   '</a>').fancybox({autoDimentions: false, width: 1024, height: 768}));
-		 // donemast = true;
 	     }
+	 } else if (nmany || nmanymast) {
+	     // Assuming MAST, adding an "all" for each MAST mission
+	     //
+	     // TODO: URI encode the bibcode?
+	     $obsbody.append($(' <a class="iframe" href="http://archive.stsci.edu/mastbibref.php?bibcode='+doc.bibcode+'">' + allmasttext +
+			       '</a>').fancybox({autoDimentions: false, width: 1024, height: 768}));
+	     // donemast = true;
+	 }
 
              /***
 	     } else if (idfieldmap[mission]) {
@@ -172,7 +183,7 @@ AjaxSolr.theme.prototype.snippet = function (doc) {
 		 $obsbody.append($form);
 	     }
              ***/
-	 }
+
 	 $obsbody.append($('<br/>'));
 
 	 // ad-hoc collection of MAST missions for which the data link is known to

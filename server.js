@@ -24,8 +24,6 @@ var redis_client = require("redis").createClient();
 var RedisStore = require('connect-redis')(connect);
 //var uuid = require('node-uuid');
 
-
-
 var maint=fs.readFileSync( TDIR+'template.html','utf-8');
 var partials={
     pagehead : fs.readFileSync( TDIR+'pagehead.html','utf-8'),
@@ -681,7 +679,7 @@ function doSaved(req, res, next){
 				    searchpre = timeToText(nowDate, searchtimes[i]);
 				}
 				
-				view['savedsearches'][i] = { 'searchuri':searchuri, 'searchtext':searchtext, 'searchpre':searchpre };
+				view['savedsearches'][i] = { 'searchuri':searchuri, 'searchtext':searchtext, 'searchpre':searchpre, 'searchctr': i };
 			    }
 			    
 			    var npub = pubkeys.length;
@@ -726,14 +724,13 @@ function doSaved(req, res, next){
 				    linkpre = timeToText(nowDate, pubtimes[i]);
 				}
 				
-				view['savedpubs'][i] = {'pubid': pubid, 'linktext': linktext, 'linkuri': linkuri, 'linkpre': linkpre };
+				view['savedpubs'][i] = {'pubid': pubid, 'linktext': linktext, 'linkuri': linkuri, 'linkpre': linkpre, 'pubctr': i };
 				
 			    }
-			    
+
 			    // console.log("HACK: mustache view = ", view);
 			    // console.log("CALLING MUSTACHE");
 			    html=mustache.to_html(maint, view, lpartials);
-			    // TODO: can I process the html to add in callbacks for the remove links?
 			    res.end(html);
 			    
 			});

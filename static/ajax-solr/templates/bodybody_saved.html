@@ -14,10 +14,10 @@
     <h1>Saved Publications</h1><br/>
 	<ul>
 	{{#savedpubs}}
-	<li>
+	<li id="pub-{{pubctr}}">
 	  {{linkpre}}
 	  <a href="/semantic2/alpha/explorer/publications#fq={{linkuri}}&q=*%3A*">{{{linktext}}}</a>
-	  [Remove link]
+	  [<a href="#" id="del-pub-{{pubctr}}">Delete</a>]
 	</li>
 	{{/savedpubs}}
 	</ul>
@@ -40,10 +40,28 @@ function addDeleteSearchHandler(ctr, searchid) {
  });
 }
 
+function addDeletePubHandler(ctr, pubid) {
+  $('#del-pub-'+ctr).click(function() {
+    $.post(SITEPREFIX+'/deletepub',
+	JSON.stringify({'savedpub':pubid}),
+	function (data) {
+	  if (data['success']==='defined') {
+	    // Could force a page reload but this is less
+	    // work and probably a nicer user experience.
+	    $('#pub-'+ctr).hide();
+	  }
+	});
+    return false;	
+ });
+}
+
 function addDeleteHandlers() {
 {{#savedsearches}}
   addDeleteSearchHandler('{{searchctr}}', '{{{searchuri}}}');
 {{/savedsearches}}
+{{#savedpubs}}
+  addDeletePubHandler('{{pubctr}}', '{{{pubid}}}');
+{{/savedpubs}}
 }
 
 addDeleteHandlers();

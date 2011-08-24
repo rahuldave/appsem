@@ -3,10 +3,10 @@
     <h1>Saved Searches</h1><br/>
 	<ul>
 	{{#savedsearches}}
-	  <li>
+	  <li id="search-{{searchctr}}">
 	    {{searchpre}}
 	    <a href="/semantic2/alpha/explorer/publications#{{searchuri}}">{{searchtext}}</a>
-	    [Remove link]
+	    [<a href="#" id="del-search-{{searchctr}}">Delete</a>]
 	  </li>
 	{{/savedsearches}}
 	</ul>
@@ -22,13 +22,31 @@
 	{{/savedpubs}}
 	</ul>
 
+	<!-- I assume this is a sensible time to add the handlers -->
+	<script type='text/javascript'>
+// relying on SITEPREFIX being in scope
+function addDeleteSearchHandler(ctr, searchid) {
+  $('#del-search-'+ctr).click(function() {
+    $.post(SITEPREFIX+'/deletesearch',
+	JSON.stringify({'savedsearch':searchid}),
+	function (data) {
+	  if (data['success']==='defined') {
+	    // Could force a page reload but this is less
+	    // work and probably a nicer user experience.
+	    $('#search-'+ctr).hide();
+	  }
+	});
+    return false;	
+ });
+}
 
-  <!--div id="result"> Using SOLR to generate collections might be a great way to go. Also use
-hashes rather than sets for saved searches so we can name them!
-    <div id="navigation"> 
-      <ul id="pager"></ul> 
-      <div id="pager-header"></div> 
-    </div> 
-    <div id="docs"></div> 
-  </div-->    
+function addDeleteHandlers() {
+{{#savedsearches}}
+  addDeleteSearchHandler('{{searchctr}}', '{{{searchuri}}}');
+{{/savedsearches}}
+}
+
+addDeleteHandlers();
+
+	</script>
 </div>

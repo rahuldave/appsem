@@ -143,7 +143,7 @@ AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
     });*/
   },
   beforeRequest: function () {
-    $(this.target).html($('<img/>').attr('src', '/images/ajax-loader.gif'));
+    $(this.target).html($('<img/>').attr('src', '/semantic2/alpha/static/images/ajax-loader.gif'));
   }
 });
 

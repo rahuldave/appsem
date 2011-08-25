@@ -1,5 +1,7 @@
 (function ($) {
 
+    var fancyboxOpts = { 'autoDimensions': false, 'width': 1024, 'height': 768 };
+
 AjaxSolr.theme.prototype.result = function (doc, snippet, thetitlelink, thepivot, thedocthis) {
   console.log("DIC: "+doc);
 /*for (ele in doc){
@@ -24,11 +26,9 @@ AjaxSolr.theme.prototype.result = function (doc, snippet, thetitlelink, thepivot
 }
 
 AjaxSolr.theme.prototype.title = function (doc) {
-    var $output=$('<a class="iframe"/>').text('(Link)')
-		.attr('href', "http://labs.adsabs.harvard.edu/ui/abs/"+doc.bibcode)
-		.fancybox({autoDimensions: false, width:1024, height:768});
-    //var $output=$('<a class="colorbox-iframe"/>').text(doc.title).attr('href', "#p_"+doc.id).fancybox();
-    return $output;
+    return $('<a class="iframe"/>').text('(Link)')
+	.attr('href', "http://labs.adsabs.harvard.edu/ui/abs/"+doc.bibcode)
+	.fancybox(fancyboxOpts);
 }
 
 AjaxSolr.theme.prototype.pivot = function (doc, handler){
@@ -57,7 +57,10 @@ AjaxSolr.theme.prototype.snippet = function (doc) {
  } else {
 	var objlinks=objectnames.map(function(ele)
 		{
-			return $('<a class="iframe" href="http://simbad.u-strasbg.fr/simbad/sim-id?Ident='+encodeURIComponent(ele)+'&NbIdent=1&Radius=2&Radius.unit=arcmin&submit=submit+id">'+ele+'</a>').fancybox({autoDimensions: false, width:1024, height:768});
+		    return $('<a class="iframe"></a>')
+			.text(ele)
+			.attr('href','http://simbad.u-strasbg.fr/simbad/sim-id?Ident='+encodeURIComponent(ele)+'&NbIdent=1&Radius=2&Radius.unit=arcmin&submit=submit+id')
+			.fancybox(fancyboxOpts);
 		}
 	);
  }
@@ -74,15 +77,6 @@ AjaxSolr.theme.prototype.snippet = function (doc) {
      var obsarray = obsids.sort().map(function(ele) {
 	 return ele.split("/"); // assume '/' does not occur as part of an obsid; not ideal
      } );
-     /*
-     var obslinks = obsarray.map(function(ele) {
-	 if (ele[0] == "CHANDRA") {
-	     return $('<a class="iframe" href="http://cda.harvard.edu/chaser/ocatList.do?obsid='+ele[1]+'">'+ele[1]+'</a>').fancybox({autoDimensions: false, width:1024, height:768});
-	 } else {
-	     return ele[1];
-	 }
-     } );
-     */
 
      // the following is not intended to be efficient or idiomatic javascript
      //
@@ -140,14 +134,17 @@ AjaxSolr.theme.prototype.snippet = function (doc) {
 	 var nmany = mobsids.length > 1;
 	 if (mission == "CHANDRA") {
 	     if (nmany) {
-		 $obsbody.append($(' <a class="iframe" href="http://cda.harvard.edu/chaser/ocatList.do?obsid='+mobsids.join(',')+'">All ('+mobsids.length+')</a>').fancybox({autoDimensions: false, width:1024, height:768}));
+		 $obsbody.append($(' <a class="iframe" href="http://cda.harvard.edu/chaser/ocatList.do?obsid='+mobsids.join(',')+'">All ('+mobsids.length+')</a>').fancybox(fancyboxOpts));
 	     }
 	 } else if (nmany || nmanymast) {
 	     // Assuming MAST, adding an "all" for each MAST mission
 	     //
-	     // TODO: URI encode the bibcode?
-	     $obsbody.append($(' <a class="iframe" href="http://archive.stsci.edu/mastbibref.php?bibcode='+doc.bibcode+'">' + allmasttext +
-			       '</a>').fancybox({autoDimentions: false, width: 1024, height: 768}));
+	     // TODO: percent encode the bibcode?
+             var $output = $('<a class="iframe"/>')
+                 .text(allmasttext)
+                 .attr('href', 'http://archive.stsci.edu/mastbibref.php?bibcode='+encodeURIComponent(doc.bibcode))
+	         .fancybox(fancyboxOpts);
+	     $obsbody.append($output);
 	     // donemast = true;
 	 }
 
@@ -194,7 +191,11 @@ AjaxSolr.theme.prototype.snippet = function (doc) {
 	 // now the individual obsids; this should be made more modular
 	 if (mission === "CHANDRA") {
 	     for (var idx in mobsids) {
-		 $obsbody.append($('<a class="iframe" href="http://cda.harvard.edu/chaser/ocatList.do?obsid='+mobsids[idx]+'">'+mobsids[idx]+'</a> ').fancybox({autoDimensions: false, width:1024, height:768}));
+		 $obsbody
+		     .append($('<a class="iframe"></a>')
+			     .text(mobsids[idx])
+			     .attr('href', 'http://cda.harvard.edu/chaser/ocatList.do?obsid='+mobsids[idx])
+			     .fancybox(fancyboxOpts));
 	     }
 	 } else {
 	     // Assuming MAST, which will eventually be wrong
@@ -220,7 +221,10 @@ AjaxSolr.theme.prototype.snippet = function (doc) {
 			 obsidlnk = obsidlnk.slice(0, obsidlnk.length-4);
 		     }
 
-		     $obsbody.append($('<a class="iframe" href="http://archive.stsci.edu/cgi-bin/mastpreview?mission='+mission+'&dataid='+obsidlnk+'">'+mobsids[idx]+'</a> ').fancybox({autoDimensions: false, width:1024, height:768}));
+		     $obsbody.append($('<a class="iframe"></a>')
+				     .text(mobsids[idx])
+				     .attr('href', 'http://archive.stsci.edu/cgi-bin/mastpreview?mission='+mission+'&dataid='+obsidlnk)
+				     .fancybox(fancyboxOpts));
 		 }
 	     }
 	 }

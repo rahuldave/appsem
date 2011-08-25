@@ -1,70 +1,82 @@
-
 <div class="full"> 
-    <h1>Saved Searches</h1><br/>
-	<ul>
-	{{#savedsearches}}
-	  <li id="search-{{searchctr}}">
-	    {{searchpre}}
-	    <a href="/semantic2/alpha/explorer/publications#{{searchuri}}">{{searchtext}}</a>
-	    [<a href="#" id="del-search-{{searchctr}}">Delete</a>]
-	  </li>
-	{{/savedsearches}}
-	</ul>
-	<br/>
-    <h1>Saved Publications</h1><br/>
-	<ul>
-	{{#savedpubs}}
-	<li id="pub-{{pubctr}}">
-	  {{linkpre}}
-	  <a href="/semantic2/alpha/explorer/publications#fq={{linkuri}}&q=*%3A*">{{{linktext}}}</a>
-	  [<a href="#" id="del-pub-{{pubctr}}">Delete</a>]
-	</li>
-	{{/savedpubs}}
-	</ul>
+
+ <div class="saved-items">
+   {{#hassearches}}
+  <h1>Saved Searches</h1>
+  <form id="saved-searches-form" action="#">
+  <input type="submit" name="action" value="Delete marked searches">
+  <input type="button" value="Mark all" onClick="changeAllButtons(this.form, true)">
+  <input type="button" value="Clear all" onClick="changeAllButtons(this.form, false)">
+{{#savedsearches}}
+  <div id="search-{{searchctr}}">
+    <input type="checkbox" name="searchid" value="{{searchuri}}">
+    {{searchpre}}
+    <a href="/semantic2/alpha/explorer/publications#{{searchuri}}">{{searchtext}}</a>
+  </div>
+ {{/savedsearches}}
+ </form>
+  {{/hassearches}}
+  {{^hassearches}}
+  <h1>No saved searches</h1>
+  {{/hassearches}}
+ </div>
+
+  <div class="saved-items">
+    {{#haspubs}}
+  <h1>Saved Publications</h1>
+  <form id="saved-pubs-form" action="#">
+ <input type="submit" name="action" value="Delete marked publications">
+  <input type="button" value="Mark all" onClick="changeAllButtons(this.form, true)">
+  <input type="button" value="Clear all" onClick="changeAllButtons(this.form, false)">
+    {{#savedpubs}}
+    <div id="pub-{{pubctr}}">
+      <input type="checkbox" name="pubid" value="{{{pubid}}}">
+      {{linkpre}}
+      <a href="/semantic2/alpha/explorer/publications#fq={{linkuri}}&q=*%3A*">{{{linktext}}}</a>
+    </div>
+    {{/savedpubs}}
+    </form>
+    {{/haspubs}}
+    {{^haspubs}}
+    <h1>No saved publications</h1>
+    {{/haspubs}}
+    </div>
 
 	<!-- I assume this is a sensible time to add the handlers -->
 	<script type='text/javascript'>
+function changeAllButtons(form, newstate) {
+  $(form).find('input[type=checkbox]').each(function() { this.checked = newstate; });
+}
+
 // relying on SITEPREFIX being in scope
-function addDeleteSearchHandler(ctr, searchid) {
-  $('#del-search-'+ctr).click(function() {
-    $.post(SITEPREFIX+'/deletesearch',
-	JSON.stringify({'savedsearch':searchid}),
-	function (data) {
-	  if (data['success']==='defined') {
-	    // Could force a page reload but this is less
-	    // work and probably a nicer user experience.
-	    $('#search-'+ctr).hide();
-	  }
-	});
-    return false;	
- });
-}
 
-function addDeletePubHandler(ctr, pubid) {
-  $('#del-pub-'+ctr).click(function() {
-    $.post(SITEPREFIX+'/deletepub',
-	JSON.stringify({'savedpub':pubid}),
-	function (data) {
-	  if (data['success']==='defined') {
-	    // Could force a page reload but this is less
-	    // work and probably a nicer user experience.
-	    $('#pub-'+ctr).hide();
-	  }
-	});
-    return false;	
- });
-}
-
-function addDeleteHandlers() {
-{{#savedsearches}}
-  addDeleteSearchHandler('{{searchctr}}', '{{{searchuri}}}');
-{{/savedsearches}}
-{{#savedpubs}}
-  addDeletePubHandler('{{pubctr}}', '{{{pubid}}}');
-{{/savedpubs}}
-}
-
-addDeleteHandlers();
-
+$('#saved-searches-form').submit(function() {
+  var data = [];
+  $(this).find('input[type=checkbox]').each(function() {
+    if (this.checked) { data.push(this.value); }
+  });
+  var map = { "action": "delete", "searchid": data };
+  $.post(SITEPREFIX+'/deletesearches', JSON.stringify(map), function(resp) {
+    if (data['success']==='defined') {
+      // for now reload; could just hide the appropriate divs
+      window.location.reload();
+    }
+  });
+});
+    
+$('#saved-pubs-form').submit(function() {
+  var data = [];
+  $(this).find('input[type=checkbox]').each(function() {
+    if (this.checked) { data.push(this.value); }
+  });
+  var map = { "action": "delete", "pubid": data };
+  $.post(SITEPREFIX+'/deletepubs', JSON.stringify(map), function(resp) {
+    if (data['success']==='defined') {
+      // for now reload; could just hide the appropriate divs
+      window.location.reload();
+    }
+  });
+});
+    
 	</script>
 </div>

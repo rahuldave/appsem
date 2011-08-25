@@ -481,9 +481,128 @@ function savePubToRedis(req, res, next){
 function deletePubFromRedis(req, res, next){
     postHandler(req, res, deletePub);
 }
+function deletePubsFromRedis(req, res, next){
+    postHandler(req, res, deletePubs);
+}
 function deleteSearchFromRedis(req, res, next){
     postHandler(req, res, deleteSearch);
 }
+function deleteSearchesFromRedis(req, res, next){
+    postHandler(req, res, deleteSearches);
+}
+
+// Needed to check whether we get a string or an array
+// of strings. Taken from
+// http://stackoverflow.com/questions/1058427/how-to-detect-if-a-variable-is-an-array/1058457#1058457
+//
+var isArray = function (o) {
+    return (o instanceof Array) ||
+        (Object.prototype.toString.apply(o) === '[object Array]');
+};
+
+// Remove the list of searchids, associated with the given 
+// user cookie, from Redis.
+//
+// At present we require that searchids not be empty; this may
+// be changed.
+//
+function removeSearches(res, cookie, searchids) {
+
+    if (searchids.length === 0) {
+	console.log("Error: removeSearches called with empty searchids list; cookie=" + cookie);
+	failedRequest(res);
+    } else {
+	redis_client.get('email:'+cookie,function(err, email){
+	    var margs = [];
+	    for (var i in searchids) {
+		margs.push(["zrem", 'savedsearch:'+email, searchids[i]]);
+	    }
+	    redis_client.multi(margs).exec(function(err,reply){
+		console.log("Assumed we have removed " + searchids.length + " searches from user's saved search list");
+		successfulRequest(res);
+	    });
+	});
+    }
+
+} // removeSearches
+
+// Similar to removeSearches but removes publications.
+//
+function removeDocs(res, cookie, docids) {
+
+    if (docids.length === 0) {
+	console.log("Error: removeDocs called with empty docids list; cookie=" + cookie);
+	failedRequest(res);
+    } else {
+
+	redis_client.get('email:'+cookie,function(err, email){
+	    var margs = [];
+	    var pubkey = 'savedpub:' + email;
+	    var titlekey = 'savedtitles:' + email;
+	    var bibkey = 'savedbibcodes:' + email;
+	    for (var i in docids) {
+		var docid = docids[i];
+		margs.push(["zrem", pubkey, docid]);
+		margs.push(["hdel", titlekey, docid]);
+		margs.push(["hdel", bibkey, docid]);
+	    }
+	    redis_client.multi(margs).exec(function(err,reply){
+		console.log("Assumed we have removed " + docids.length + " papers from user's saved publication list");
+		successfulRequest(res);
+	    });
+	});
+    }
+
+} // removeDocs
+
+// Handle the request from a user to delete a search
+function deleteSearch(jsonpayload, req, res, next) {
+    console.log(">> In deleteSearch");
+    // console.log(">>   cookies = ", req.cookies);
+    // console.log(">>   payload = ", jsonpayload);
+
+    var jsonobj = JSON.parse(jsonpayload);
+    var logincookie = req.cookies['logincookie'];
+    var searchid = jsonobj['savedsearch'];
+    console.log("logincookie:", logincookie, " search:", searchid);
+
+    if (logincookie===undefined || searchid===undefined){
+	failedRequest(res);
+    } else {
+	removeSearches(res, logincookie, [searchid]);
+    }
+} // deleteSearch
+
+// TODO: not sure what to reply with here? the standard JSON payload may
+// not make sense since want to reload the search page. The form that 
+// makes the post should handle this (ie ignore the payload).
+// 
+function deleteSearches(payload, req, res, next) {
+    console.log(">> In deleteSearches");
+    //console.log(">>   cookies = ", req.cookies);
+    //console.log(">>   payload = ", payload);
+
+    var logincookie = req.cookies['logincookie'];
+    if (logincookie===undefined) {
+	failedRequest(res);
+	return;
+    }
+
+    var terms = JSON.parse(payload);
+    var action = terms['action'];
+    var searchids;
+    if (isArray(terms['searchid'])) {
+	searchids = terms['searchid'];
+    } else {
+	searchids = [ terms['searchid'] ];
+    }
+    
+    if (action === "delete" && searchids !== undefined && searchids.length > 0) {
+	removeSearches(res, logincookie, searchids);
+    } else {
+	failedRequest(res);
+    }
+} // deleteSearches
 
 function deletePub(jsonpayload, req, res, next) {
     console.log(">> In deletePub");
@@ -494,68 +613,56 @@ function deletePub(jsonpayload, req, res, next) {
     var logincookie = req.cookies['logincookie'];
     var docid = jsonobj['savedpub'];
     console.log("logincookie:", logincookie, " docid:", docid);
-    var sendback = {};
 
     if (logincookie===undefined || docid===undefined){
-        res.writeHead(200, "OK", {'Content-Type': 'application/json'});
-        sendback['success']='undefined';
-        res.end(JSON.stringify(sendback));
-        return; 
+	failedRequest(res);
+    } else {
+	removeDocs(res, logincookie, [docid]);
     }
 
-    var email;
-    redis_client.get('email:'+logincookie,function(err, reply){
-        email=reply;
+} // deletePub
 
-	var margs = [["zrem", 'savedpub:'+email, docid],
-		     ["hdel", 'savedtitles:'+email, docid],
-		     ["hdel", 'savedbibcodes:'+email, docid]
-		     ];
-	redis_client.multi(margs).exec(function(err,reply){
-		console.log("Assumed we have removed " + docid + " from user's saved publication list");
+function deletePubs(payload, req, res, next) {
+    console.log(">> In deletePubs");
+    //console.log(">>   cookies = ", req.cookies);
+    console.log(">>   payload = ", payload);
 
-		res.writeHead(200, "OK", {'Content-Type': 'application/json'});
-		sendback['success']='defined';
-		res.end(JSON.stringify(sendback));
-	    });
-	});
+    var logincookie = req.cookies['logincookie'];
+    if (logincookie===undefined) {
+	failedRequest(res);
+	return;
+    }
 
+    var terms = JSON.parse(payload);
+    console.log("}}   query string = ", terms);
+    var action = terms['action'];
+    var pubids;
+    if (isArray(terms['pubid'])) {
+	pubids = terms['pubid'];
+    } else {
+	pubids = [ terms['pubid'] ];
+    }
+
+    console.log("*** pubids: ", pubids);
+
+    if (action === "delete" && pubids !== undefined && pubids.length > 0) {
+	removeDocs(res, logincookie, pubids);
+    } else {
+	failedRequest(res);
+    }
+} // deletePubs
+
+// The request failed so send back our generic "you failed" JSON
+// payload.
+function failedRequest(res) {
+    res.writeHead(200, "OK", {'Content-Type': 'application/json'});
+    res.end(JSON.stringify({'success': 'undefined'}));
 }
 
-function deleteSearch(jsonpayload, req, res, next) {
-    console.log(">> In deleteSearch");
-    // console.log(">>   cookies = ", req.cookies);
-    // console.log(">>   payload = ", jsonpayload);
-
-    var jsonobj = JSON.parse(jsonpayload);
-    var logincookie = req.cookies['logincookie'];
-    var searchid = jsonobj['savedsearch'];
-    console.log("logincookie:", logincookie, " search:", searchid);
-    var sendback = {};
-
-    if (logincookie===undefined || searchid===undefined){
-        res.writeHead(200, "OK", {'Content-Type': 'application/json'});
-        sendback['success']='undefined';
-        res.end(JSON.stringify(sendback));
-        return; 
-    }
-
-    var email;
-    redis_client.get('email:'+logincookie,function(err, reply){
-        email=reply;
-
-	// keep as a multi for now
-	var margs = [["zrem", 'savedsearch:'+email, searchid]
-		     ];
-	redis_client.multi(margs).exec(function(err,reply){
-		console.log("Assumed we have removed " + searchid + " from user's saved search list");
-
-		res.writeHead(200, "OK", {'Content-Type': 'application/json'});
-		sendback['success']='defined';
-		res.end(JSON.stringify(sendback));
-	    });
-	});
-
+// The request succeeded. May need to allow extra parameters.
+function successfulRequest(res) {
+    res.writeHead(200, "OK", {'Content-Type': 'application/json'});
+    res.end(JSON.stringify({'success': 'defined'}));
 }
 
 //why do we not bake logincookie stuff into doPublications? Could simplify some JS shenanigans. Philosophy?
@@ -667,6 +774,7 @@ function doSaved(req, res, next){
 			redis_client.hmget('savedbibcodes:'+email, pubkeys, function(err, bibcodes){
 			    /* consolidate the values for the templates */
 			    var nsearch = searchkeys.length;
+			    view['hassearches'] = nsearch > 0;
 			    view['savedsearches'] = new Array(nsearch);
 			    for (var i = 0; i < nsearch; i++) {
 				var searchuri = searchkeys[i];
@@ -683,6 +791,7 @@ function doSaved(req, res, next){
 			    }
 			    
 			    var npub = pubkeys.length;
+			    view['haspubs'] = npub > 0;
 			    view['savedpubs'] = new Array(npub);
 			    for (var i = 0; i < npub; i++) {
 				var pubid = pubkeys[i];
@@ -802,7 +911,9 @@ server.use(SITEPREFIX+'/savedsearches', getSavedSearches);
 server.use(SITEPREFIX+'/savepub', savePubToRedis);
 
 server.use(SITEPREFIX+'/deletesearch', deleteSearchFromRedis);
+server.use(SITEPREFIX+'/deletesearches', deleteSearchesFromRedis);
 server.use(SITEPREFIX+'/deletepub', deletePubFromRedis);
+server.use(SITEPREFIX+'/deletepubs', deletePubsFromRedis);
 
 server.use(SITEPREFIX+'/savedpubs', getSavedPubs);
 

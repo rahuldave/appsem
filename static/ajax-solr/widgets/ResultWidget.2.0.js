@@ -103,7 +103,7 @@ AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
       var thedoc=doc;
       return function(){
 	  $.post(SITEPREFIX+'/deletepub', JSON.stringify({
-		      'savedpub':thedoc.id }), function(data){
+		      'pubid':thedoc.id }), function(data){
                 if (data['success']==='defined'){
                     $('#savepub_'+thedoc.id).show();
                     $('#delpub_'+thedoc.id).hide();

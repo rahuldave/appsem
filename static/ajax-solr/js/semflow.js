@@ -47,7 +47,7 @@ var SITEPREFIX='/semantic2/alpha';
             return false;
         });
         $('#delete-search').click(function(){
-            $.post(SITEPREFIX+'/deletesearch', JSON.stringify({'savedsearch':location.href.split("#")[1]}), function(data){
+            $.post(SITEPREFIX+'/deletesearch', JSON.stringify({'searchid':location.href.split("#")[1]}), function(data){
                 //should we decode uri component above? We do it on server so perhaps not.
                 if (data['success']==='defined'){
 		    $('#delete-search').hide();

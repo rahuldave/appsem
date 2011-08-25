@@ -296,3 +296,26 @@ span.missionname {
     position: relative;
     left: -1em;
 }
+
+div.saved-items {
+    padding-bottom: 1em;
+}
+
+div.saved-items h1 {
+    position: relative;
+    left: -1em;
+}
+
+div.saved-items form {
+    padding-top: 1em;
+}
+
+div.saved-items div {
+    padding-top: 0.2em;
+}
+
+/* Not convinced this is useful but try for now */
+div.saved-items div:nth-child(odd) {
+    background: #EDEBEC;
+}
+

@@ -139,7 +139,6 @@ AjaxSolr.theme.prototype.snippet = function (doc) {
 	 } else if (nmany || nmanymast) {
 	     // Assuming MAST, adding an "all" for each MAST mission
 	     //
-	     // TODO: percent encode the bibcode?
              var $output = $('<a class="iframe"/>')
                  .text(allmasttext)
                  .attr('href', 'http://archive.stsci.edu/mastbibref.php?bibcode='+encodeURIComponent(doc.bibcode))
@@ -147,39 +146,6 @@ AjaxSolr.theme.prototype.snippet = function (doc) {
 	     $obsbody.append($output);
 	     // donemast = true;
 	 }
-
-             /***
-	     } else if (idfieldmap[mission]) {
-		 // This assumes we only have Chandra or MAST; will need to be fixed.
-		 //
-		 // Would like the MAST search results to appear in a "fancybox"
-		 // but that requires a POST, and so cross-domain issues.
-		 //
-		 // For now disabling this functionality as have a "all MAST" option
-		 //
-		 var $all = $('<a href="#">All (' + mobsids.length + ')</a>');
-		 $all.click(function() { 
-		     $.fancybox.showActivity();
-		     var map = { "action": "Search" };
-		     map[idfieldmap[mission]] = mobsids.join(',');
-		     $.post('http://archive.stsci.edu/' + mission + '/search.php', map, 
-			    function(data, textStatus) {
-				alert("data=" + String(data));
-				$.fancybox(data);
-			    },
-			    'html'
-			   );
-		     return false;
-		 });
-		 $obsbody.append($all);
-
-		 var $form = $('<form action="http://archive.stsci.edu/'+mission+'/search.php" method="post"></form>');
-		 $form.append($('<input type="hidden" name="'+idfieldmap[mission]+'" value="'+mobsids.join(',')+'">'));
-		 $form.append($('<input type="hidden" name="action" value="Search">'));
-		 $form.append($('<input type="submit" value="All ('+mobsids.length+')">'));
-		 $obsbody.append($form);
-	     }
-             ***/
 
 	 $obsbody.append($('<br/>'));
 

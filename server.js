@@ -849,8 +849,9 @@ function doSaved(req, res, next){
 	});
 
     } else {
-        view['savedsearches']=[];
-        view['savedpubs']=[];
+	view['notloggedin'] = true;
+        // view['savedsearches']=[];
+        // view['savedpubs']=[];
         html=mustache.to_html(maint, view, lpartials);
         res.end(html);
         return;

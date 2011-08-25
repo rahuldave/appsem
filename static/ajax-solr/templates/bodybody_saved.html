@@ -1,5 +1,15 @@
 <div class="full"> 
 
+  {{#notloggedin}}
+  <div>
+    Saving of searches and publications requires you to
+    log in.
+    TODO: make "log in" be a link, or have the Saved tab be
+    hidden unless you are logged in.
+  </div>
+  {{/notloggedin}}
+
+  {{^notloggedin}}
  <div class="saved-items">
    {{#hassearches}}
   <h1>Saved Searches</h1>
@@ -41,7 +51,7 @@
     <h1>No saved publications</h1>
     {{/haspubs}}
     </div>
-
+{{/notloggedin}}
 	<!-- I assume this is a sensible time to add the handlers -->
 	<script type='text/javascript'>
 function changeAllButtons(form, newstate) {

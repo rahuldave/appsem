@@ -134,7 +134,10 @@ AjaxSolr.theme.prototype.snippet = function (doc) {
 	 var nmany = mobsids.length > 1;
 	 if (mission == "CHANDRA") {
 	     if (nmany) {
-		 $obsbody.append($(' <a class="iframe" href="http://cda.harvard.edu/chaser/ocatList.do?obsid='+mobsids.join(',')+'">All ('+mobsids.length+')</a>').fancybox(fancyboxOpts));
+		 $obsbody.append($('<a class="iframe"></a>')
+				 .text('All (' + mobsids.length + ')')
+				 .attr('href', 'http://cda.harvard.edu/chaser/ocatList.do?obsid='+mobsids.join(','))
+				 .fancybox(fancyboxOpts));
 	     }
 	 } else if (nmany || nmanymast) {
 	     // Assuming MAST, adding an "all" for each MAST mission

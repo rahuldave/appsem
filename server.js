@@ -555,102 +555,74 @@ function removeDocs(res, cookie, docids) {
 
 } // removeDocs
 
-// Handle the request from a user to delete a search
-function deleteSearch(jsonpayload, req, res, next) {
-    console.log(">> In deleteSearch");
-    // console.log(">>   cookies = ", req.cookies);
-    // console.log(">>   payload = ", jsonpayload);
+// Create a function to delete a single search or publication
+//   funcname is used to create a console log message of 'In ' + funcname
+//     on entry to the function
+//   idname is the name of the key used to identify the item to delete
+//     in the JSON payload
+//   delItems is the routine we call to delete multiple elements
+//
+function deleteItem(funcname, idname, delItems) {
+    return function(jsonpayload, req, res, next) {
+	console.log(">> In " + funcname);
+	// console.log(">>   cookies = ", req.cookies);
+	// console.log(">>   payload = ", jsonpayload);
 
-    var jsonobj = JSON.parse(jsonpayload);
-    var logincookie = req.cookies['logincookie'];
-    var searchid = jsonobj['savedsearch'];
-    console.log("logincookie:", logincookie, " search:", searchid);
+	var jsonobj = JSON.parse(jsonpayload);
+	var logincookie = req.cookies['logincookie'];
+	var delid = jsonobj[idname];
+	console.log("logincookie:", logincookie, " delete item:", delid);
 
-    if (logincookie===undefined || searchid===undefined){
-	failedRequest(res);
-    } else {
-	removeSearches(res, logincookie, [searchid]);
-    }
-} // deleteSearch
+	if (logincookie===undefined || delid===undefined){
+	    failedRequest(res);
+	} else {
+	    delItems(res, logincookie, [delid]);
+	}
+    };
 
-// TODO: not sure what to reply with here? the standard JSON payload may
-// not make sense since want to reload the search page. The form that 
-// makes the post should handle this (ie ignore the payload).
-// 
-function deleteSearches(payload, req, res, next) {
-    console.log(">> In deleteSearches");
-    //console.log(">>   cookies = ", req.cookies);
-    //console.log(">>   payload = ", payload);
+} // deleteItem
 
-    var logincookie = req.cookies['logincookie'];
-    if (logincookie===undefined) {
-	failedRequest(res);
-	return;
-    }
+// Create a function to delete multiple search or publication items
+//   funcname is used to create a console log message of 'In ' + funcname
+//     on entry to the function
+//   idname is the name of the key used to identify the items to delete
+//     in the JSON payload
+//   delItems is the routine we call to delete multiple elements
+//
+function deleteItems(funcname, idname, delItems) {
+    return function (payload, req, res, next) {
+	console.log(">> In " + funcname);
+	//console.log(">>   cookies = ", req.cookies);
+	//console.log(">>   payload = ", payload);
 
-    var terms = JSON.parse(payload);
-    var action = terms['action'];
-    var searchids;
-    if (isArray(terms['searchid'])) {
-	searchids = terms['searchid'];
-    } else {
-	searchids = [ terms['searchid'] ];
-    }
+	var logincookie = req.cookies['logincookie'];
+	if (logincookie===undefined) {
+	    failedRequest(res);
+	    return;
+	}
+
+	var terms = JSON.parse(payload);
+	var action = terms['action'];
+	var delids = [];
+	if (isArray(terms[idname])) {
+	    delids = terms[idname];
+	} else {
+	    delids = [ terms[idname] ];
+	}
     
-    if (action === "delete" && searchids !== undefined && searchids.length > 0) {
-	removeSearches(res, logincookie, searchids);
-    } else {
-	failedRequest(res);
-    }
-} // deleteSearches
+	if (action === "delete" && delids.length > 0) {
+	    delItems(res, logincookie, delids);
+	} else {
+	    failedRequest(res);
+	}
+    };
+} // deleteItems
 
-function deletePub(jsonpayload, req, res, next) {
-    console.log(">> In deletePub");
-    // console.log(">>   cookies = ", req.cookies);
-    // console.log(">>   payload = ", jsonpayload);
+var deleteSearch   = deleteItem("deleteSearch", "searchid", removeSearches);
+var deletePub      = deleteItem("deletePub",    "pubid",    removeDocs);
 
-    var jsonobj = JSON.parse(jsonpayload);
-    var logincookie = req.cookies['logincookie'];
-    var docid = jsonobj['savedpub'];
-    console.log("logincookie:", logincookie, " docid:", docid);
-
-    if (logincookie===undefined || docid===undefined){
-	failedRequest(res);
-    } else {
-	removeDocs(res, logincookie, [docid]);
-    }
-
-} // deletePub
-
-function deletePubs(payload, req, res, next) {
-    console.log(">> In deletePubs");
-    //console.log(">>   cookies = ", req.cookies);
-    console.log(">>   payload = ", payload);
-
-    var logincookie = req.cookies['logincookie'];
-    if (logincookie===undefined) {
-	failedRequest(res);
-	return;
-    }
-
-    var terms = JSON.parse(payload);
-    console.log("}}   query string = ", terms);
-    var action = terms['action'];
-    var pubids;
-    if (isArray(terms['pubid'])) {
-	pubids = terms['pubid'];
-    } else {
-	pubids = [ terms['pubid'] ];
-    }
-
-    console.log("*** pubids: ", pubids);
-
-    if (action === "delete" && pubids !== undefined && pubids.length > 0) {
-	removeDocs(res, logincookie, pubids);
-    } else {
-	failedRequest(res);
-    }
-} // deletePubs
+var deleteSearches = deleteItems("deleteSearches", "searchid", removeSearches);
+var deletePubs     = deleteItems("deletePubs",     "pubid",    removeDocs);
 
 // The request failed so send back our generic "you failed" JSON
 // payload.

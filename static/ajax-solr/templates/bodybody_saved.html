@@ -58,33 +58,23 @@ function changeAllButtons(form, newstate) {
 
 // relying on SITEPREFIX being in scope
 
-$('#saved-searches-form').submit(function() {
-  var data = [];
-  $(this).find('input[type=checkbox]').each(function() {
-    if (this.checked) { data.push(this.value); }
-  });
-  var map = { "action": "delete", "searchid": data };
-  $.post(SITEPREFIX+'/deletesearches', JSON.stringify(map), function(resp) {
-    if (data['success']==='defined') {
-      // for now reload; could just hide the appropriate divs
-      window.location.reload();
-    }
-  });
-});
-    
-$('#saved-pubs-form').submit(function() {
-  var data = [];
-  $(this).find('input[type=checkbox]').each(function() {
-    if (this.checked) { data.push(this.value); }
-  });
-  var map = { "action": "delete", "pubid": data };
-  $.post(SITEPREFIX+'/deletepubs', JSON.stringify(map), function(resp) {
-    if (data['success']==='defined') {
-      // for now reload; could just hide the appropriate divs
-      window.location.reload();
-    }
-  });
-});
-    
+function submitDelete(path, idname) {
+    return function() {
+     var data = [];
+      $(this).find('input[type=checkbox]').each(function() {
+        if (this.checked) { data.push(this.value); }
+      });
+      var map = { "action": "delete" };
+      map[idname] = data;
+     $.post(SITEPREFIX+path, JSON.stringify(map), function(resp) {
+        // reload on success or error
+        window.location.reload();
+     });
+    };
+}
+
+$('#saved-searches-form').submit(submitDelete('/deletesearches', 'searchid'));
+$('#saved-pubs-form').submit(submitDelete('/deletepubs', 'pubid'));
+
 	</script>
 </div>

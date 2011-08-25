@@ -60,16 +60,17 @@ function changeAllButtons(form, newstate) {
 
 function submitDelete(path, idname) {
     return function() {
-     var data = [];
+      var data = [];
       $(this).find('input[type=checkbox]').each(function() {
         if (this.checked) { data.push(this.value); }
       });
+      if (data.length == 0) { return false; }
       var map = { "action": "delete" };
       map[idname] = data;
-     $.post(SITEPREFIX+path, JSON.stringify(map), function(resp) {
+      $.post(SITEPREFIX+path, JSON.stringify(map), function(resp) {
         // reload on success or error
         window.location.reload();
-     });
+      });
     };
 }
 

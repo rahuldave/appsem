@@ -637,6 +637,59 @@ function successfulRequest(res) {
     res.end(JSON.stringify({'success': 'defined'}));
 }
 
+// Return bibtex records, which we access from the ADS main server,
+// for the given document ids. This would be simpler if we used the bibcode
+// rather than solr document id as the key.
+//
+function getAsBibTex(req, res, next){
+    postHandler(req, res, getBibTex);
+}
+
+function getBibTex(payload, req, res, next) {
+    console.log(">> In getBibTex");
+    //console.log(">>   cookies = ", req.cookies);
+    //console.log(">>   payload = ", payload);
+
+    var logincookie = req.cookies['logincookie'];
+    if (logincookie===undefined) {
+	failedRequest(res);
+	return;
+    }
+
+    var terms = JSON.parse(payload);
+    var docids = [];
+    if (isArray(terms['docids'])) {
+	docids = terms['docids'];
+    } else {
+	docids = [ terms['docids'] ];
+    }
+
+    if (docids.length === 0) {
+	failedRequest(res);
+	return;
+    }
+
+    var urlpath = '/cgi-bin/nph-bib_query?data_type=BIBTEX&';
+    redis_client.get('email:'+logincookie, function(err, email) {
+	redis_client.hmget('savedbibcodes:'+email, docids, function(err, bibcodes) {
+	    // TODO: percent-encode the bibcodes
+	    urlpath += bibcodes.join('&');
+
+	    var options = {
+		host: 'adsabs.harvard.edu',
+		port: 80,
+		path: urlpath
+	    };
+
+	    console.log("Proxying request to adsabs");
+	    doProxy(options, req, res);
+
+	});
+    });
+
+} // getBibTex
+
+
 //why do we not bake logincookie stuff into doPublications? Could simplify some JS shenanigans. Philosophy?
 function doPublications(req, res, next){
     console.log("=====================In do Publications", req.url, req.headers.referer, req.originalUrl);
@@ -887,6 +940,12 @@ server.use(SITEPREFIX+'/deletesearch', deleteSearchFromRedis);
 server.use(SITEPREFIX+'/deletesearches', deleteSearchesFromRedis);
 server.use(SITEPREFIX+'/deletepub', deletePubFromRedis);
 server.use(SITEPREFIX+'/deletepubs', deletePubsFromRedis);
+
+// Used by the saved search page to provide functionality
+// to the saved publications list. This is a hack to work
+// around the same-origin policy.
+//
+server.use(SITEPREFIX+'/getasbibtex', getAsBibTex);
 
 server.use(SITEPREFIX+'/savedpubs', getSavedPubs);
 

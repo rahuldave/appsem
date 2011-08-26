@@ -33,7 +33,8 @@
     {{#haspubs}}
   <h1>Saved Publications</h1>
   <form id="saved-pubs-form" action="#">
- <input type="submit" name="action" value="Delete marked publications">
+  <input type="submit" name="action" value="Delete marked">
+  <input type="button" value="Get as BibTex" onClick="getAsBibTex(this.form)">
   <input type="button" value="Mark all" onClick="changeAllButtons(this.form, true)">
   <input type="button" value="Clear all" onClick="changeAllButtons(this.form, false)">
     {{#savedpubs}}
@@ -56,9 +57,23 @@ function changeAllButtons(form, newstate) {
   $(form).find('input[type=checkbox]').each(function() { this.checked = newstate; });
 }
 
+// var fancyboxOpts = { 'autoDimensions': false, 'width': 1024, 'height': 768 };
+
+function getAsBibTex(form) {
+  var data = [];
+  $(form).find('input[type=checkbox]').each(function() {
+    if (this.checked) { data.push(this.value) };
+  });
+  if (data.length == 0) { return false; }
+ $.fancybox.showActivity();
+ $.post(SITEPREFIX+'/getasbibtex', JSON.stringify({'docids':data}),
+  function(resp) { $.fancybox('<pre>'+resp+'</pre>'); });
+ return false;
+}
+    
 // relying on SITEPREFIX being in scope
 
-function submitDelete(path, idname) {
+function submitAction(path, idname) {
     return function() {
       var data = [];
       $(this).find('input[type=checkbox]').each(function() {
@@ -74,8 +89,8 @@ function submitDelete(path, idname) {
     };
 }
 
-$('#saved-searches-form').submit(submitDelete('/deletesearches', 'searchid'));
-$('#saved-pubs-form').submit(submitDelete('/deletepubs', 'pubid'));
+$('#saved-searches-form').submit(submitAction('/deletesearches', 'searchid'));
+$('#saved-pubs-form').submit(submitAction('/deletepubs', 'pubid'));
 
 	</script>
 </div>

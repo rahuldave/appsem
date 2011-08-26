@@ -90,9 +90,12 @@ function saveToMyADS(form) {
     if (this.checked) { data.push(this.value) };
   });
  if (data.length == 0) { return false; }
+    alert("Saving publications to your myADS library is not implemented.");
+    /***
   $.fancybox.showActivity();
  $.post(SITEPREFIX+'/savepubstomyads', JSON.stringify({'docids':data}),
   function(resp) { $.fancybox('<pre>'+resp+'</pre>'); });
+    ***/ 
  return false;
 }
     

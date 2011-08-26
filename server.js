@@ -206,11 +206,8 @@ function saveSearch(jsonpayload, req, res, next){
     console.log("savedsearchcookies", req.cookies, jsonpayload);
 
     var logincookie=req.cookies['logincookie'];
-    var sendback={};
-    if (logincookie==undefined){
-        res.writeHead(200, "OK", {'Content-Type': 'application/json'});
-        sendback['success']='undefined';
-        res.end(JSON.stringify(sendback));
+    if (logincookie===undefined){
+	failedRequest(res);
         return; 
     }
 
@@ -225,24 +222,19 @@ function saveSearch(jsonpayload, req, res, next){
 	var margs = [["zadd", 'savedsearch:'+email, sorttime, savedsearch]
 		     ];
 	redis_client.multi(margs).exec(function(err,reply){
-                res.writeHead(200, "OK", {'Content-Type': 'application/json'});
-                sendback['success']='defined';
-                res.end(JSON.stringify(sendback));
-	    });
-    
+	    successfulRequest(res);
 	});
+    
+    });
 
-}
+} // saveSearch
 
 function savePub(jsonpayload, req, res, next){
     console.log("savedpubcookies", req.cookies, jsonpayload);
     var logincookie=req.cookies['logincookie'];
 
-    var sendback={};
-    if (logincookie==undefined){
-        res.writeHead(200, "OK", {'Content-Type': 'application/json'});
-        sendback['success']='undefined';
-        res.end(JSON.stringify(sendback));
+    if (logincookie===undefined){
+	failedRequest(res);
         return; 
     }
 
@@ -268,15 +260,12 @@ function savePub(jsonpayload, req, res, next){
 		     ["zadd", 'savedpub:'+email, sorttime, savedpub]
 		     ];
 	redis_client.multi(margs).exec(function(err,reply){
-		console.log("Saving publication: ", title);
-		res.writeHead(200, "OK", {'Content-Type': 'application/json'});
-		sendback['success']='defined';
-		res.end(JSON.stringify(sendback));
-	    });
-
+	    console.log("Saving publication: ", title);
+	    successfulRequest(res);
 	});
+    });
 
-}
+} // savePub
 
 function loginUser(req, res, next){
     var urlparse=url.parse(req.url, true);
@@ -401,21 +390,16 @@ function getSortedElementsAndScores(flag, key, cb) {
 function getSavedSearches(req, res, next){
 
     var logincookie=req.cookies['logincookie'];
-    var sendback={};
     //this punts on the issue of having to make this extra call
-    if (logincookie==undefined){
-        res.writeHead(200, "OK", {'Content-Type': 'application/json'});
-        sendback['savedsearches']='undefined';
-        res.end(JSON.stringify(sendback));
+    if (logincookie===undefined){
+	failedRequest(res, {'keyword': 'savedsearches'});
         return;
     }
+
     redis_client.get('email:'+logincookie,function(err, email) {
 	getSortedElements(true, 'savedsearch:'+email, function(err, searches) {
-	    res.writeHead(200, "OK", {'Content-Type': 'application/json'});
 	    console.log("GETSAVEDSEARCHESREPLY", searches, err);
-	    sendback['savedsearches']=searches;
-	    //sendback[logincookie]=email;
-	    res.end(JSON.stringify(sendback));
+	    successfulRequest(res, { 'keyword': 'savedsearches', 'message': searches } );
         });
     });
 
@@ -429,21 +413,16 @@ function getSavedSearches(req, res, next){
 function getSavedPubs(req, res, next){
     console.log("::::::::::getSavedPubsCookies", req.cookies);
     var logincookie=req.cookies['logincookie'];
-    var sendback={};
     //this punts on the issue of having to make this extra call
     if (logincookie===undefined){
-        res.writeHead(200, "OK", {'Content-Type': 'application/json'});
-        sendback['savedpubs']='undefined';
-        res.end(JSON.stringify(sendback));
+	failedRequest(res, {'keyword': 'savedpubs'});
         return;
     }
+
     redis_client.get('email:'+logincookie,function(err, email) {
 	getSortedElements(true, 'savedpub:'+email, function(err, searches) {
-            res.writeHead(200, "OK", {'Content-Type': 'application/json'});
             console.log("GETSAVEDPUBSREPLY", searches, err);
-            sendback['savedpubs']=searches;
-            //sendback[logincookie]=email;
-            res.end(JSON.stringify(sendback));
+	    successfulRequest(res, { 'keyword': 'savedpubs', 'message': searches } );
         });
     });
 
@@ -626,15 +605,46 @@ var deletePubs     = deleteItems("deletePubs",     "pubid",    removeDocs);
 
 // The request failed so send back our generic "you failed" JSON
 // payload.
-function failedRequest(res) {
-    res.writeHead(200, "OK", {'Content-Type': 'application/json'});
-    res.end(JSON.stringify({'success': 'undefined'}));
+//
+// The options argument is used to set the name and value
+// of the value returned; 
+//      keyword, defaults to 'success'
+//      message, defaults to 'undefined'
+//
+function failedRequest(res, options) {
+    completeRequest(res, options || {}, { 'keyword': 'success', 'message': 'undefined' });
 }
 
-// The request succeeded. May need to allow extra parameters.
-function successfulRequest(res) {
+// The request succeeded.
+//
+// The options argument is used to set the name and value
+// of the value returned; 
+//      keyword, defaults to 'success'
+//      message, defaults to 'defined'
+//
+function successfulRequest(res, options) {
+    completeRequest(res, options || {}, { 'keyword': 'success', 'message': 'defined' });
+}
+
+// Actually create and finish the request
+//
+function completeRequest(res, options, defoptions) {
+
+    var opts = {};
+    for (var key in defoptions) {
+	if (key in options) {
+	    opts[key] = options[key];
+	} else {
+	    opts[key] = defoptions[key];
+	}
+    }
+
     res.writeHead(200, "OK", {'Content-Type': 'application/json'});
-    res.end(JSON.stringify({'success': 'defined'}));
+    var out = {};
+    out[opts['keyword']] = opts['message'];
+    var omsg = JSON.stringify(out);
+    console.log("Returning: ", omsg);
+    res.end(omsg);
 }
 
 // Return bibtex records, which we access from the ADS main server,

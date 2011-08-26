@@ -672,7 +672,7 @@ function getBibTex(payload, req, res, next) {
     var urlpath = '/cgi-bin/nph-bib_query?data_type=BIBTEX&';
     redis_client.get('email:'+logincookie, function(err, email) {
 	redis_client.hmget('savedbibcodes:'+email, docids, function(err, bibcodes) {
-	    // TODO: percent-encode the bibcodes
+	    // It doesn't look like we need to percent-encode the bibcode
 	    urlpath += bibcodes.join('&');
 
 	    var options = {
@@ -688,6 +688,64 @@ function getBibTex(payload, req, res, next) {
     });
 
 } // getBibTex
+
+// Save the selected publications to myADS.
+// This would be simpler if we used the bibcode
+// rather than solr document id as the key.
+//
+function savePubsToMyADS(req, res, next){
+    postHandler(req, res, saveToMyADS);
+}
+
+function saveToMyADS(payload, req, res, next) {
+    console.log(">> In saveToMyADS");
+    console.log(">>   cookies = ", req.cookies);
+    //console.log(">>   payload = ", payload);
+
+    var logincookie = req.cookies['logincookie'];
+    if (logincookie===undefined) {
+	failedRequest(res);
+	return;
+    }
+
+    var terms = JSON.parse(payload);
+    var docids = [];
+    if (isArray(terms['docids'])) {
+	docids = terms['docids'];
+    } else {
+	docids = [ terms['docids'] ];
+    }
+
+    if (docids.length === 0) {
+	failedRequest(res);
+	return;
+    }
+
+    // TODO: set up ADS info/cookies? Or is it just that because not
+    // running on [labs.]adsabs we don't get them?
+
+    var urlpath = '/cgi-bin/nph-abs_connect?library=Add&';
+    redis_client.get('email:'+logincookie, function(err, email) {
+	redis_client.hmget('savedbibcodes:'+email, docids, function(err, bibcodes) {
+	    // Do we need to percent-encode the bibcode?
+	    urlpath += bibcodes.join('&');
+
+	    var options = {
+		host: ADSHOST,
+		port: 80,
+		path: urlpath,
+
+		// untested
+		headers: { 'Cookie': 'NASA_ADS_ID='+req.cookies['nasa_ads_id']}
+	    };
+
+	    console.log("Proxying request to adsabs");
+	    doProxy(options, req, res);
+
+	});
+    });
+
+} // saveToMyADS
 
 
 //why do we not bake logincookie stuff into doPublications? Could simplify some JS shenanigans. Philosophy?
@@ -946,6 +1004,7 @@ server.use(SITEPREFIX+'/deletepubs', deletePubsFromRedis);
 // around the same-origin policy.
 //
 server.use(SITEPREFIX+'/getasbibtex', getAsBibTex);
+server.use(SITEPREFIX+'/savepubstomyads', savePubsToMyADS);
 
 server.use(SITEPREFIX+'/savedpubs', getSavedPubs);
 

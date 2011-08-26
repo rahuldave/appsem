@@ -315,7 +315,7 @@ div.saved-items div {
 }
 
 /* Not convinced this is useful but try for now */
-div.saved-items div:nth-child(odd) {
+div.saved-items div.saveditem:nth-child(odd) {
     background: #EDEBEC;
 }
 

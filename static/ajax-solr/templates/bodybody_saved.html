@@ -77,8 +77,7 @@ function getAsBibTex(form) {
   $(form).find('input[type=checkbox]').each(function() {
     if (this.checked) { data.push(this.value) };
   });
-    alert("data=" + JSON.stringify(data));
-  if (data.length == 0) { return false; }
+ if (data.length == 0) { return false; }
  $.fancybox.showActivity();
  $.post(SITEPREFIX+'/getasbibtex', JSON.stringify({'docids':data}),
   function(resp) { $.fancybox('<pre>'+resp+'</pre>'); });

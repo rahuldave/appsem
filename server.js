@@ -325,7 +325,7 @@ function getUser(req, res, next) {
  * a failed request with failopts (defaults to {} if
  * not given).
  */
-function ifLoggedIn(req, res, next, cb, failopts) {
+function ifLoggedIn(req, res, cb, failopts) {
     var logincookie = req.cookies.logincookie;
     if (logincookie === undefined) {
 	if (failopts === undefined) {
@@ -363,7 +363,7 @@ function saveSearch(jsonpayload, req, res, next) {
     console.log("savedsearchcookies", req.cookies, jsonpayload);
     var savetime = new Date().getTime();
 
-    ifLoggedIn(req, res, next, function(loginid) {
+    ifLoggedIn(req, res, function(loginid) {
 	var jsonobj = JSON.parse(jsonpayload);
 	var savedsearch = jsonobj.savedsearch;
 	redis_client.get('email:' + loginid, function (err, email) {
@@ -383,7 +383,7 @@ function savePub(jsonpayload, req, res, next) {
     console.log("savedpubcookies", req.cookies, jsonpayload);
     var savetime = new Date().getTime();
 
-    ifLoggedIn(req, res, next, function (loginid) {
+    ifLoggedIn(req, res, function (loginid) {
 	var jsonobj = JSON.parse(jsonpayload);
 	var savedpub = jsonobj.savedpub;
 	var bibcode = jsonobj.pubbibcode;
@@ -463,7 +463,7 @@ function getSortedElementsAndScores(flag, key, cb) {
 
 function getSavedSearches(req, res, next) {
 
-    ifLoggedIn(req, res, next, function(loginid) {
+    ifLoggedIn(req, res, function(loginid) {
 	redis_client.get('email:' + loginid, function (err, email) {
 	    getSortedElements(true, 'savedsearch:' + email, function (err, searches) {
 		console.log("GETSAVEDSEARCHESREPLY", searches, err);
@@ -482,7 +482,7 @@ function getSavedSearches(req, res, next) {
 function getSavedPubs(req, res, next) {
     // console.log("::::::::::getSavedPubsCookies", req.cookies);
 
-    ifLoggedIn(req, res, next, function (loginid) {
+    ifLoggedIn(req, res, function (loginid) {
 	redis_client.get('email:' + loginid, function (err, email) {
 	    getSortedElements(true, 'savedpub:' + email, function (err, searches) {
 		console.log("GETSAVEDPUBSREPLY", searches, err);
@@ -515,17 +515,19 @@ function makeADSJSONPCall(req, res, next) {
 // At present we require that searchids not be empty; this may
 // be changed.
 //
-function removeSearches(res, cookie, searchids) {
-
+function removeSearches(res, loginid, searchids) {
     if (searchids.length === 0) {
-	console.log("Error: removeSearches called with empty searchids list; cookie=" + cookie);
+	console.log("Error: removeSearches called with empty searchids list; loginid=" + loginid);
 	failedRequest(res);
     } else {
-	redis_client.get('email:' + cookie,function (err, email) {
+	redis_client.get('email:' + loginid, function (err, email) {
 	    var margs = [];
+	    var key = 'savedsearch:' + email
 	    var i;
+	    // with Redis v2.4 we will be able to delete multiple keys with a single
+	    // zrem call.
 	    for (i in searchids) {
-		margs.push(["zrem", 'savedsearch:' + email, searchids[i]]);
+		margs.push(["zrem", key, searchids[i]]);
 	    }
 	    redis_client.multi(margs).exec(function (err, reply) {
 		console.log("Assumed we have removed " + searchids.length + " searches from user's saved search list");
@@ -538,19 +540,18 @@ function removeSearches(res, cookie, searchids) {
 
 // Similar to removeSearches but removes publications.
 //
-function removeDocs(res, cookie, docids) {
-
+function removeDocs(res, loginid, docids) {
     if (docids.length === 0) {
-	console.log("Error: removeDocs called with empty docids list; cookie=" + cookie);
+	console.log("Error: removeDocs called with empty docids list; loginid=" + loginid);
 	failedRequest(res);
     } else {
-
-	redis_client.get('email:' + cookie,function (err, email) {
+	redis_client.get('email:' + loginid, function (err, email) {
 	    var margs = [];
 	    var pubkey = 'savedpub:' + email;
 	    var titlekey = 'savedtitles:' + email;
 	    var bibkey = 'savedbibcodes:' + email;
 	    var i;
+	    // In Redis 2.4 zrem and hdel can be sent multiple keys
 	    for (i in docids) {
 		var docid = docids[i];
 		margs.push(["zrem", pubkey, docid]);
@@ -579,7 +580,7 @@ function deleteItem(funcname, idname, delItems) {
 	// console.log(">>   cookies = ", req.cookies);
 	// console.log(">>   payload = ", jsonpayload);
 
-	ifLoggedIn(req, res, next, function (loginid) {
+	ifLoggedIn(req, res, function (loginid) {
 	    var jsonobj = JSON.parse(jsonpayload);
 	    var delid = jsonobj[idname];
 	    console.log("logincookie:", loginid, " delete item:", delid);
@@ -607,7 +608,7 @@ function deleteItems(funcname, idname, delItems) {
 	//console.log(">>   cookies = ", req.cookies);
 	//console.log(">>   payload = ", payload);
 
-	ifLoggedIn(req, res, next, function (loginid) {
+	ifLoggedIn(req, res, function (loginid) {
 	    var terms = JSON.parse(payload);
 	    var action = terms.action;
 	    var delids = [];
@@ -707,7 +708,7 @@ function saveToMyADS(payload, req, res, next) {
     console.log(">>   cookies = ", req.cookies);
     //console.log(">>   payload = ", payload);
 
-    ifLoggedIn(req, res, next, function (loginid) {
+    ifLoggedIn(req, res, function (loginid) {
 	var terms = JSON.parse(payload);
 	var docids = [];
 	if (isArray(terms.docids)) {

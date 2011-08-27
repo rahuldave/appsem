@@ -112,12 +112,14 @@ AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
             return false;
       }
   },
+    /* have removed this for now
   dataHandler: function(doc){
       return function(){
           alert("not yet implemented");
           return false;
       }
   },
+    */
   facetHandler: function (facet_field, facet_value) {
     var self = this;
     return function () {

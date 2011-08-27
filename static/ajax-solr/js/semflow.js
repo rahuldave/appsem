@@ -35,7 +35,7 @@ var SITEPREFIX='/semantic2/alpha';
       nextLabel: '&gt;',
       innerWindow: 1,
       renderHeader: function (perPage, offset, total) {
-          $('#pager-header').html($('<span/>').text('displaying ' + Math.min(total, offset + 1) + ' to ' + Math.min(total, offset + perPage) + ' of ' + total+' ')).append($('<a class="save" id="save-search" href="#">save search</a>')).append($('<a class="delete" id="delete-search" style="display:none" href="#">delete search</a>')).append($('<a class="save" id="get-data" href="#">get data</a>'));
+          $('#pager-header').html($('<span/>').text('displaying ' + Math.min(total, offset + 1) + ' to ' + Math.min(total, offset + perPage) + ' of ' + total+' ')).append($('<a class="save" id="save-search" href="#">save search</a>')).append($('<a class="delete" id="delete-search" style="display:none" href="#">delete search</a>')); // FOR now remove get-data: append($('<a class="save" id="get-data" href="#">get data</a>'));
         $('#save-search').click(function(){
             $.post(SITEPREFIX+'/savesearch', JSON.stringify({'savedsearch':location.href.split("#")[1]}), function(data){
                 //should we decode uri component above? We do it on server so perhaps not.
@@ -56,10 +56,13 @@ var SITEPREFIX='/semantic2/alpha';
             });  
             return false;
         });
+	/*
+	  // get-data button has been removed for now
         $('#get-data').click(function(){
             alert("not yet implemented");
             return false;
         });
+	*/
         console.log("HAHAHAHAHAHAHAHAHA");
         //this gets called all the time. How to avoid this?
         $.getJSON(SITEPREFIX+'/savedsearches', function(data){
@@ -77,7 +80,7 @@ var SITEPREFIX='/semantic2/alpha';
             } else {
                 $('#save-search').hide();
                 $('#delete-search').hide();
-                $('#get-data').hide();
+                // $('#get-data').hide(); currently usunsed
             }
         });
       }

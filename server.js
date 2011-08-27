@@ -764,7 +764,7 @@ function doPublications(req, res, next) {
     var lpartials = JSON.parse(globpartialsjson);
     lpartials.bodybody = bodybodypub;
     var html = mustache.to_html(maint, view, lpartials);
-    res.writeHead(200, { 'Content-Type': 'text/html' });
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=UTF-8' });
     res.end(html);    
 }
 
@@ -930,7 +930,7 @@ function doSaved(req, res, next) {
     var view = {
         pagehead:{pagetype:'Saved', siteprefix: SITEPREFIX, staticprefix: SITEPREFIX+STATICPREFIX},
         bodyhead:{isitchosensaved:'chosen', current_url:req.url, siteprefix: SITEPREFIX, staticprefix: SITEPREFIX+STATICPREFIX},
-        bodybody:{siteprefix: SITEPREFIX, staticprefix: SITEPREFIX+STATICPREFIX, hello: 'World'}
+        bodybody:{siteprefix: SITEPREFIX, staticprefix: SITEPREFIX+STATICPREFIX}
     };
     var lpartials = JSON.parse(globpartialsjson);
     lpartials.bodybody = bodybodysaved;
@@ -946,9 +946,6 @@ function doSaved(req, res, next) {
 		getSortedElementsAndScores(false, 'savedpub:'+email, function (err, savedpubs) {
 		    var pubkeys = savedpubs.elements;
 		    var pubtimes = savedpubs.scores;
-
-		    // want the bibcodes and titles for these publications
-		    //
 		    redis_client.hmget('savedtitles:'+email, pubkeys, function (err, pubtitles) {
 			redis_client.hmget('savedbibcodes:'+email, pubkeys, function (err, bibcodes) {
 			    createSavedSearchTemplates(view, nowDate, searchkeys, searchtimes);
@@ -963,7 +960,6 @@ function doSaved(req, res, next) {
     } else {
 	view.notloggedin = true;
         res.end(mustache.to_html(maint, view, lpartials));
-        return;
     }
     
 }

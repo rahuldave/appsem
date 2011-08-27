@@ -1041,8 +1041,9 @@ server.use(SITEPREFIX+'/savedpubs', getSavedPubs);
 server.use('/images', connect.static(__dirname + '/static/ajax-solr/images/'));
 
 function runServer(port) {
+    var now = new Date();
     var url = 'http://localhost:' + port + SITEPREFIX + '/explorer/publications/';
-    console.log("Starting server on", url);
+    console.log(now.toUTCString() + " - Starting server on", url);
     server.listen(port);
 }
 

@@ -80,7 +80,8 @@ updater[0] = function(client, cb) {
 }
 
 function updateRedis(client, version, cb) {
-    console.log("Redis database scheme at version ", version);
+    var now = new Date();
+    console.log(now.toUTCString() + " - Redis database scheme at version ", version);
     if (version < currentVersion) {
 	updater[version](client, cb);
     } else {

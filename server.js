@@ -120,20 +120,51 @@ function makelogincookie(cookiename,  cookievalue, days) {
 function doProxy(proxyoptions, req, res) {
     console.log("-----------------Request " + req.method + " " + req.url);
     var proxy_request = http.get(proxyoptions, function (proxy_response) {
-        //proxy_request.addListener('response', function (proxy_response) {
-            proxy_response.addListener('data', function (chunk) {
-                //console.log("response.write");
-                res.write(chunk, 'binary');
-            });
-            proxy_response.addListener('end', function () {
-                //console.log("response.end");
-                res.end();
-            });
-            res.writeHead(proxy_response.statusCode, proxy_response.headers);
-        //});
+        proxy_response.addListener('data', function (chunk) {
+            res.write(chunk, 'binary');
+        });
+        proxy_response.addListener('end', function () {
+	    // console.log('proxy request has ended.');
+            res.end();
+        });
+        res.writeHead(proxy_response.statusCode, proxy_response.headers);
     }).on('error', function (e) {
         console.log("Got error: " + e.message);
     });
+
+    //BELOW is not needed. presumably helps in POST
+    req.addListener('data', function (chunk) {
+        //console.log("proxyrequest.write");
+        proxy_request.write(chunk, 'binary');
+    });
+
+    req.addListener('end', function () {
+        //console.log("proxyrequest.end");
+        proxy_request.end();
+    });
+
+    //next();
+}
+
+function doTransformedProxy(proxyoptions, req, res, transformcallback) {
+    console.log("TP-----------------Request " + req.method + " " + req.url);
+    var completebuffer = '';
+    var proxy_request = http.get(proxyoptions, function (proxy_response) {
+        proxy_response.addListener('data', function (chunk) {
+            //console.log("response.write");
+            completebuffer = completebuffer + chunk;
+            //res.write(chunk, 'binary');
+        });
+        proxy_response.addListener('end', function () {
+            console.log("response.end");
+            res.end(transformcallback(completebuffer));
+        });
+        res.writeHead(proxy_response.statusCode, proxy_response.headers);
+
+    }).on('error', function (e) {
+        console.log("Got error: " + e.message);
+    });
+
     //BELOW is not needed. presumably helps in POST
     req.addListener('data', function (chunk) {
         //console.log("proxyrequest.write");
@@ -157,51 +188,20 @@ function postHandler(req, res, tcallback) {
             //console.log("proxyrequest.end");
             tcallback(completebuffer, req, res);//this can be sync or async
             //res.writeHead(200, proxy_response.headers);
-            
         });
     }
-}
-function doTransformedProxy(proxyoptions, req, res, transformcallback) {
-    console.log("TP-----------------Request " + req.method + " " + req.url);
-    var completebuffer = '';
-    var proxy_request = http.get(proxyoptions, function (proxy_response) {
-        //proxy_request.addListener('response', function (proxy_response) {
-            proxy_response.addListener('data', function (chunk) {
-                //console.log("response.write");
-                completebuffer = completebuffer + chunk;
-                //res.write(chunk, 'binary');
-            });
-            proxy_response.addListener('end', function () {
-                console.log("response.end");
-                res.end(transformcallback(completebuffer));
-            });
-            res.writeHead(proxy_response.statusCode, proxy_response.headers);
-        //});
-    }).on('error', function (e) {
-        console.log("Got error: " + e.message);
-    });
-    //BELOW is not needed. presumably helps in POST
-    req.addListener('data', function (chunk) {
-        //console.log("proxyrequest.write");
-        proxy_request.write(chunk, 'binary');
-    });
-    req.addListener('end', function () {
-        //console.log("proxyrequest.end");
-        proxy_request.end();
-    });
-    //next();
 }
 
 var solrrouter = connect(
     connect.router(function (app) {
-       app.get('/select', function (req, res) {
-           var solroptions = {
+	app.get('/select', function (req, res) {
+            var solroptions = {
                 host: SOLRHOST,
                 path: SOLRURL + req.url,
                 port: SOLRPORT
             };
-           doProxy(solroptions, req, res);
-       }); 
+            doProxy(solroptions, req, res);
+	}); 
     })
 );
 
@@ -210,8 +210,8 @@ function insertUser(jsonpayload, req, res, next) {
     var cookie = logincookie.cookie;
     var responsedo = function (err, reply) {
         res.writeHead(200, "OK", {'Content-Type': 'application/json',
-                'Set-Cookie': cookie
-        });
+				  'Set-Cookie': cookie
+				 });
         res.end();
     };
     var mystring = jsonpayload;
@@ -225,7 +225,7 @@ function insertUser(jsonpayload, req, res, next) {
 			    ["hset", email, 'cookieval', cookie]
 			   ]).exec();
     });
-
+    
     // Store the user details (the unique value and email) in sets to make it
     // easier to identify them later. This may not be needed. Also, should the
     // unique value have a time-to-live associated with it (and can this be done
@@ -242,93 +242,6 @@ function insertUser(jsonpayload, req, res, next) {
 		       ]).exec(responsedo);
 
 } // insertUser
-
-// A comment on saved times, used in both savePub and saveSearch.
-//
-// Approximate the save time as the time we process the request
-// on the server, rather than when it was made (in case the user's
-// clock is not set sensibly). 
-//
-// For now we save the UTC version of the time and provide no
-// way to change this to something meaningful to the user.
-//
-// Alternatives include:
-//
-// *  the client could send the time as a string, including the
-//    time zone, but this relies on their clock being okay
-//
-// *  the client can send in the local timezone info which can
-//    then be used to format the server-side derived time
-//    Not sure if can trust the time zone offset from the client
-//    if can not trust the time itself. Calculating a useful display
-//    string from the timezone offset is fiddly.
-//
-
-
-function saveSearch(jsonpayload, req, res, next) {
-    console.log("savedsearchcookies", req.cookies, jsonpayload);
-
-    var logincookie = req.cookies.logincookie;
-    if (logincookie === undefined) {
-	failedRequest(res);
-        return; 
-    }
-
-    var jsonobj = JSON.parse(jsonpayload);
-    var savedsearch = jsonobj.savedsearch;
-
-    var sorttime = new Date().getTime();
-
-    redis_client.get('email:' + logincookie, function (err, email) {
-
-	// keep as a multi even though now a single addition
-	var margs = [["zadd", 'savedsearch:' + email, sorttime, savedsearch]
-		     ];
-	redis_client.multi(margs).exec(function (err, reply) {
-	    successfulRequest(res);
-	});
-    
-    });
-
-} // saveSearch
-
-function savePub(jsonpayload, req, res, next) {
-    console.log("savedpubcookies", req.cookies, jsonpayload);
-    var logincookie = req.cookies.logincookie;
-
-    if (logincookie === undefined) {
-	failedRequest(res);
-        return; 
-    }
-
-    var jsonobj = JSON.parse(jsonpayload);
-    var savedpub = jsonobj.savedpub;
-    var bibcode = jsonobj.pubbibcode;
-    var title = jsonobj.pubtitle;
-
-    var sorttime = new Date().getTime();
-
-    redis_client.get('email:' + logincookie, function (err, email) {
-        console.log("REPLY", email);
-
-	// Moved to a per-user database for titles and bibcodes so that we can delete
-	// search information. Let's see how this goes compared to "global" values for the
-	// bibcodes and titles hash arrays.
-	//
-	// Should worry about failures here, but not for now.
-	//
-
-	var margs = [["hset", 'savedbibcodes:' + email, savedpub, bibcode],
-		     ["hset", 'savedtitles:' + email, savedpub, title],
-		     ["zadd", 'savedpub:' + email, sorttime, savedpub]
-		     ];
-	redis_client.multi(margs).exec(function (err, reply) {
-	    console.log("Saving publication: ", title);
-	    successfulRequest(res);
-	});
-    });
-
-} // savePub
 
 function loginUser(req, res, next) {
     var urlparse = url.parse(req.url, true);
@@ -371,10 +284,14 @@ function getUser(req, res, next) {
     var startupcookie = req.cookies.startupcookie;
     var sendback = {};
     var newstartupcookie;
+
     if (startupcookie) {
         newstartupcookie = makelogincookie('startupcookie', startupcookie, -1);
+	sendback.startup = startupcookie;
+    } else {
+	sendback.startup = 'undefined';
     }
-    sendback.startup = startupcookie || 'undefined';
+
     if (logincookie === undefined) {
         var headerdict = {'Content-Type': 'application/json'};
         if (startupcookie) {
@@ -404,6 +321,97 @@ function getUser(req, res, next) {
 } // getUser
 
 /*
+ * Call cb with the login cookie otherwise return
+ * a failed request with failopts (defaults to {} if
+ * not given).
+ */
+function ifLoggedIn(req, res, next, cb, failopts) {
+    var logincookie = req.cookies.logincookie;
+    if (logincookie === undefined) {
+	if (failopts === undefined) {
+	    failedRequest(res);
+	} else {
+	    failedRequest(res, failopts);
+	}
+    } else {
+	cb(logincookie);
+    }
+}
+
+// A comment on saved times, used in both savePub and saveSearch.
+//
+// Approximate the save time as the time we process the request
+// on the server, rather than when it was made (in case the user's
+// clock is not set sensibly). 
+//
+// For now we save the UTC version of the time and provide no
+// way to change this to something meaningful to the user.
+//
+// Alternatives include:
+//
+// *  the client could send the time as a string, including the
+//    time zone, but this relies on their clock being okay
+//
+// *  the client can send in the local timezone info which can
+//    then be used to format the server-side derived time
+//    Not sure if can trust the time zone offset from the client
+//    if can not trust the time itself. Calculating a useful display
+//    string from the timezone offset is fiddly.
+//
+
+function saveSearch(jsonpayload, req, res, next) {
+    console.log("savedsearchcookies", req.cookies, jsonpayload);
+    var savetime = new Date().getTime();
+
+    ifLoggedIn(req, res, next, function(loginid) {
+	var jsonobj = JSON.parse(jsonpayload);
+	var savedsearch = jsonobj.savedsearch;
+	redis_client.get('email:' + loginid, function (err, email) {
+
+	    // keep as a multi even though now a single addition
+	    var margs = [["zadd", 'savedsearch:' + email, savetime, savedsearch]
+			];
+	    redis_client.multi(margs).exec(function (err, reply) {
+		successfulRequest(res);
+	    });
+	});
+    });
+
+} // saveSearch
+
+function savePub(jsonpayload, req, res, next) {
+    console.log("savedpubcookies", req.cookies, jsonpayload);
+    var savetime = new Date().getTime();
+
+    ifLoggedIn(req, res, next, function (loginid) {
+	var jsonobj = JSON.parse(jsonpayload);
+	var savedpub = jsonobj.savedpub;
+	var bibcode = jsonobj.pubbibcode;
+	var title = jsonobj.pubtitle;
+
+	redis_client.get('email:' + loginid, function (err, email) {
+            console.log("REPLY", email);
+
+	    // Moved to a per-user database for titles and bibcodes so that we can delete
+	    // search information. Let's see how this goes compared to "global" values for the
+	    // bibcodes and titles hash arrays.
+	    //
+	    // Should worry about failures here, but not for now.
+	    //
+	    var margs = [["hset", 'savedbibcodes:' + email, savedpub, bibcode],
+			 ["hset", 'savedtitles:' + email, savedpub, title],
+			 ["zadd", 'savedpub:' + email, savetime, savedpub]
+			];
+	    redis_client.multi(margs).exec(function (err, reply) {
+		console.log("Saving publication: ", title);
+		successfulRequest(res);
+	    });
+	});
+    });
+
+} // savePub
+
+/*
  * get all the elements for the given key, stored
  * in a sorted list, and sent it to callback
  * as cb(err,values). If flag is true then the list is sorted in
@@ -412,13 +420,13 @@ function getUser(req, res, next) {
  */
 function getSortedElements(flag, key, cb) {
 
-    redis_client.zcard(key, function (err, reply) {
-	// could subtract 1 from reply but it looks like
+    redis_client.zcard(key, function (err, nelem) {
+	// could subtract 1 from nelem but it looks like
 	// Redis stops at the end of the list
-	if (flag === true) {
-	    redis_client.zrange(key, 0, reply, cb);
+	if (flag) {
+	    redis_client.zrange(key, 0, nelem, cb);
 	} else {
-	    redis_client.zrevrange(key, 0, reply, cb);
+	    redis_client.zrevrange(key, 0, nelem, cb);
 	}
     });
 }
@@ -445,7 +453,7 @@ function getSortedElementsAndScores(flag, key, cb) {
 
 	// could subtract 1 from reply but it looks like
 	// Redis stops at the end of the list
-	if (flag === true) {
+	if (flag) {
 	    redis_client.zrange(key, 0, nelem, "withscores", splitIt);
 	} else {
 	    redis_client.zrevrange(key, 0, nelem, "withscores", splitIt);
@@ -455,19 +463,14 @@ function getSortedElementsAndScores(flag, key, cb) {
 
 function getSavedSearches(req, res, next) {
 
-    var logincookie = req.cookies.logincookie;
-    //this punts on the issue of having to make this extra call
-    if (logincookie === undefined) {
-	failedRequest(res, {'keyword': 'savedsearches'});
-        return;
-    }
-
-    redis_client.get('email:' + logincookie, function (err, email) {
-	getSortedElements(true, 'savedsearch:' + email, function (err, searches) {
-	    console.log("GETSAVEDSEARCHESREPLY", searches, err);
-	    successfulRequest(res, { 'keyword': 'savedsearches', 'message': searches } );
-        });
-    });
+    ifLoggedIn(req, res, next, function(loginid) {
+	redis_client.get('email:' + loginid, function (err, email) {
+	    getSortedElements(true, 'savedsearch:' + email, function (err, searches) {
+		console.log("GETSAVEDSEARCHESREPLY", searches, err);
+		successfulRequest(res, { 'keyword': 'savedsearches', 'message': searches } );
+            });
+	});
+    }, { 'keyword': 'savedsearches' });
 
 }
 
@@ -477,20 +480,16 @@ function getSavedSearches(req, res, next) {
  */
   
 function getSavedPubs(req, res, next) {
-    console.log("::::::::::getSavedPubsCookies", req.cookies);
-    var logincookie = req.cookies.logincookie;
-    //this punts on the issue of having to make this extra call
-    if (logincookie === undefined) {
-	failedRequest(res, {'keyword': 'savedpubs'});
-        return;
-    }
+    // console.log("::::::::::getSavedPubsCookies", req.cookies);
 
-    redis_client.get('email:' + logincookie,function (err, email) {
-	getSortedElements(true, 'savedpub:' + email, function (err, searches) {
-            console.log("GETSAVEDPUBSREPLY", searches, err);
-	    successfulRequest(res, { 'keyword': 'savedpubs', 'message': searches } );
-        });
-    });
+    ifLoggedIn(req, res, next, function (loginid) {
+	redis_client.get('email:' + loginid, function (err, email) {
+	    getSortedElements(true, 'savedpub:' + email, function (err, searches) {
+		console.log("GETSAVEDPUBSREPLY", searches, err);
+		successfulRequest(res, { 'keyword': 'savedpubs', 'message': searches } );
+            });
+	});
+    }, {'keyword': 'savedpubs'});
 
 }
 
@@ -580,16 +579,17 @@ function deleteItem(funcname, idname, delItems) {
 	// console.log(">>   cookies = ", req.cookies);
 	// console.log(">>   payload = ", jsonpayload);
 
-	var jsonobj = JSON.parse(jsonpayload);
-	var logincookie = req.cookies.logincookie;
-	var delid = jsonobj[idname];
-	console.log("logincookie:", logincookie, " delete item:", delid);
-
-	if (logincookie === undefined || delid === undefined) {
-	    failedRequest(res);
-	} else {
-	    delItems(res, logincookie, [delid]);
-	}
+	ifLoggedIn(req, res, next, function (loginid) {
+	    var jsonobj = JSON.parse(jsonpayload);
+	    var delid = jsonobj[idname];
+	    console.log("logincookie:", loginid, " delete item:", delid);
+	    
+	    if (delid === undefined) {
+		failedRequest(res);
+	    } else {
+		delItems(res, loginid, [delid]);
+	    }
+	});
     };
 
 } // deleteItem
@@ -607,27 +607,24 @@ function deleteItems(funcname, idname, delItems) {
 	//console.log(">>   cookies = ", req.cookies);
 	//console.log(">>   payload = ", payload);
 
-	var logincookie = req.cookies.logincookie;
-	if (logincookie === undefined) {
-	    failedRequest(res);
-	    return;
-	}
-
-	var terms = JSON.parse(payload);
-	var action = terms.action;
-	var delids = [];
-	if (isArray(terms[idname])) {
-	    delids = terms[idname];
-	} else {
-	    delids = [ terms[idname] ];
-	}
+	ifLoggedIn(req, res, next, function (loginid) {
+	    var terms = JSON.parse(payload);
+	    var action = terms.action;
+	    var delids = [];
+	    if (isArray(terms[idname])) {
+		delids = terms[idname];
+	    } else {
+		delids = [ terms[idname] ];
+	    }
     
-	if (action === "delete" && delids.length > 0) {
-	    delItems(res, logincookie, delids);
-	} else {
-	    failedRequest(res);
-	}
+	    if (action === "delete" && delids.length > 0) {
+		delItems(res, loginid, delids);
+	    } else {
+		failedRequest(res);
+	    }
+	});
     };
+
 } // deleteItems
 
 var deleteSearch   = deleteItem("deleteSearch", "searchid", removeSearches);
@@ -668,41 +665,30 @@ function getBibTex(payload, req, res, next) {
     //console.log(">>   cookies = ", req.cookies);
     //console.log(">>   payload = ", payload);
 
-    var logincookie = req.cookies.logincookie;
-    if (logincookie === undefined) {
-	failedRequest(res);
-	return;
-    }
+    ifLoggIn(req, res, next, function (loginid) {
+	var terms = JSON.parse(payload);
+	var docids = [];
+	if (isArray(terms.docids)) {
+	    docids = terms.docids;
+	} else {
+	    docids = [ terms.docids ];
+	}
 
-    var terms = JSON.parse(payload);
-    var docids = [];
-    if (isArray(terms.docids)) {
-	docids = terms.docids;
-    } else {
-	docids = [ terms.docids ];
-    }
-
-    if (docids.length === 0) {
-	failedRequest(res);
-	return;
-    }
-
-    var urlpath = '/cgi-bin/nph-bib_query?data_type=BIBTEX&';
-    redis_client.get('email:'+logincookie, function (err, email) {
-	redis_client.hmget('savedbibcodes:'+email, docids, function (err, bibcodes) {
-	    // It doesn't look like we need to percent-encode the bibcode
-	    urlpath += bibcodes.join('&');
-
-	    var options = {
-		host: 'adsabs.harvard.edu',
-		port: 80,
-		path: urlpath
-	    };
-
-	    console.log("Proxying request to adsabs");
-	    doProxy(options, req, res);
-
-	});
+	if (docids.length === 0) {
+	    failedRequest(res);
+	} else {
+	    var urlpath = '/cgi-bin/nph-bib_query?data_type=BIBTEX&';
+	    redis_client.get('email:'+loginid, function (err, email) {
+		redis_client.hmget('savedbibcodes:'+email, docids, function (err, bibcodes) {
+		    // It doesn't look like we need to percent-encode the bibcode
+		    urlpath += bibcodes.join('&');
+		    
+		    console.log("Proxying request to adsabs");
+		    doProxy({host: 'adsabs.harvard.edu', port: 80, path: urlpath},
+			    req, res);
+		});
+	    });
+	}
     });
 
 } // getBibTex
@@ -715,52 +701,42 @@ function getAsBibTex(req, res, next) {
     postHandler(req, res, getBibTex);
 }
 
+// THIS DOES NOT WORK AND IS NOT ACCESSED BY THE UI 
 function saveToMyADS(payload, req, res, next) {
     console.log(">> In saveToMyADS");
     console.log(">>   cookies = ", req.cookies);
     //console.log(">>   payload = ", payload);
 
-    var logincookie = req.cookies.logincookie;
-    if (logincookie === undefined) {
-	failedRequest(res);
-	return;
-    }
+    ifLoggedIn(req, res, next, function (loginid) {
+	var terms = JSON.parse(payload);
+	var docids = [];
+	if (isArray(terms.docids)) {
+	    docids = terms.docids;
+	} else {
+	    docids = [ terms.docids ];
+	}
 
-    var terms = JSON.parse(payload);
-    var docids = [];
-    if (isArray(terms.docids)) {
-	docids = terms.docids;
-    } else {
-	docids = [ terms.docids ];
-    }
+	if (docids.length === 0) {
+	    failedRequest(res);
+	} else {
+	    // TODO: set up ADS info/cookies? Or is it just that because not
+	    // running on [labs.]adsabs we don't get them?
 
-    if (docids.length === 0) {
-	failedRequest(res);
-	return;
-    }
+	    var urlpath = '/cgi-bin/nph-abs_connect?library=Add&';
+	    redis_client.get('email:'+loginid, function (err, email) {
+		redis_client.hmget('savedbibcodes:'+email, docids, function (err, bibcodes) {
+		    // Do we need to percent-encode the bibcode?
+		    urlpath += bibcodes.join('&');
 
-    // TODO: set up ADS info/cookies? Or is it just that because not
-    // running on [labs.]adsabs we don't get them?
-
-    var urlpath = '/cgi-bin/nph-abs_connect?library=Add&';
-    redis_client.get('email:'+logincookie, function (err, email) {
-	redis_client.hmget('savedbibcodes:'+email, docids, function (err, bibcodes) {
-	    // Do we need to percent-encode the bibcode?
-	    urlpath += bibcodes.join('&');
-
-	    var options = {
-		host: ADSHOST,
-		port: 80,
-		path: urlpath,
-
-		// untested
-		headers: { 'Cookie': 'NASA_ADS_ID='+req.cookies.nasa_ads_id }
-	    };
-
-	    console.log("Proxying request to adsabs");
-	    doProxy(options, req, res);
-
-	});
+		    console.log("Proxying request to adsabs");
+		    doProxy({host: ADSHOST, port: 80, path: urlpath,
+			     // untested
+			     headers: { 'Cookie': 'NASA_ADS_ID='+req.cookies.nasa_ads_id }
+			    }, req, res);
+		    
+		});
+	    });
+	}
     });
 
 } // saveToMyADS
@@ -826,7 +802,7 @@ function timeToText(nowDate, timeString) {
     var t = parseInt(timeString, 10);
     var delta = nowDate - t;
     var h, m, s, out;
-    if (delta <= 0) {
+    if (delta < 1000) {
 	return "Now";
     } else if (delta < 60000) {
 	return String(Math.floor(delta/1000)) + "s ago";
@@ -848,7 +824,17 @@ function timeToText(nowDate, timeString) {
 	}
 	return out + "ago";
     } else {
+
+	// 
+	// NOTE: deleting a saved search can return an element with "Invalid Date"; possibly some form of
+        // concurrency issue whereby number of elements is temporarily invalid, or some of the
+	// recent refactoring I've done has changed behavior
+	//
+	// console.log("DEBUGGING TO FIND OUT WHY TIMES ARE MESSED UP: t = " + t);
+
 	var d = new Date(t);
+	// console.log("DEBUGGING t -> " + d.toUTCString());
+
 	return d.toUTCString();
     }
 }
@@ -986,12 +972,13 @@ var explorouter = connect(
     })
 );
 
+/***
 function cookieFunc(req, res, next) {
     console.log('\\\\\\\\\\\\\\COOKIES:',JSON.stringify(req.cookies));
     //res.end(JSON.stringify(req.cookies));
     next();
   }
-
+***/
 
 var server = connect.createServer();
 //server.use(connect.logger());

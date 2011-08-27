@@ -666,7 +666,7 @@ function getBibTex(payload, req, res, next) {
     //console.log(">>   cookies = ", req.cookies);
     //console.log(">>   payload = ", payload);
 
-    ifLoggIn(req, res, next, function (loginid) {
+    ifLoggedIn(req, res, function (loginid) {
 	var terms = JSON.parse(payload);
 	var docids = [];
 	if (isArray(terms.docids)) {
@@ -840,6 +840,90 @@ function timeToText(nowDate, timeString) {
     }
 }
 
+// Modify the object view to add in the needed Mustache template values
+// given the search results.
+//
+function createSavedSearchTemplates(view, nowDate, searchkeys, searchtimes) {
+    var nsearch = searchkeys.length;
+    var i;
+
+    view.hassearches = nsearch > 0;
+    view.savedsearches = [];
+    for (i = 0; i < nsearch; i++) {
+	var searchuri = searchkeys[i];
+	var searchtext = searchToText(searchuri);
+	var searchpre;
+	
+	if (searchtimes[i] === null) {
+	    searchpre = "";
+	} else {
+	    searchpre = timeToText(nowDate, searchtimes[i]);
+	}
+				
+	view.savedsearches[i] = { 'searchuri': searchuri,
+				  'searchtext': searchtext,
+				  'searchpre': searchpre,
+				  'searchctr': i };
+    }
+
+} // createSavedSearchTemplates
+
+function createSavedPubTemplates(view, nowDate, pubkeys, bibcodes, pubtitles, pubtimes) {
+    var npub = pubkeys.length;
+    var i;
+
+    view.haspubs = npub > 0;
+    view.savedpubs = [];
+    for (i = 0; i < npub; i++) {
+	var pubid = pubkeys[i];
+	var pubtitle = pubtitles[i];
+	var bibcode = bibcodes[i];
+	var linkpre;
+	var linktext;
+	var linkuri;
+	
+	// In development code we may not have all the required
+	// information so provide "useful" defaults.
+	//
+	// It also seems that we have to protect the 
+	// text used to create the bibcode link, even though I thought
+	// Mustache handled this. Unfortunately titles can contain HTML
+	// formatting so need to be careful.
+	//
+	if (bibcode === null) {
+	    linkuri = "id%3A" + pubid;
+	    if (pubtitle === null) {
+		linktext = "Unknown";
+	    } else {
+		linktext = pubtitle;
+	    }
+	} else {
+	    linkuri = "bibcode%3A" + bibcode.replace(/&/g, '%26');
+	    if (pubtitle === null) {
+		linktext = "Unknown title";
+	    } else {
+		linktext = pubtitle;
+	    }
+	    
+	    linktext += " (" + bibcode + ")";
+	}
+	
+	if (pubtimes[i] === null) {
+	    linkpre = "";
+	} else {
+	    linkpre = timeToText(nowDate, pubtimes[i]);
+	}
+	
+	view.savedpubs[i] = {'pubid': pubid,
+			     'linktext': linktext,
+			     'linkuri': linkuri,
+			     'linkpre': linkpre,
+			     'pubctr': i };
+				
+    }
+
+} // createSavedPubTemplates
+
 function doSaved(req, res, next) {
     console.log("In do Saved");
     var logincookie = req.cookies.logincookie;
@@ -855,7 +939,7 @@ function doSaved(req, res, next) {
     if (logincookie !== undefined) {
 	// var nowDate = Date().now;
 	var nowDate = new Date().getTime();
-	redis_client.get('email:'+logincookie,function (err, email) {
+	redis_client.get('email:'+logincookie, function (err, email) {
 	    getSortedElementsAndScores(false, 'savedsearch:'+email, function (err, savedsearches) {
 		var searchkeys = savedsearches.elements;
 		var searchtimes = savedsearches.scores;
@@ -867,74 +951,9 @@ function doSaved(req, res, next) {
 		    //
 		    redis_client.hmget('savedtitles:'+email, pubkeys, function (err, pubtitles) {
 			redis_client.hmget('savedbibcodes:'+email, pubkeys, function (err, bibcodes) {
-			    /* consolidate the values for the templates */
-			    var nsearch = searchkeys.length;
-			    var npub = pubkeys.length;
-			    var i;
-			    view.hassearches = nsearch > 0;
-			    view.savedsearches = [];
-			    for (i = 0; i < nsearch; i++) {
-				var searchuri = searchkeys[i];
-				var searchtext = searchToText(searchuri);
-				var searchpre;
-				
-				if (searchtimes[i] === null) {
-				    searchpre = "";
-				} else {
-				    searchpre = timeToText(nowDate, searchtimes[i]);
-				}
-				
-				view.savedsearches[i] = { 'searchuri':searchuri, 'searchtext':searchtext, 'searchpre':searchpre, 'searchctr': i };
-			    }
-			    
-			    view.haspubs = npub > 0;
-			    view.savedpubs = [];
-			    for (i = 0; i < npub; i++) {
-				var pubid = pubkeys[i];
-				var pubtitle = pubtitles[i];
-				var bibcode = bibcodes[i];
-				var linkpre;
-				var linktext;
-				var linkuri;
-				
-				// In development code we may not have all the required
-				// information so provide "useful" defaults.
-				//
-				// It also seems that we have to protect the 
-				// text used to create the bibcode link, even though I thought
-				// Mustache handled this. Unfortunately titles can contain HTML
-				// formatting so need to be careful.
-				//
-				if (bibcode === null) {
-				    linkuri = "id%3A" + pubid;
-				    if (pubtitle === null) {
-					linktext = "Unknown";
-				    } else {
-					linktext = pubtitle;
-				    }
-				} else {
-				    linkuri = "bibcode%3A" + bibcode.replace(/&/g, '%26');
-				    if (pubtitle === null) {
-					linktext = "Unknown title";
-				    } else {
-					linktext = pubtitle;
-				    }
-				    
-				    linktext += " (" + bibcode + ")";
-				}
-				
-				if (pubtimes[i] === null) {
-				    linkpre = "";
-				} else {
-				    linkpre = timeToText(nowDate, pubtimes[i]);
-				}
-				
-				view.savedpubs[i] = {'pubid': pubid, 'linktext': linktext, 'linkuri': linkuri, 'linkpre': linkpre, 'pubctr': i };
-				
-			    }
-
+			    createSavedSearchTemplates(view, nowDate, searchkeys, searchtimes);
+			    createSavedPubTemplates(view, nowDate, pubkeys, bibcodes, pubtitles, pubtimes);
 			    res.end(mustache.to_html(maint, view, lpartials));
-			    
 			});
 		    });
 		});

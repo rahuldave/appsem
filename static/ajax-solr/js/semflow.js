@@ -85,10 +85,6 @@ var SITEPREFIX='/semantic2/alpha';
         });
       }
     }));
-    /* Doug has taken out papertype
-    var fields = [ 'keywords', 'author', 'papertype', 'objecttypes', 'objectnames', 'obsvtypes', 'obsids', 'instruments', 'missions', 'emdomains', 'targets', 'datatypes', 'propids', 'proposaltype', 'proposalpi'];
-    var facet_fields= [ 'keywords_s', 'author_s', 'papertype_s' , 'objecttypes_s', 'objectnames_s', 'obsvtypes_s', 'obsids_s', 'instruments_s', 'missions_s', 'emdomains_s', 'targets_s', 'datatypes_s', 'propids_s', 'proposaltype_s', 'proposalpi_s'];
-    */
     var fields = [ 'keywords', 'author', 'objecttypes', 'objectnames', 'obsvtypes', 'obsids', 'instruments', 'missions', 'emdomains', 'targets', 'datatypes', 'propids', 'proposaltype', 'proposalpi'];
     var facet_fields= [ 'keywords_s', 'author_s', 'objecttypes_s', 'objectnames_s', 'obsvtypes_s', 'obsids_s', 'instruments_s', 'missions_s', 'emdomains_s', 'targets_s', 'datatypes_s', 'propids_s', 'proposaltype_s', 'proposalpi_s'];
     for (var i = 0, l = fields.length; i < l; i++) {
@@ -123,7 +119,7 @@ var SITEPREFIX='/semantic2/alpha';
     numericfields=['ra', 'dec', 'exptime'];
     facet_numericfields=['ra_f', 'dec_f', 'exptime_f'];
     min_numericfields=[0.0, -90.0, 0.0];
-    max_numericfields=[360.0, 90.0, 10.0];
+    max_numericfields=[360.0, 90.0, 500.0];
     step_numericfields=[15.0, 10.0, 1.0];
     for (var i = 0, l = numericfields.length; i < l; i++) {
         Manager.addWidget(new AjaxSolr.DualSliderWidget({
@@ -139,8 +135,8 @@ var SITEPREFIX='/semantic2/alpha';
         id: 'obsvtime',
         target: '#obsvtime',
         field: 'obsvtime_d',
-        themin: 1988,
-        themax: 2010,
+        themin: 1977,
+        themax: 2011,
         thestep: 10
     }));
     Manager.setStore(new AjaxSolr.ParameterHashStore());

@@ -152,8 +152,8 @@ var SITEPREFIX='/semantic2/alpha';
       'facet': true,
       'facet.field': facet_fields,
       'facet.pubyear': 'pubyear_i',
-      'facet.pubyear.start':1990,
-      'facet.pubyear.end':2010,
+      'facet.pubyear.start':1978,  // TODO: make dependent on the stored data
+      'facet.pubyear.end':2011,    // TODO: make dependent on the stored data
       'facet.pubyear.step':1,
       'facet.limit': 20,/* change this to set autocompletion limits differently...or solr 1.5*/
       'facet.mincount': 1,

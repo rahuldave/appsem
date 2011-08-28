@@ -16,6 +16,12 @@ var SITEPREFIX='/semantic2/alpha';
 	return $out;
     }
 
+    function getYear(self, facetHandler, year) {
+	return $('<a href="#"/>')
+	    .text(year)
+	    .click(facetHandler(self, 'pubyear_i', '['+year+' TO ' + year +']'));
+    }
+
     // copy of facetHandler; this is not ideal bit it should be a temporary
     // addition, since the display of authors is going to change to match
     // the author list of a publication.
@@ -39,7 +45,9 @@ AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
       var doc = this.manager.response.response.docs[i];
       $(this.target).append(AjaxSolr.theme('result', doc, 
 					   AjaxSolr.theme('snippet', doc,
-							  getAuthors(self, facetHandler2, doc.author)), 
+							  getAuthors(self, facetHandler2, doc.author),
+							  getYear(self, facetHandler2, doc.pubyear_i)
+							 ), 
 					   AjaxSolr.theme('title', doc),
 					   AjaxSolr.theme('pivot', doc, this.facetHandler('bibcode', doc.bibcode)),
 					   self)

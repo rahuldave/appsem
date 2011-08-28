@@ -198,14 +198,17 @@ AjaxSolr.theme.prototype.pivot = function (doc, handler){
 	    
     } // addDataArea
 
-    AjaxSolr.theme.prototype.snippet = function (doc, authors) {
+    AjaxSolr.theme.prototype.snippet = function (doc, authors, year) {
 	var $output1 = $('<p/>')
 	    .append(pubLabel('Authors:'))
 	    // .append(' ' + doc.author.join(' ; '))
 	    .append(' ').append(authors)
 	    .append('<br/>')
 	    .append(pubLabel('Year:'))
-	    .append(' ' + doc.pubyear_i + ' ')
+	    // .append(' ' + doc.pubyear_i + ' ')
+	    .append(' ')
+	    .append(year)
+	    .append(' ')
 	    .append(pubLabel('BibCode:'))
 	    .append(' ' + doc.bibcode + ' ')
 	    .append(pubLabel('Citations:'))

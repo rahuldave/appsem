@@ -2,36 +2,28 @@
 
     var fancyboxOpts = { 'autoDimensions': false, 'width': 1024, 'height': 768 };
 
-AjaxSolr.theme.prototype.result = function (doc, snippet, thetitlelink, thepivot, thedocthis) {
-  console.log("DIC: "+doc);
-/*for (ele in doc){
-	console.log(';;;;'+ele+';;;;'+doc[ele]);
-}*/
-  var $thisdiv=$('<div></div>');
-  var $h2 = $('<h2></h2>').append(doc.title+" ").append(thetitlelink).append(thepivot);
-  //var output = '<div><h2>' + thetitle + '['+thepivot+']</h2>';
-  //var output='';
-  var $linkoutput=$('<p id="links_' + doc.id + '" class="links"></p>');
-  //output += '<p>' + snippet[0] + '</p>';
-  var $morea=$('<a href="#" class="less" id="am_'+doc.id+'">more</a>').click(thedocthis.moreHandler(doc));
-  var $lessa=$('<a href="#" id="al_'+doc.id+'" style="display:none">less</a>').click(thedocthis.lessHandler(doc));
-  var $bookmark=$('<a href="#" class="save" id="savepub_'+doc.id+'">save</a>').click(thedocthis.saveHandler(doc));
-  var $unbookmark=$('<a href="#" class="delete" id="delpub_'+doc.id+'" style="display:none">delete</a>').click(thedocthis.deleteHandler(doc));
-  // var $data=$('<a href="#" class="save" id="data_'+doc.id+'">data</a>').click(thedocthis.dataHandler(doc)); unused at the moment
-  var $morepara=$('<p id="p_'+doc.id+'" style="display:none"></p>').append(snippet[1]);
-  // var $lessmore=$('<div class="lessmore"></div>').append($bookmark).append($unbookmark).append($data).append($morea).append($lessa).append($morepara);
-  // var $lessmore=$('<div class="lessmore"></div>').append($bookmark).append($unbookmark).append($morea).append($lessa).append($morepara);
-  // var $lessmore=$('<div class="lessmore"></div>').append($morea).append($lessa).append($morepara);
-  //return output;
-  //console.log("hi")
-    return $thisdiv
-	.append($h2)
-	.append($('<div class="bookmarks"/>'))
-	.append($linkoutput)
-	.append(snippet[0])
-	.append($morepara)
-	.append($('<div class="lessmore"></div>').append($bookmark).append($unbookmark).append($morea).append($lessa));
-}
+    AjaxSolr.theme.prototype.result = function (doc, snippet, thetitlelink, thepivot, thedocthis) {
+
+	var $morea = $('<a href="#" class="less" id="am_'+doc.id+'">more</a>')
+	    .click(thedocthis.moreHandler(doc));
+	var $lessa = $('<a href="#" id="al_'+doc.id+'" style="display:none">less</a>')
+	    .click(thedocthis.lessHandler(doc));
+	var $bookmark = $('<a href="#" class="save" id="savepub_'+doc.id+'">save</a>')
+	    .click(thedocthis.saveHandler(doc));
+	var $unbookmark = $('<a href="#" class="delete" id="delpub_'+doc.id+'" style="display:none">delete</a>')
+	    .click(thedocthis.deleteHandler(doc));
+
+	return $('<div class="publication"/>')
+	    .append($('<h2/>').append(doc.title + " ").append(thetitlelink).append(thepivot))
+	    .append($('<div class="bookmarks"/>'))
+	    .append($('<p class="links"/>').attr('id', 'links_' + doc.id))
+	    .append('<p id="links_' + doc.id + '" class="links"></p>')
+	    .append(snippet[0])
+	    .append(snippet[1]
+		    .attr('class', 'extrapaperinfo')
+		    .attr('id', 'p_' + doc.id))
+	    .append($('<div class="lessmore"></div>').append($bookmark).append($unbookmark).append($morea).append($lessa));
+    }
 
 AjaxSolr.theme.prototype.title = function (doc) {
     return $('<a class="iframe"/>').text('(Link)')
@@ -43,205 +35,197 @@ AjaxSolr.theme.prototype.pivot = function (doc, handler){
     var $pivot = $('<a href="#"/>').text(' [P]').click(handler);
     return $pivot;
 }
-AjaxSolr.theme.prototype.snippet = function (doc) {
-  var output = '';
-//  if (doc.text.length > 300) {
-//    output += doc.dateline + ' ' + doc.text.substring(0, 300);
 
-//  }
-//  else {
-    output += "<p><b>Authors</b>: "+doc.author.join(' ; ')+"<br/>";
-    output += "<b>Year</b>: "+doc.pubyear_i + ' <b>BibCode</b>:' + doc.bibcode + ' <b>Citations</b>:' + doc.citationcount_i+"</p>";
-//  }
- //output += '<div class="lessmore"> <span class="abstract" style="display:none;">' + doc.abstract;
- //output += '</span> <a href="#" class="more">more</a></div>';
- var objectnames=doc.objectnames_s;
- var obsids=doc.obsids_s;
-//http://simbad.u-strasbg.fr/simbad/sim-id?Ident=NAME+CASSIOPEIA+A&NbIdent=1&Radius=2&Radius.unit=arcmin&submit=submit+id
-//http://cda.harvard.edu/chaser/ocatList.do?obsid=3498,3744,4373,4374,4395
- if (objectnames==undefined){
-	objectnames="None";
-	var objlinks=[];
- } else {
-	var objlinks=objectnames.map(function(ele)
-		{
-		    return $('<a class="iframe"></a>')
-			.text(ele)
-			.attr('href','http://simbad.u-strasbg.fr/simbad/sim-id?Ident='+encodeURIComponent(ele)+'&NbIdent=1&Radius=2&Radius.unit=arcmin&submit=submit+id')
-			.fancybox(fancyboxOpts);
-		}
-	);
- }
- if (obsids==undefined){
-     obsids = "None";
-     // var obsarray=[];
-     // var obslinks=[];
-     var $obsarea = $('<span>None</span>');
-     // var $obsall = $('<span>None</span>');
-     // var $obsall = $('');
- } else {
-
-     // we sort so that the same missions get grouped together
-     var obsarray = obsids.sort().map(function(ele) {
-	 return ele.split("/"); // assume '/' does not occur as part of an obsid; not ideal
-     } );
-
-     // the following is not intended to be efficient or idiomatic javascript
-     //
-     var missionmap = {};
-     var curmission = "";
-     for (var e1 in obsarray) {
-	 var mission = obsarray[e1][0];
-	 var obsid   = obsarray[e1][1];
-	 if (mission === curmission) {
-	     missionmap[mission].push(obsid);
-	 } else {
-	     curmission = mission;
-	     missionmap[mission] = [obsid];
-	 }
-     }
-
-     var mastmissions = [];
-     for (var mission in missionmap) {
-	 if (mission !== "CHANDRA") {
-	     mastmissions.push(missionmap[mission].length + " " + mission);
-	 }
-     }
-     var nmanymast = mastmissions.length > 1;
-     var allmasttest;
-     if (nmanymast) {
-	 allmasttext = "All MAST (" + mastmissions.join(', ') + ")";
-     } else if (mastmissions.length == 1) {
-	 allmasttext = "All (" + missionmap[mission].length + ")";
-     } else {
-	 allmasttext = "";
-     }
-
-     // var hasmast = mastmissions.length > 0;
-
-     /***
-     // somewhat hacky way to determine what the correct field name is
-     var idfieldmap = { "euve": "euve_data_id", 
-			// "fuse": "fes_data_set_name"  does not seem to work
-			// "iue": "iue_data_id"         does not seem to work
-			// I have not bothered checking the other missions
-		      };
-     ***/
-     
-     // Currently relying on the fact that only have Chandra or MAST missions,
-     // and that Chandra will appear before any MAST mission
-     //
-     var $obsarea = $('<div class="missiondataarea"></div>');
-     // var donemast = false;
-     for (var mission in missionmap) {
-	 var mobsids = missionmap[mission];
-	 
-	 var $obsbody = $('<div class="missiondata"></div>').append($('<span class="missionname">' + mission + ':</i>'));
-
-	 // do we want a "download all obsids" link?
-	 var nmany = mobsids.length > 1;
-	 if (mission == "CHANDRA") {
-	     if (nmany) {
-		 $obsbody.append($('<a class="iframe"></a>')
-				 .text('All (' + mobsids.length + ')')
-				 .attr('href', 'http://cda.harvard.edu/chaser/ocatList.do?obsid='+mobsids.join(','))
-				 .fancybox(fancyboxOpts));
-	     }
-	 } else if (nmany || nmanymast) {
-	     // Assuming MAST, adding an "all" for each MAST mission
-	     //
-             var $output = $('<a class="iframe"/>')
-                 .text(allmasttext)
-                 .attr('href', 'http://archive.stsci.edu/mastbibref.php?bibcode='+encodeURIComponent(doc.bibcode))
-	         .fancybox(fancyboxOpts);
-	     $obsbody.append($output);
-	     // donemast = true;
-	 }
-
-	 $obsbody.append($('<br/>'));
-
-	 // ad-hoc collection of MAST missions for which the data link is known to
-	 // not work (we exclude rather than include to allow testing/easy addition of
-	 // new missions).
-	 var mastmissionmap = { };
-
-	 // now the individual obsids; this should be made more modular
-	 if (mission === "CHANDRA") {
-	     for (var idx in mobsids) {
-		 $obsbody
-		     .append($('<a class="iframe"></a>')
-			     .text(mobsids[idx])
-			     .attr('href', 'http://cda.harvard.edu/chaser/ocatList.do?obsid='+mobsids[idx])
-			     .fancybox(fancyboxOpts));
-	     }
-	 } else {
-	     // Assuming MAST, which will eventually be wrong
-	     // and all this mission-specific knowledge is not ideal
-	     
-	     if (mission in mastmissionmap) {
-		 for (var idx in mobsids) {
-		     $obsbody.append('<span class="obsid">' + mobsids[idx] + '</span> ');
-		 }
-	     } else {
-		 for (var idx in mobsids) {
-		     // This link is nice because the MAST page includes useful visualization,
-		     // but it looks like the data links don't match those from the obsid page,
-		     // for the one obsid from EUVE that Doug looked at.
-
-		     var obsidlnk = mobsids[idx]; // should we change the text too?
-		     if (mission === "hpol") {
-			 obsidlnk = obsidlnk.slice(8, obsidlnk.length-3);
-		     } else if (mission === "hut") {
-			 // remove the time value, but this doesn't always create a working link
-			 obsidlnk = obsidlnk.split("=")[0];
-		     } else if (mission === "iue") {
-			 obsidlnk = obsidlnk.slice(0, obsidlnk.length-4);
-		     }
-
-		     $obsbody.append($('<a class="iframe"></a>')
-				     .text(mobsids[idx])
-				     .attr('href', 'http://archive.stsci.edu/cgi-bin/mastpreview?mission='+mission+'&dataid='+obsidlnk)
-				     .fancybox(fancyboxOpts));
-		 }
-	     }
-	 }
-		 
-	 $obsarea.append($obsbody);
-     }
-	     
- }
- //console.log("output="+output);
- //var output2='<p><b>Objects</b>: '+objectnames+'<br/><b>Datasets</b>: '+obsids+" "+obsall+'<br/><b>Abstract</b>: '+doc.abstract+"</p>";
-var $jqlist=$('<p><b>Datasets</b>: </p>');
-    $jqlist = $jqlist.append($obsarea);
-/*
-for (var ele in obslinks){
-    $jqlist = $jqlist.append(obslinks[ele]);
-}
-*/
-// TODO: perhaps do not display an objects section if there are no objects associated with the paper?
-var $jqlist3 = $('<div class="objectdataarea"></div>');
-for (var ele in objlinks){
-	$jqlist3.append(objlinks[ele]);
-} 
-var $jqlist2=$('<p><b>Objects</b>: </p>');
-    if (objlinks.length == 0) {
-	$jqlist2.append($("<span>None</span>"));
-    } else {
-	$jqlist2.append($jqlist3);
+    function getSimbadURI(ele) {
+	return 'http://simbad.u-strasbg.fr/simbad/sim-id?Ident='
+	    + encodeURIComponent(ele)
+	    + '&NbIdent=1&Radius=2&Radius.unit=arcmin&submit=submit+id';
     }
 
-    // do we need to HTML escape this text?
-    // Escaping based on ajax-solr's escapeOnce(); does not work
-    var abtext = doc.abstract;
-    // abtext += '';
-    // abtext.replace(/"/g, '"').replace(/>/g, '>').replace(/</g, '<').replace(/&(?!([a-zA-Z]+|#\d+);)/g, '&');
+    function makeSimbadLink(ele) {
+	return $('<a class="iframe"></a>')
+	    .text(ele)
+	    .attr('href', getSimbadURI(ele))
+	    .fancybox(fancyboxOpts);
+    }
 
-//alert("Abstract:"+doc.abstract);
-// var $output2=$('<p></p>').append($jqlist2).append($('<br/>')).append($jqlist).append($obsall).append($('<p><br/><b>Abstract</b>: '+doc.abstract+'</p>'));
-    var $output2=$('<p></p>').append($jqlist2).append($('<br/>')).append($jqlist).append($('<p><br/><b>Abstract</b>: '+abtext+'</p>'));
-return [$(output), $output2];
-};
+    function pubLabel(label) {
+	return $('<span class="pubitem"/>').text(label);
+    }
+
+    function addObjectArea(parentarea, objnames) {
+	if (objnames === undefined) { return; }
+
+	// We want a sorted list here. We could come up with a sort
+	// function to handle sorting "M80" and "M81" but for now
+	// live with the current system. It is not clear whether
+	// we need to copy the objnames array before sorting it but
+	// do so just to be safe.
+	//
+	objnames = objnames.slice(0).sort();
+	var $objarea = $('<div class="objectdataarea"></div>')
+	    .append(pubLabel("Objects:"))
+	    .append(' ');
+	for (var ele in objnames){
+	    $objarea.append(makeSimbadLink(objnames[ele]));
+	} 
+	parentarea.append($objarea);
+	parentarea.append($('<br/>'));
+    }
+
+    function addDataArea(parentarea, bibcode, obsids) {
+	if (obsids === undefined) { return; }
+
+	var $dataarea = $('<div class="missiondataarea"></div>')
+	    .append(pubLabel('Datasets:'))
+	    .append(' ');
+	
+	// we sort so that the same missions get grouped together
+	var obsarray = obsids.sort().map(function(ele) {
+	    return ele.split("/"); // assume '/' does not occur as part of an obsid; not ideal
+	} );
+	    
+	// the following is not intended to be efficient or idiomatic javascript
+	//
+	var missionmap = {};
+	var curmission = "";
+	for (var e1 in obsarray) {
+	    var mission = obsarray[e1][0];
+	    var obsid   = obsarray[e1][1];
+	    if (mission === curmission) {
+		missionmap[mission].push(obsid);
+	    } else {
+		curmission = mission;
+		missionmap[mission] = [obsid];
+	    }
+	}
+	
+	var mastmissions = [];
+	for (var mission in missionmap) {
+	    if (mission !== "CHANDRA") {
+		mastmissions.push(missionmap[mission].length + " " + mission);
+	    }
+	}
+	var nmanymast = mastmissions.length > 1;
+	var allmasttest;
+	if (nmanymast) {
+	    allmasttext = "All MAST (" + mastmissions.join(', ') + ")";
+	} else if (mastmissions.length == 1) {
+	    allmasttext = "All (" + missionmap[mission].length + ")";
+	} else {
+	    allmasttext = "";
+	}
+	
+	// Currently relying on the fact that only have Chandra or MAST missions,
+	// and that Chandra will appear before any MAST mission
+	//
+	for (var mission in missionmap) {
+	    var mobsids = missionmap[mission];
+	    
+	    var $missionbody = $('<div class="missiondata"></div>').append($('<span class="missionname">' + mission + ':</i>'));
+	    
+	    // do we want a "download all obsids" link?
+	    var nmany = mobsids.length > 1;
+	    if (mission == "CHANDRA") {
+		if (nmany) {
+		    $missionbody.append($('<a class="iframe"></a>')
+					.text('All (' + mobsids.length + ')')
+					.attr('href', 'http://cda.harvard.edu/chaser/ocatList.do?obsid='+mobsids.join(','))
+					.fancybox(fancyboxOpts));
+		}
+	    } else if (nmany || nmanymast) {
+		// Assuming MAST, adding an "all" for each MAST mission
+		//
+		$missionbody.append($('<a class="iframe"/>')
+				    .text(allmasttext)
+				    .attr('href', 'http://archive.stsci.edu/mastbibref.php?bibcode='+encodeURIComponent(bibcode))
+				    .fancybox(fancyboxOpts));
+	    }
+	    
+	    $missionbody.append($('<br/>'));
+	    
+	    // ad-hoc collection of MAST missions for which the data link is known to
+	    // not work (we exclude rather than include to allow testing/easy addition of
+	    // new missions).
+	    var mastmissionmap = { };
+	    
+	    // now the individual obsids; this should be made more modular
+	    if (mission === "CHANDRA") {
+		for (var idx in mobsids) {
+		    $missionbody
+			.append($('<a class="iframe"></a>')
+				.text(mobsids[idx])
+				.attr('href', 'http://cda.harvard.edu/chaser/ocatList.do?obsid='+mobsids[idx])
+				.fancybox(fancyboxOpts));
+		}
+	    } else {
+		// Assuming MAST, which will eventually be wrong
+		// and all this mission-specific knowledge is not ideal
+		
+		if (mission in mastmissionmap) {
+		    for (var idx in mobsids) {
+			$missionbody.append('<span class="obsid">' + mobsids[idx] + '</span> ');
+		    }
+		} else {
+		    for (var idx in mobsids) {
+			// This link is nice because the MAST page includes useful visualization,
+			// but it looks like the data links don't match those from the obsid page,
+			// for the one obsid from EUVE that Doug looked at.
+			
+			var obsidlnk = mobsids[idx]; // should we change the text too?
+			if (mission === "hpol") {
+			    obsidlnk = obsidlnk.slice(8, obsidlnk.length-3);
+			} else if (mission === "hut") {
+			    // remove the time value, but this doesn't always create a working link
+			    obsidlnk = obsidlnk.split("=")[0];
+			} else if (mission === "iue") {
+			    obsidlnk = obsidlnk.slice(0, obsidlnk.length-4);
+			}
+			
+			$missionbody.append($('<a class="iframe"></a>')
+					    .text(mobsids[idx])
+					    .attr('href', 'http://archive.stsci.edu/cgi-bin/mastpreview?mission='+mission+'&dataid='+obsidlnk)
+					    .fancybox(fancyboxOpts));
+		    }
+		}
+	    }
+	    
+	    $dataarea.append($missionbody);
+	}
+	    
+	parentarea.append($dataarea);
+	parentarea.append($('<br/>'));
+	    
+    } // addDataArea
+	
+    AjaxSolr.theme.prototype.snippet = function (doc) {
+	var $output1 = $('<p/>')
+	    .append(pubLabel('Authors:'))
+	    .append(' ' + doc.author.join(' ; '))
+	    .append('<br/>')
+	    .append(pubLabel('Year:'))
+	    .append(' ' + doc.pubyear_i + ' ')
+	    .append(pubLabel('BibCode:'))
+	    .append(' ' + doc.bibcode + ' ')
+	    .append(pubLabel('Citations:'))
+	    .append(' ' + doc.citationcount_i);
+
+	var $output2 = $('<div/>');
+
+	var objectnames = doc.objectnames_s;
+	var obsids = doc.obsids_s;
+
+	addObjectArea($output2, doc.objectnames_s);
+	addDataArea($output2, doc.bibcode, doc.obsids_s);
+
+	// do we need to HTML escape this text?
+	// 
+	var abtext = doc.abstract;
+	var $abstract = $('<div class="abstracttext"><span class="pubitem">Abstract:</span> '+abtext+'</div>');
+	$output2.append($abstract);
+	return [$output1, $output2];
+
+    }; // Ajax.theme.prototype.snippet
 
 AjaxSolr.theme.prototype.tag = function (value, thecount, weight, handler, handler2) {
   

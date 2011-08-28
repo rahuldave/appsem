@@ -197,11 +197,12 @@ AjaxSolr.theme.prototype.pivot = function (doc, handler){
 	parentarea.append($('<br/>'));
 	    
     } // addDataArea
-	
-    AjaxSolr.theme.prototype.snippet = function (doc) {
+
+    AjaxSolr.theme.prototype.snippet = function (doc, authors) {
 	var $output1 = $('<p/>')
 	    .append(pubLabel('Authors:'))
-	    .append(' ' + doc.author.join(' ; '))
+	    // .append(' ' + doc.author.join(' ; '))
+	    .append(' ').append(authors)
 	    .append('<br/>')
 	    .append(pubLabel('Year:'))
 	    .append(' ' + doc.pubyear_i + ' ')

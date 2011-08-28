@@ -3,6 +3,33 @@ var SITEPREFIX='/semantic2/alpha';
 
 (function ($) {
 
+    // should we be using facetLinks?
+    //
+    function getAuthors(self, facetHandler, authors) {
+	var $out = $('<span class="authors"/>');
+	for (var i in authors) {
+	    if (i != 0) { $out.append('; '); }
+	    $out.append($('<a href="#"/>')
+			.text(authors[i])
+			.click(facetHandler(self, 'author_s', '"'+authors[i]+'"')));
+	}
+	return $out;
+    }
+
+    // copy of facetHandler; this is not ideal bit it should be a temporary
+    // addition, since the display of authors is going to change to match
+    // the author list of a publication.
+    //
+    function facetHandler2(self, facet_field, facet_value) {
+	return function () {
+	    // console.log("For facet "+facet_field+" Trying value "+facet_value);
+            self.manager.store.remove('fq');
+            self.manager.store.addByValue('fq', facet_field + ':' + facet_value);
+            self.manager.doRequest(0);
+            return false;
+	};
+    }
+	
 AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
   afterRequest: function () {
     var self=this;  
@@ -10,9 +37,13 @@ AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
     docids=[];
     for (var i = 0, l = this.manager.response.response.docs.length; i < l; i++) {
       var doc = this.manager.response.response.docs[i];
-      $(this.target).append(AjaxSolr.theme('result', doc, AjaxSolr.theme('snippet', doc), 
-		AjaxSolr.theme('title', doc),AjaxSolr.theme('pivot', doc, 
-		this.facetHandler('bibcode', doc.bibcode)), self));
+      $(this.target).append(AjaxSolr.theme('result', doc, 
+					   AjaxSolr.theme('snippet', doc,
+							  getAuthors(self, facetHandler2, doc.author)), 
+					   AjaxSolr.theme('title', doc),
+					   AjaxSolr.theme('pivot', doc, this.facetHandler('bibcode', doc.bibcode)),
+					   self)
+			   );
       //$(this.target).append(AjaxSolr.theme('result', doc, "DOGDOG"));
       var items = [];
       //alert(doc.keywords_s);
@@ -123,13 +154,14 @@ AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
   facetHandler: function (facet_field, facet_value) {
     var self = this;
     return function () {
-	console.log("For facet "+facet_field+" Trying value "+facet_value);
+	// console.log("For facet "+facet_field+" Trying value "+facet_value);
         self.manager.store.remove('fq');
         self.manager.store.addByValue('fq', facet_field + ':' + facet_value);
         self.manager.doRequest(0);
         return false;
     };
   },
+
   init: function () {
 	//$('a.more').click(alert("Hi"));
     /*$('a.more').live(function () {

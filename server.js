@@ -681,8 +681,9 @@ function getBibTex(payload, req, res, next) {
 	    var urlpath = '/cgi-bin/nph-bib_query?data_type=BIBTEX&';
 	    redis_client.get('email:'+loginid, function (err, email) {
 		redis_client.hmget('savedbibcodes:'+email, docids, function (err, bibcodes) {
-		    // It doesn't look like we need to percent-encode the bibcode
-		    urlpath += bibcodes.join('&');
+		    // It doesn't look like we need to percent-encode the bibcode, but we do it anyway
+		    var feedthebibcodes=bibcodes.map(encodeURIComponent);
+		    urlpath += feedthebibcodes.join('&');
 		    
 		    console.log("Proxying request to adsabs");
 		    doProxy({host: 'adsabs.harvard.edu', port: 80, path: urlpath},
@@ -726,10 +727,11 @@ function saveToMyADS(payload, req, res, next) {
 	    var urlpath = '/cgi-bin/nph-abs_connect?library=Add&';
 	    redis_client.get('email:'+loginid, function (err, email) {
 		redis_client.hmget('savedbibcodes:'+email, docids, function (err, bibcodes) {
+	 	    var feedthebibcodes=bibcodes.map(function(item){return 'bibcode='+encodeURIComponent(item);});
 		    // Do we need to percent-encode the bibcode?
-		    urlpath += bibcodes.join('&');
+		    urlpath += feedthebibcodes.join('&');
 
-		    console.log("Proxying request to adsabs");
+		    console.log("Proxying request to adsabs "+urlpath);
 		    doProxy({host: ADSHOST, port: 80, path: urlpath,
 			     // untested
 			     headers: { 'Cookie': 'NASA_ADS_ID='+req.cookies.nasa_ads_id }

@@ -49,6 +49,50 @@ AjaxSolr.theme.prototype.pivot = function (doc, handler){
 	    .fancybox(fancyboxOpts);
     }
 
+    // Need mission specific info to determine what to link to here
+    //
+    function getChandraObsidlink (label, link) {
+	if (link === undefined) {
+	    link = label;
+	}
+
+	return $('<a class="iframe"/>')
+	    .text(label)
+	    .attr('href', 'http://cda.harvard.edu/chaser/ocatList.do?obsid='+link)
+	    .fancybox(fancyboxOpts);
+    }
+
+    function getMASTObsidlink (mission, label, link) {
+	if (link === undefined) {
+	    link = label;
+	}
+
+	return $('<a class="iframe"></a>')
+	    .text(label)
+	    .attr('href', 'http://archive.stsci.edu/cgi-bin/mastpreview?mission='+mission+'&dataid='+link)
+	    .fancybox(fancyboxOpts);
+    }
+
+    var obslinks = {
+	'CHANDRA': getChandraObsidlink,
+
+	'euve': function (obsid) { return getMASTObsidlink('euve', obsid); },
+	'fuse': function (obsid) { return getMASTObsidlink('fuse', obsid); },
+	'hpol': function (obsid) { return getMASTObsidlink('hpol', obsid, obsid.slice(8, obsid.length-3)); },
+	'hut':  function (obsid) { return getMASTObsidlink('hut',  obsid, obsid.split('=')[0]); },
+	'iue':  function (obsid) { return getMASTObsidlink('iue',  obsid, obsid.slice(0, obsid.length-4)); },
+	'wuppe': function (obsid) { return getMASTObsidlink('wuppe', obsid); }
+
+    };
+
+    function getObslink(mission, obsid) {
+	if (obslinks[mission] === undefined) {
+	    alert("Internal error: no idea how to get link to mission=" + mission + " obsid=" + obsid);
+	} else {
+	    return obslinks[mission](obsid);
+	}
+    }
+
     function pubLabel(label) {
 	return $('<span class="pubitem"/>').text(label);
     }
@@ -73,126 +117,140 @@ AjaxSolr.theme.prototype.pivot = function (doc, handler){
 	parentarea.append($('<br/>'));
     }
 
-    function addDataArea(parentarea, bibcode, obsids) {
+    // sort on exposure length, but we want largest first
+    function compareObs(a, b) {
+	// return a.obsid.localeCompare(b.obsid);
+	var va = a.exptime, vb = b.exptime;
+	if (va > vb)      { return -1; }
+	else if (va < vb) { return 1; }
+	else              { return 0; }
+    } 
+
+    // Create the data area for this publication. Some code could probably be
+    // cleaned up by processing based on the name of the "mission parent" - e.g.
+    // we encode target names as 'MAST/foo' and 'CHANDRA/bar' and so we could
+    // use 'MAST' to possibly simplify some logic below
+    // 
+    function addDataArea(parentarea, docid, bibcode, obsids, exptimes, expdates, targets) {
 	if (obsids === undefined) { return; }
 
 	var $dataarea = $('<div class="missiondataarea"></div>')
 	    .append(pubLabel('Datasets:'))
 	    .append(' ');
 	
-	// we sort so that the same missions get grouped together
-	var obsarray = obsids.sort().map(function(ele) {
-	    return ele.split("/"); // assume '/' does not occur as part of an obsid; not ideal
-	} );
-	    
-	// the following is not intended to be efficient or idiomatic javascript
-	//
+	// Combine the data, as well as cleaning up the obsid value
 	var missionmap = {};
-	var curmission = "";
-	for (var e1 in obsarray) {
-	    var mission = obsarray[e1][0];
-	    var obsid   = obsarray[e1][1];
-	    if (mission === curmission) {
-		missionmap[mission].push(obsid);
+	var nobs = obsids.length;
+	var mission;
+	for (var i = 0; i < nobs; i += 1) {
+	    var toks = obsids[i].split('/');
+	    mission = toks[0];
+	    var out = {"mission": mission,
+		       "obsid": toks[1],
+		       "exptime": exptimes[i],
+		       "obsdate": expdates[i],
+		       "target": targets[i].split('/', 2)[1]};
+	    if (missionmap[mission] === undefined) {
+		missionmap[mission] = [out];
 	    } else {
-		curmission = mission;
-		missionmap[mission] = [obsid];
+		missionmap[mission].push(out);
 	    }
 	}
-	
-	var mastmissions = [];
-	for (var mission in missionmap) {
-	    if (mission !== "CHANDRA") {
-		mastmissions.push(missionmap[mission].length + " " + mission);
-	    }
-	}
-	var nmanymast = mastmissions.length > 1;
-	var allmasttest;
-	if (nmanymast) {
-	    allmasttext = "All MAST (" + mastmissions.join(', ') + ")";
-	} else if (mastmissions.length == 1) {
-	    allmasttext = "All (" + missionmap[mission].length + ")";
-	} else {
-	    allmasttext = "";
-	}
-	
-	// Currently relying on the fact that only have Chandra or MAST missions,
-	// and that Chandra will appear before any MAST mission
+
+	// Ensure the mission data is sorted; we want the data
+	// sorted by exposure time within each mission rather
+	// than an overall sort on exposure (as would be provided
+	// by tablesorter).
 	//
-	for (var mission in missionmap) {
-	    var mobsids = missionmap[mission];
-	    
-	    var $missionbody = $('<div class="missiondata"></div>').append($('<span class="missionname">' + mission + ':</i>'));
-	    
-	    // do we want a "download all obsids" link?
-	    var nmany = mobsids.length > 1;
-	    if (mission == "CHANDRA") {
-		if (nmany) {
-		    $missionbody.append($('<a class="iframe"></a>')
-					.text('All (' + mobsids.length + ')')
-					.attr('href', 'http://cda.harvard.edu/chaser/ocatList.do?obsid='+mobsids.join(','))
-					.fancybox(fancyboxOpts));
-		}
-	    } else if (nmany || nmanymast) {
-		// Assuming MAST, adding an "all" for each MAST mission
-		//
-		$missionbody.append($('<a class="iframe"/>')
-				    .text(allmasttext)
-				    .attr('href', 'http://archive.stsci.edu/mastbibref.php?bibcode='+encodeURIComponent(bibcode))
-				    .fancybox(fancyboxOpts));
-	    }
-	    
-	    $missionbody.append($('<br/>'));
-	    
-	    // ad-hoc collection of MAST missions for which the data link is known to
-	    // not work (we exclude rather than include to allow testing/easy addition of
-	    // new missions).
-	    var mastmissionmap = { };
-	    
-	    // now the individual obsids; this should be made more modular
-	    if (mission === "CHANDRA") {
-		for (var idx in mobsids) {
-		    $missionbody
-			.append($('<a class="iframe"></a>')
-				.text(mobsids[idx])
-				.attr('href', 'http://cda.harvard.edu/chaser/ocatList.do?obsid='+mobsids[idx])
-				.fancybox(fancyboxOpts));
-		}
-	    } else {
-		// Assuming MAST, which will eventually be wrong
-		// and all this mission-specific knowledge is not ideal
-		
-		if (mission in mastmissionmap) {
-		    for (var idx in mobsids) {
-			$missionbody.append('<span class="obsid">' + mobsids[idx] + '</span> ');
-		    }
-		} else {
-		    for (var idx in mobsids) {
-			// This link is nice because the MAST page includes useful visualization,
-			// but it looks like the data links don't match those from the obsid page,
-			// for the one obsid from EUVE that Doug looked at.
-			
-			var obsidlnk = mobsids[idx]; // should we change the text too?
-			if (mission === "hpol") {
-			    obsidlnk = obsidlnk.slice(8, obsidlnk.length-3);
-			} else if (mission === "hut") {
-			    // remove the time value, but this doesn't always create a working link
-			    obsidlnk = obsidlnk.split("=")[0];
-			} else if (mission === "iue") {
-			    obsidlnk = obsidlnk.slice(0, obsidlnk.length-4);
-			}
-			
-			$missionbody.append($('<a class="iframe"></a>')
-					    .text(mobsids[idx])
-					    .attr('href', 'http://archive.stsci.edu/cgi-bin/mastpreview?mission='+mission+'&dataid='+obsidlnk)
-					    .fancybox(fancyboxOpts));
-		    }
-		}
-	    }
-	    
-	    $dataarea.append($missionbody);
+	var missions = [];
+	var mastmissions = [];
+	for (mission in missionmap) {
+	    missionmap[mission].sort(compareObs);
+	    missions.push(mission);
+	    if (mission !== "CHANDRA") { mastmissions.push(mission); }
 	}
-	    
+	missions.sort();
+	mastmissions.sort();
+	var nmissions = missions.length;
+
+	// Display any 'download all data' links
+	//  - multiple chandra
+	//  - multiple MAST
+	//
+	// At present we only support "all MAST", not
+	// per mission within MAST.
+	//
+	var marray, nm;
+	if (missionmap["CHANDRA"] !== undefined) {
+	    marray = missionmap["CHANDRA"];
+	    nm = marray.length;
+
+	    if (nm > 1) {
+		var mobsids = marray.map(function(e) { return e.obsid; });
+		$dataarea.append(
+		    getChandraObsidlink('All CHANDRA (' + nm + ')',
+					mobsids.join(','))
+		);
+		$dataarea.append(' ');
+
+	    }
+	}
+
+	var nmast = mastmissions.length;
+	if (nmast > 1 || (nmast == 1 && missionmap[mastmissions[0]].length > 1)) {
+	    var label = 'All MAST ('
+		+ mastmissions.map(function (m) { return missionmap[m].length + ' ' + m; }).join(', ') 
+		+ ')';
+	    $dataarea.append(
+		$('<a class="iframe"/>')
+		    .text(label)
+		    .attr('href', 'http://archive.stsci.edu/mastbibref.php?bibcode='+encodeURIComponent(bibcode))
+		    .fancybox(fancyboxOpts)
+	    );
+	}
+
+	// Now the data table containing all the missions. We could split out into mission-specific
+	// tables but leave as a single one for now.
+	//
+	// Could add more rows and clean up or remove the # column
+	//
+	var $mtable = $('<table class="tablesorter"/>')
+	    .attr('id', 'obsdata_' + docid)
+	    .append($('<thead/>')
+		    .append('<tr><th>Mission</th><th>#</th><th>Observation</th><th>Exposure time (s)</th><th>Observation date</th><th>Target name</th></tr>'));
+
+	var $mbody = $('<tbody/>');
+
+	for (midx = 0; midx < nmissions; midx += 1) {
+	    mission = missions[midx];
+	    var mvalues = missionmap[mission];
+	    var mitems = mvalues.length;
+
+	    for (var idx = 0; idx < mitems; idx += 1) {
+		var ctr = idx + 1;
+		$mbody.append($('<tr/>')
+			      .append($('<td/>').text(mission.toUpperCase()))
+			      .append($('<td/>').text(ctr))
+			      .append($('<td/>').append(getObslink(mission, mvalues[idx].obsid)))
+			      .append($('<td/>').append(mvalues[idx].exptime))
+			      .append($('<td/>').append(mvalues[idx].obsdate))
+			      .append($('<td/>').append(mvalues[idx].target))
+			     );
+	    }
+	}
+
+	// Ensure we can sort the table; the tablesorter call *could* be made
+	// when the 'more' link is activated by the user (as an optimisation for the
+	// case when multiple tables are being created but none actually viewed
+	// by the user), but worry about that only if profiling shows it is an
+	// actual issue.
+	// 
+	$mtable.append($mbody);
+	$mtable.tablesorter();
+
+	//$dataarea.append($('<div class="missiondata"/>').append($mtable));
+	$dataarea.append($mtable);
+
 	parentarea.append($dataarea);
 	parentarea.append($('<br/>'));
 	    
@@ -220,7 +278,7 @@ AjaxSolr.theme.prototype.pivot = function (doc, handler){
 	var obsids = doc.obsids_s;
 
 	addObjectArea($output2, doc.objectnames_s);
-	addDataArea($output2, doc.bibcode, doc.obsids_s);
+	addDataArea($output2, doc.id, doc.bibcode, doc.obsids_s, doc.exptime_f, doc.obsvtime_d, doc.targets_s);
 
 	// do we need to HTML escape this text?
 	// 

@@ -84,6 +84,7 @@ AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
             });
         }
     });
+
   },
   facetLinks: function (facet_field, facet_values) {
     var links = [];

@@ -35,7 +35,7 @@ var SITEPREFIX='/semantic2/alpha';
       nextLabel: '&gt;',
       innerWindow: 1,
       renderHeader: function (perPage, offset, total) {
-          $('#pager-header').html($('<span/>').text('displaying ' + Math.min(total, offset + 1) + ' to ' + Math.min(total, offset + perPage) + ' of ' + total+' ')).append($('<a class="save" id="save-search" href="#">save search</a>')).append($('<a class="delete" id="delete-search" style="display:none" href="#">delete search</a>')).append($('<a class="save" id="get-data" href="#">get data</a>'));
+          $('#pager-header').html($('<span/>').text('displaying ' + Math.min(total, offset + 1) + ' to ' + Math.min(total, offset + perPage) + ' of ' + total+' ')).append($('<a class="save" id="save-search" href="#">save search</a>')).append($('<a class="delete" id="delete-search" style="display:none" href="#">delete search</a>')); // FOR now remove get-data: append($('<a class="save" id="get-data" href="#">get data</a>'));
         $('#save-search').click(function(){
             $.post(SITEPREFIX+'/savesearch', JSON.stringify({'savedsearch':location.href.split("#")[1]}), function(data){
                 //should we decode uri component above? We do it on server so perhaps not.
@@ -56,10 +56,13 @@ var SITEPREFIX='/semantic2/alpha';
             });  
             return false;
         });
+	/*
+	  // get-data button has been removed for now
         $('#get-data').click(function(){
             alert("not yet implemented");
             return false;
         });
+	*/
         console.log("HAHAHAHAHAHAHAHAHA");
         //this gets called all the time. How to avoid this?
         $.getJSON(SITEPREFIX+'/savedsearches', function(data){
@@ -77,15 +80,11 @@ var SITEPREFIX='/semantic2/alpha';
             } else {
                 $('#save-search').hide();
                 $('#delete-search').hide();
-                $('#get-data').hide();
+                // $('#get-data').hide(); currently usunsed
             }
         });
       }
     }));
-    /* Doug has taken out papertype
-    var fields = [ 'keywords', 'author', 'papertype', 'objecttypes', 'objectnames', 'obsvtypes', 'obsids', 'instruments', 'missions', 'emdomains', 'targets', 'datatypes', 'propids', 'proposaltype', 'proposalpi'];
-    var facet_fields= [ 'keywords_s', 'author_s', 'papertype_s' , 'objecttypes_s', 'objectnames_s', 'obsvtypes_s', 'obsids_s', 'instruments_s', 'missions_s', 'emdomains_s', 'targets_s', 'datatypes_s', 'propids_s', 'proposaltype_s', 'proposalpi_s'];
-    */
     var fields = [ 'keywords', 'author', 'objecttypes', 'objectnames', 'obsvtypes', 'obsids', 'instruments', 'missions', 'emdomains', 'targets', 'datatypes', 'propids', 'proposaltype', 'proposalpi'];
     var facet_fields= [ 'keywords_s', 'author_s', 'objecttypes_s', 'objectnames_s', 'obsvtypes_s', 'obsids_s', 'instruments_s', 'missions_s', 'emdomains_s', 'targets_s', 'datatypes_s', 'propids_s', 'proposaltype_s', 'proposalpi_s'];
     for (var i = 0, l = fields.length; i < l; i++) {
@@ -120,7 +119,7 @@ var SITEPREFIX='/semantic2/alpha';
     numericfields=['ra', 'dec', 'exptime'];
     facet_numericfields=['ra_f', 'dec_f', 'exptime_f'];
     min_numericfields=[0.0, -90.0, 0.0];
-    max_numericfields=[360.0, 90.0, 10.0];
+    max_numericfields=[360.0, 90.0, 500.0];
     step_numericfields=[15.0, 10.0, 1.0];
     for (var i = 0, l = numericfields.length; i < l; i++) {
         Manager.addWidget(new AjaxSolr.DualSliderWidget({
@@ -136,8 +135,8 @@ var SITEPREFIX='/semantic2/alpha';
         id: 'obsvtime',
         target: '#obsvtime',
         field: 'obsvtime_d',
-        themin: 1988,
-        themax: 2010,
+        themin: 1977,
+        themax: 2011,
         thestep: 10
     }));
     Manager.setStore(new AjaxSolr.ParameterHashStore());
@@ -149,8 +148,8 @@ var SITEPREFIX='/semantic2/alpha';
       'facet': true,
       'facet.field': facet_fields,
       'facet.pubyear': 'pubyear_i',
-      'facet.pubyear.start':1990,
-      'facet.pubyear.end':2010,
+      'facet.pubyear.start':1978,  // TODO: make dependent on the stored data
+      'facet.pubyear.end':2011,    // TODO: make dependent on the stored data
       'facet.pubyear.step':1,
       'facet.limit': 20,/* change this to set autocompletion limits differently...or solr 1.5*/
       'facet.mincount': 1,

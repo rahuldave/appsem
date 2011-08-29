@@ -283,13 +283,26 @@ p.links {
     text-align: left;
 }
 
+span.pubitem {
+    font-weight: bolder;
+    font-size: larger;
+}
+
+div.extrapaperinfo {
+    display: none;
+}
+
 div.objectdataarea {
     text-align: left;
 }
 
 div.missiondataarea {
-    padding-left: 2em;
+    // padding-left: 2em;
     text-align: left;
+}
+
+div.missiondata {
+    padding-left: 2em;
 }
 
 span.missionname {
@@ -315,7 +328,7 @@ div.saved-items div {
 }
 
 /* Not convinced this is useful but try for now */
-div.saved-items div:nth-child(odd) {
+div.saved-items div.saveditem:nth-child(odd) {
     background: #EDEBEC;
 }
 

@@ -12,11 +12,13 @@
    {{#hassearches}}
   <h1>Saved Searches</h1>
   <form id="saved-searches-form" action="#">
-  <input type="submit" name="action" value="Delete marked searches">
-  <input type="button" value="Mark all" onClick="changeAllButtons(this.form, true)">
-  <input type="button" value="Clear all" onClick="changeAllButtons(this.form, false)">
-{{#savedsearches}}
-  <div id="search-{{searchctr}}">
+   <div class="formactions">
+    <input type="button" value="Mark all" onClick="changeAllButtons(this.form, true)">
+    <input type="button" value="Clear all" onClick="changeAllButtons(this.form, false)">
+    <input type="submit" name="action" value="Delete marked searches">
+   </div>
+   {{#savedsearches}}
+  <div class="saveditem" id="search-{{searchctr}}">
     <input type="checkbox" name="searchid" value="{{searchuri}}">
     {{searchpre}}
     <a href="/semantic2/alpha/explorer/publications#{{searchuri}}">{{searchtext}}</a>
@@ -33,12 +35,22 @@
     {{#haspubs}}
   <h1>Saved Publications</h1>
   <form id="saved-pubs-form" action="#">
-  <input type="submit" name="action" value="Delete marked">
-  <input type="button" value="Get as BibTex" onClick="getAsBibTex(this.form)">
-  <input type="button" value="Mark all" onClick="changeAllButtons(this.form, true)">
-  <input type="button" value="Clear all" onClick="changeAllButtons(this.form, false)">
+  <div class="formactions">  
+<input type="button" value="Mark all" onClick="changeAllButtons(this.form, true)">
+<input type="button" value="Clear all" onClick="changeAllButtons(this.form, false)">
+<input type="submit" name="action" value="Delete marked">
+<!-- TODO: the current approach forces the bibtex/myADS results to
+     be displayed by fancybox; Doug thinks that this is not ideal
+     since he'd like to be able to have it open in a new tab/window.
+     -->
+<input type="button" value="Get as BibTex" onClick="getAsBibTex(this.form)">
+<button type="button" name="myads" value="Send to myADS"
+    onClick="saveToMyADS(this.form)">
+    <img src="/images/ADSlabs-button.png" alt="[myADS logo]">
+</button>
+  </div>  
     {{#savedpubs}}
-    <div id="pub-{{pubctr}}">
+    <div class="saveditem" id="pub-{{pubctr}}">
       <input type="checkbox" name="pubid" value="{{{pubid}}}">
       {{linkpre}}
       <a href="/semantic2/alpha/explorer/publications#fq={{linkuri}}&q=*%3A*">{{{linktext}}}</a>
@@ -51,6 +63,7 @@
     {{/haspubs}}
     </div>
 {{/notloggedin}}
+    
 	<!-- I assume this is a sensible time to add the handlers -->
 	<script type='text/javascript'>
 function changeAllButtons(form, newstate) {
@@ -64,10 +77,25 @@ function getAsBibTex(form) {
   $(form).find('input[type=checkbox]').each(function() {
     if (this.checked) { data.push(this.value) };
   });
-  if (data.length == 0) { return false; }
+ if (data.length == 0) { return false; }
  $.fancybox.showActivity();
  $.post(SITEPREFIX+'/getasbibtex', JSON.stringify({'docids':data}),
   function(resp) { $.fancybox('<pre>'+resp+'</pre>'); });
+ return false;
+}
+
+function saveToMyADS(form) {
+  var data = [];
+  $(form).find('input[type=checkbox]').each(function() {
+    if (this.checked) { data.push(this.value) };
+  });
+ if (data.length == 0) { return false; }
+    alert("Saving publications to your myADS library is not implemented.");
+    /***
+  $.fancybox.showActivity();
+ $.post(SITEPREFIX+'/savepubstomyads', JSON.stringify({'docids':data}),
+  function(resp) { $.fancybox('<pre>'+resp+'</pre>'); });
+    ***/ 
  return false;
 }
     

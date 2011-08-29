@@ -13,3 +13,8 @@ Icon?
 
 node_modules/*
 dump.rdb
+
+# for tablesorter in particular
+.svn
+*.zip
+

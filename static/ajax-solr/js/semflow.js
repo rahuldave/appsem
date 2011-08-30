@@ -29,62 +29,78 @@ var SITEPREFIX='/semantic2/alpha';
       target: '#docs'
     }));
     Manager.addWidget(new AjaxSolr.PagerWidget({
-      id: 'pager',
-      target: '#pager',
-      prevLabel: '&lt;',
-      nextLabel: '&gt;',
-      innerWindow: 1,
-      renderHeader: function (perPage, offset, total) {
-          $('#pager-header').html($('<span/>').text('displaying ' + Math.min(total, offset + 1) + ' to ' + Math.min(total, offset + perPage) + ' of ' + total+' ')).append($('<a class="save" id="save-search" href="#">save search</a>')).append($('<a class="delete" id="delete-search" style="display:none" href="#">delete search</a>')); // FOR now remove get-data: append($('<a class="save" id="get-data" href="#">get data</a>'));
-        $('#save-search').click(function(){
-            $.post(SITEPREFIX+'/savesearch', JSON.stringify({'savedsearch':location.href.split("#")[1]}), function(data){
-                //should we decode uri component above? We do it on server so perhaps not.
-                if (data['success']==='defined'){
-		    $('#save-search').hide();
-		    $('#delete-search').show();
-                }
-            });  
-            return false;
-        });
-        $('#delete-search').click(function(){
-            $.post(SITEPREFIX+'/deletesearch', JSON.stringify({'searchid':location.href.split("#")[1]}), function(data){
-                //should we decode uri component above? We do it on server so perhaps not.
-                if (data['success']==='defined'){
-		    $('#delete-search').hide();
-		    $('#save-search').show();
-                }
-            });  
-            return false;
-        });
-	/*
-	  // get-data button has been removed for now
-        $('#get-data').click(function(){
+	id: 'pager',
+	target: '#pager',
+	prevLabel: '&lt;',
+	nextLabel: '&gt;',
+	innerWindow: 1,
+	renderHeader: function (perPage, offset, total) {
+            $('#pager-header')
+		.html($('<span/>')
+		      .text('displaying ' + Math.min(total, offset + 1) + ' to ' + Math.min(total, offset + perPage) + ' of ' + total+' '))
+		.append($('<a class="save" id="save-search" href="#">save search</a>'))
+		.append($('<a class="delete" id="delete-search" style="display:none" href="#">delete search</a>'));
+	    // FOR now remove get-data: append($('<a class="save" id="get-data" href="#">get data</a>'));
+
+            $('#save-search').click(function(){
+		$.post(SITEPREFIX+'/savesearch', JSON.stringify({'savedsearch':location.href.split("#")[1]}), function(data){
+                    //should we decode uri component above? We do it on server so perhaps not.
+                    if (data['success']==='defined'){
+			$('#save-search').hide();
+			$('#delete-search').show();
+                    }
+		});  
+		return false;
+            });
+            $('#delete-search').click(function(){
+		$.post(SITEPREFIX+'/deletesearch', JSON.stringify({'searchid':location.href.split("#")[1]}), function(data){
+                    //should we decode uri component above? We do it on server so perhaps not.
+                    if (data['success']==='defined'){
+			$('#delete-search').hide();
+			$('#save-search').show();
+                    }
+		});  
+		return false;
+            });
+
+	    /*
+	    // get-data button has been removed for now
+            $('#get-data').click(function(){
             alert("not yet implemented");
             return false;
-        });
-	*/
-        console.log("HAHAHAHAHAHAHAHAHA");
-        //this gets called all the time. How to avoid this?
-        $.getJSON(SITEPREFIX+'/savedsearches', function(data){
-            var thissearchurl=location.href.split("#")[1];
-            console.log("THISSEARCHURL", thissearchurl);
-            //alert(thissearchurl);
-            if (data['savedsearches']!='undefined'){
-                var savedsearcharray=data['savedsearches'];
-                console.log("SAVEDSEARCHARRAY", savedsearcharray);
-                if (_.indexOf(savedsearcharray, thissearchurl)!=-1){
-                    console.log("ELE",thissearchurl);
-		    $('#save-search').hide();
-		    $('#delete-search').show();
-                }
-            } else {
-                $('#save-search').hide();
-                $('#delete-search').hide();
-                // $('#get-data').hide(); currently usunsed
-            }
-        });
-      }
+            });
+	    */
+
+	    // Hide the 'save search' button if no search has been made.
+	    // TODO: this check may need to be updated when we support OR-style
+	    //       queries
+	    if (Manager.store.values('fq').length == 0) {
+		$('#save-search').hide();
+	    }
+
+            console.log("HAHAHAHAHAHAHAHAHA");
+            //this gets called all the time. How to avoid this?
+            $.getJSON(SITEPREFIX+'/savedsearches', function(data){
+		var thissearchurl=location.href.split("#")[1];
+		console.log("THISSEARCHURL", thissearchurl);
+		//alert(thissearchurl);
+		if (data['savedsearches']!='undefined'){
+                    var savedsearcharray=data['savedsearches'];
+                    console.log("SAVEDSEARCHARRAY", savedsearcharray);
+                    if (_.indexOf(savedsearcharray, thissearchurl)!=-1){
+			console.log("ELE",thissearchurl);
+			$('#save-search').hide();
+			$('#delete-search').show();
+                    }
+		} else {
+                    $('#save-search').hide();
+                    $('#delete-search').hide();
+                    // $('#get-data').hide(); currently usunsed
+		}
+            });
+	} // renderHeader
     }));
+
     var fields = [ 'keywords', 'author', 'objecttypes', 'objectnames', 'obsvtypes', 'obsids', 'instruments', 'missions', 'emdomains', 'targets', 'datatypes', 'propids', 'proposaltype', 'proposalpi'];
     var facet_fields= [ 'keywords_s', 'author_s', 'objecttypes_s', 'objectnames_s', 'obsvtypes_s', 'obsids_s', 'instruments_s', 'missions_s', 'emdomains_s', 'targets_s', 'datatypes_s', 'propids_s', 'proposaltype_s', 'proposalpi_s'];
     for (var i = 0, l = fields.length; i < l; i++) {

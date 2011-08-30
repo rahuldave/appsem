@@ -97,24 +97,43 @@ AjaxSolr.theme.prototype.pivot = function (doc, handler){
 	return $('<span class="pubitem"/>').text(label);
     }
 
-    function addObjectArea(parentarea, objnames) {
+    function addObjectArea(parentarea, docid, objnames, objtypes) {
 	if (objnames === undefined) { return; }
 
 	// We want a sorted list here. We could come up with a sort
 	// function to handle sorting "M80" and "M81" but for now
-	// live with the current system. It is not clear whether
-	// we need to copy the objnames array before sorting it but
-	// do so just to be safe.
+	// live with the current system.
 	//
-	objnames = objnames.slice(0).sort();
-	var $objarea = $('<div class="objectdataarea"></div>')
-	    .append(pubLabel("Objects:"))
-	    .append(' ');
-	for (var ele in objnames){
-	    $objarea.append(makeSimbadLink(objnames[ele]));
+	var objinfo = [];
+	var i, l;
+	for (i = 0; l = objnames.length, i < l; i+= 1) {
+	    objinfo.push({"name": objnames[i], "objtype": objtypes[i]});
+	}
+	objinfo.sort(function(a,b) { return a.name.localeCompare(b.name); });
+
+	var $otable = $('<table class="tablesorter"/>')
+	    .attr('id', 'objs_' + docid)
+	    .append($('<thead/>')
+		    .append('<tr><th>Name</th><th>Type</th></tr>'));
+
+	var $obody = $('<tbody/>');
+	for (i = 0; l = objinfo.length, i < l; i += 1) {
+	    $obody.append($('<tr/>')
+			  .append($('<td/>').append(makeSimbadLink(objinfo[i].name)))
+			  .append($('<td/>').text(objinfo[i].objtype))
+			 );
 	} 
-	parentarea.append($objarea);
+
+	$otable.append($obody);
+	parentarea.append($('<div class="objectdataarea"></div>')
+			  .append(pubLabel("Objects:"))
+			  .append(' ')
+			  .append($otable));
 	parentarea.append($('<br/>'));
+
+	// as with the data area, this should only be needed when the table
+	// is actually viewed.
+	$otable.tablesorter();
     }
 
     // sort on exposure length, but we want largest first
@@ -277,7 +296,7 @@ AjaxSolr.theme.prototype.pivot = function (doc, handler){
 	var objectnames = doc.objectnames_s;
 	var obsids = doc.obsids_s;
 
-	addObjectArea($output2, doc.objectnames_s);
+	addObjectArea($output2, doc.id, doc.objectnames_s, doc.objecttypes_s);
 	addDataArea($output2, doc.id, doc.bibcode, doc.obsids_s, doc.exptime_f, doc.obsvtime_d, doc.targets_s);
 
 	// do we need to HTML escape this text?

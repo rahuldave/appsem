@@ -236,10 +236,14 @@ AjaxSolr.theme.prototype.pivot = function (doc, handler){
 	//
 	// Could add more rows and clean up or remove the # column
 	//
+	var colnames = ["Mission", "Observation", "Exposure time (s)",
+			"Observation date", "Target name", "RA", "Dec"];
 	var $mtable = $('<table class="tablesorter"/>')
 	    .attr('id', 'obsdata_' + docid)
 	    .append($('<thead/>')
-		    .append('<tr><th>Mission</th><th>#</th><th>Observation</th><th>Exposure time (s)</th><th>Observation date</th><th>Target name</th><th>RA</th><th>Dec</th></tr>'));
+		    .append($('<tr/>')
+			    .append(colnames.map(function (c) { return "<th>" + c + "</th>"; }).join('')))
+		   );
 
 	var $mbody = $('<tbody/>');
 
@@ -252,13 +256,12 @@ AjaxSolr.theme.prototype.pivot = function (doc, handler){
 		var ctr = idx + 1;
 		$mbody.append($('<tr/>')
 			      .append($('<td/>').text(mission.toUpperCase()))
-			      .append($('<td/>').text(ctr))
 			      .append($('<td/>').append(getObslink(mission, mvalues[idx].obsid)))
-			      .append($('<td/>').append(mvalues[idx].exptime))
-			      .append($('<td/>').append(mvalues[idx].obsdate))
-			      .append($('<td/>').append(mvalues[idx].target))
-			      .append($('<td/>').append(mvalues[idx].ra)) // may want to try <span value=decimal>text value</span> trick?
-			      .append($('<td/>').append(mvalues[idx].dec))
+			      .append($('<td/>').text(mvalues[idx].exptime))
+			      .append($('<td/>').text(mvalues[idx].obsdate))
+			      .append($('<td/>').text(mvalues[idx].target))
+			      .append($('<td/>').text(mvalues[idx].ra)) // may want to try <span value=decimal>text value</span> trick?
+			      .append($('<td/>').text(mvalues[idx].dec))
 			     );
 	    }
 	}

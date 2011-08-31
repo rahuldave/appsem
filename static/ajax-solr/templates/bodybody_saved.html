@@ -53,7 +53,7 @@
 <input type="button" value="Get as BibTex" onClick="getAsBibTex(this.form)">
 <button type="button" name="myads" value="Send to myADS"
     onClick="saveToMyADS(this.form)">
-    <img src="/images/ADSlabs-button.png" alt="[myADS logo]">
+    <img src="/semantic2/alpha/static/images/ADSlabs-button.png" alt="[myADS logo]">
 </button>
   </div>
   <table class="tablesorter" id="saved-pubs-table">
@@ -106,12 +106,10 @@ function saveToMyADS(form) {
     if (this.checked) { data.push(this.value) };
   });
  if (data.length == 0) { return false; }
-    alert("Saving publications to your myADS library is not implemented.");
-    /***
+    //alert("Saving publications to your myADS library is not implemented.");
   $.fancybox.showActivity();
  $.post(SITEPREFIX+'/savepubstomyads', JSON.stringify({'docids':data}),
   function(resp) { $.fancybox('<pre>'+resp+'</pre>'); });
-    ***/ 
  return false;
 }
     

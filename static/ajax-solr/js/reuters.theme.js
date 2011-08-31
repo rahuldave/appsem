@@ -150,7 +150,7 @@ AjaxSolr.theme.prototype.pivot = function (doc, handler){
     // we encode target names as 'MAST/foo' and 'CHANDRA/bar' and so we could
     // use 'MAST' to possibly simplify some logic below
     // 
-    function addDataArea(parentarea, docid, bibcode, obsids, exptimes, expdates, targets) {
+    function addDataArea(parentarea, docid, bibcode, obsids, exptimes, expdates, targets, ras, decs) {
 	if (obsids === undefined) { return; }
 
 	var $dataarea = $('<div class="missiondataarea"></div>')
@@ -168,7 +168,10 @@ AjaxSolr.theme.prototype.pivot = function (doc, handler){
 		       "obsid": toks[1],
 		       "exptime": exptimes[i],
 		       "obsdate": expdates[i],
-		       "target": targets[i].split('/', 2)[1]};
+		       "target": targets[i].split('/', 2)[1],
+		       "ra": ras[i],
+		       "dec": decs[i]
+		      };
 	    if (missionmap[mission] === undefined) {
 		missionmap[mission] = [out];
 	    } else {
@@ -236,7 +239,7 @@ AjaxSolr.theme.prototype.pivot = function (doc, handler){
 	var $mtable = $('<table class="tablesorter"/>')
 	    .attr('id', 'obsdata_' + docid)
 	    .append($('<thead/>')
-		    .append('<tr><th>Mission</th><th>#</th><th>Observation</th><th>Exposure time (s)</th><th>Observation date</th><th>Target name</th></tr>'));
+		    .append('<tr><th>Mission</th><th>#</th><th>Observation</th><th>Exposure time (s)</th><th>Observation date</th><th>Target name</th><th>RA</th><th>Dec</th></tr>'));
 
 	var $mbody = $('<tbody/>');
 
@@ -254,6 +257,8 @@ AjaxSolr.theme.prototype.pivot = function (doc, handler){
 			      .append($('<td/>').append(mvalues[idx].exptime))
 			      .append($('<td/>').append(mvalues[idx].obsdate))
 			      .append($('<td/>').append(mvalues[idx].target))
+			      .append($('<td/>').append(mvalues[idx].ra)) // may want to try <span value=decimal>text value</span> trick?
+			      .append($('<td/>').append(mvalues[idx].dec))
 			     );
 	    }
 	}
@@ -297,7 +302,10 @@ AjaxSolr.theme.prototype.pivot = function (doc, handler){
 	var obsids = doc.obsids_s;
 
 	addObjectArea($output2, doc.id, doc.objectnames_s, doc.objecttypes_s);
-	addDataArea($output2, doc.id, doc.bibcode, doc.obsids_s, doc.exptime_f, doc.obsvtime_d, doc.targets_s);
+	addDataArea($output2, doc.id, doc.bibcode, 
+		    doc.obsids_s, doc.exptime_f,
+		    doc.obsvtime_d, doc.targets_s,
+		    doc.ra_f, doc.dec_f);
 
 	// do we need to HTML escape this text?
 	// 

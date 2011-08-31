@@ -845,24 +845,17 @@ function timeToText(nowDate, timeString) {
 //
 function createSavedSearchTemplates(view, nowDate, searchkeys, searchtimes) {
     var nsearch = searchkeys.length;
-    var i;
+    var i, skey, stime;
 
     view.hassearches = nsearch > 0;
     view.savedsearches = [];
     for (i = 0; i < nsearch; i++) {
-	var searchuri = searchkeys[i];
-	var searchtext = searchToText(searchuri);
-	var searchpre;
-	
-	if (searchtimes[i] === null) {
-	    searchpre = "";
-	} else {
-	    searchpre = timeToText(nowDate, searchtimes[i]);
-	}
-				
-	view.savedsearches[i] = { 'searchuri': searchuri,
-				  'searchtext': searchtext,
-				  'searchpre': searchpre,
+	skey = searchkeys[i];
+	stime = searchtimes[i];
+	view.savedsearches[i] = { 'searchuri': skey,
+				  'searchtext': searchToText(skey),
+				  'searchtime': stime,
+				  'searchtimestr': timeToText(nowDate, stime),
 				  'searchctr': i };
     }
 
@@ -875,49 +868,22 @@ function createSavedPubTemplates(view, nowDate, pubkeys, bibcodes, pubtitles, pu
     view.haspubs = npub > 0;
     view.savedpubs = [];
     for (i = 0; i < npub; i++) {
-	var pubid = pubkeys[i];
-	var pubtitle = pubtitles[i];
 	var bibcode = bibcodes[i];
-	var linkpre;
-	var linktext;
-	var linkuri;
 	
-	// In development code we may not have all the required
-	// information so provide "useful" defaults.
-	//
-	// It also seems that we have to protect the 
+	// It seems that we have to protect the 
 	// text used to create the bibcode link, even though I thought
 	// Mustache handled this. Unfortunately titles can contain HTML
-	// formatting so need to be careful.
+	// formatting so need to be careful. This may be invalid since I
+	// had missed the handy {{{ }}} mustache functionality.
 	//
-	if (bibcode === null) {
-	    linkuri = "id%3A" + pubid;
-	    if (pubtitle === null) {
-		linktext = "Unknown";
-	    } else {
-		linktext = pubtitle;
-	    }
-	} else {
-	    linkuri = "bibcode%3A" + bibcode.replace(/&/g, '%26');
-	    if (pubtitle === null) {
-		linktext = "Unknown title";
-	    } else {
-		linktext = pubtitle;
-	    }
+	var linkuri = "bibcode%3A" + bibcode.replace(/&/g, '%26');
 	    
-	    linktext += " (" + bibcode + ")";
-	}
-	
-	if (pubtimes[i] === null) {
-	    linkpre = "";
-	} else {
-	    linkpre = timeToText(nowDate, pubtimes[i]);
-	}
-	
-	view.savedpubs[i] = {'pubid': pubid,
-			     'linktext': linktext,
+	view.savedpubs[i] = {'pubid': pubkeys[i],
+			     'linktext': pubtitles[i],
 			     'linkuri': linkuri,
-			     'linkpre': linkpre,
+			     'pubtime': pubtimes[i],
+			     'pubtimestr': timeToText(nowDate, pubtimes[i]),
+			     'bibcode': bibcode,
 			     'pubctr': i };
 				
     }

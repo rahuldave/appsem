@@ -17,13 +17,20 @@
     <input type="button" value="Clear all" onClick="changeAllButtons(this.form, false)">
     <input type="submit" name="action" value="Delete marked searches">
    </div>
-   {{#savedsearches}}
-  <div class="saveditem" id="search-{{searchctr}}">
-    <input type="checkbox" name="searchid" value="{{searchuri}}">
-    {{searchpre}}
-    <a href="/semantic2/alpha/explorer/publications#{{searchuri}}">{{searchtext}}</a>
-  </div>
- {{/savedsearches}}
+  <table class="tablesorter" id="saved-searches-table">
+    <thead>
+      <tr><th/><th>Date saved</th><th>Search terms</th></th>
+    </thead>
+    <tbody>  
+  {{#savedsearches}}
+<tr class="saveditem" id="search-{{searchctr}}">
+<td><input type="checkbox" name="searchid" value="{{searchuri}}"></td>
+<td><span value="{{searchtime}}">{{searchtimestr}}</span></td>
+<td><a href="/semantic2/alpha/explorer/publications#{{searchuri}}">{{searchtext}}</a></td>
+</tr>
+{{/savedsearches}}
+  </tbody>
+  </table>
  </form>
   {{/hassearches}}
   {{^hassearches}}
@@ -33,7 +40,7 @@
 
   <div class="saved-items">
     {{#haspubs}}
-  <h1>Saved Publications</h1>
+ <h1>Saved Publications</h1>
   <form id="saved-pubs-form" action="#">
   <div class="formactions">  
 <input type="button" value="Mark all" onClick="changeAllButtons(this.form, true)">
@@ -48,15 +55,24 @@
     onClick="saveToMyADS(this.form)">
     <img src="/images/ADSlabs-button.png" alt="[myADS logo]">
 </button>
-  </div>  
+  </div>
+  <table class="tablesorter" id="saved-pubs-table">
+    <thead>
+      <tr><th/><th>Date saved</th><th>Title</th><th>Bibcode</th></th>
+    </thead>
+    <tbody>  
     {{#savedpubs}}
-    <div class="saveditem" id="pub-{{pubctr}}">
-      <input type="checkbox" name="pubid" value="{{{pubid}}}">
-      {{linkpre}}
-      <a href="/semantic2/alpha/explorer/publications#fq={{linkuri}}&q=*%3A*">{{{linktext}}}</a>
-    </div>
+<tr class="saveditem" id="pub-{{pubctr}}">
+<td><input type="checkbox" name="pubid" value="{{{pubid}}}"></td>
+<!-- should not use non-standard value attribute here -->
+<td><span value="{{pubtime}}">{{pubtimestr}}</span></td>
+<td><a href="/semantic2/alpha/explorer/publications#fq={{linkuri}}&q=*%3A*">{{{linktext}}}</a></td>
+<td>{{{bibcode}}}</td>
+</tr>
     {{/savedpubs}}
-    </form>
+    </tbody>
+  </table>
+  </form>
     {{/haspubs}}
     {{^haspubs}}
     <h1>No saved publications</h1>
@@ -120,5 +136,27 @@ function submitAction(path, idname) {
 $('#saved-searches-form').submit(submitAction('/deletesearches', 'searchid'));
 $('#saved-pubs-form').submit(submitAction('/deletepubs', 'pubid'));
 
+    // Use the actual time value to sort the time column rather than
+    // the text, and the text for the other columns. a bit ugly
+    //
+var tsortopts = {
+  headers: { 0: { sorter: false } },
+  textExtraction: function(node) {
+     var val = $(node).find('span').attr('value');
+    if (val === undefined) {
+        return $(node).text();
+      } else {
+        return val;
+      }
+   }
+ }
+    
+{{#hassearches}}
+$('#saved-searches-table').tablesorter(tsortopts);
+{{/hassearches}}
+{{#haspubs}}
+$('#saved-pubs-table').tablesorter(tsortopts);
+{{/haspubs}}
+   
 	</script>
 </div>

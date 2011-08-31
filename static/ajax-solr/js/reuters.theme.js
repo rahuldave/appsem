@@ -31,11 +31,17 @@ AjaxSolr.theme.prototype.title = function (doc) {
 	.fancybox(fancyboxOpts);
 }
 
-AjaxSolr.theme.prototype.pivot = function (doc, handler){
-    var $pivot = $('<a href="#"/>').text(' [P]').click(handler);
-    return $pivot;
-}
+    // for now have pivot that requires a doc argument (unused) and
+    // pivot_link that doesn't.
+    //
+    AjaxSolr.theme.prototype.pivot = function (doc, handler){
+	return $('<a href="#"/>').text(' [P]').click(handler);
+    }
 
+    AjaxSolr.theme.prototype.pivot_link = function (handler) {
+	return $('<a href="#"/>').text(' [P]').click(handler);
+    }
+    
     function getSimbadURI(ele) {
 	return 'http://simbad.u-strasbg.fr/simbad/sim-id?Ident='
 	    + encodeURIComponent(ele)
@@ -97,6 +103,21 @@ AjaxSolr.theme.prototype.pivot = function (doc, handler){
 	return $('<span class="pubitem"/>').text(label);
     }
 
+    function makePivotHandler(pivot) {
+	return function () {
+	    // use global Manager which is not ideal
+	    Manager.store.remove('fq');
+	    Manager.store.addByValue('fq', pivot);
+	    Manager.doRequest(0);
+	    return false;
+	};
+    }
+
+    function makePivotLink(pivot) {
+	return AjaxSolr.theme('pivot_link', makePivotHandler(pivot));
+    }
+
+
     function addObjectArea(parentarea, docid, objnames, objtypes) {
 	if (objnames === undefined) { return; }
 
@@ -118,9 +139,17 @@ AjaxSolr.theme.prototype.pivot = function (doc, handler){
 
 	var $obody = $('<tbody/>');
 	for (i = 0; l = objinfo.length, i < l; i += 1) {
+	    var oname = objinfo[i].name;
+	    var otype = objinfo[i].objtype;
 	    $obody.append($('<tr/>')
-			  .append($('<td/>').append(makeSimbadLink(objinfo[i].name)))
-			  .append($('<td/>').text(objinfo[i].objtype))
+			  .append($('<td/>')
+				  .append(makeSimbadLink(oname))
+				  .append(makePivotLink('objectnames_s:"' + oname + '"'))
+				 )
+			  .append($('<td/>')
+				  .text(otype)
+				  .append(makePivotLink('objecttypes_s:"' + otype + '"'))
+				 )
 			 );
 	} 
 
@@ -252,14 +281,31 @@ AjaxSolr.theme.prototype.pivot = function (doc, handler){
 	    var mvalues = missionmap[mission];
 	    var mitems = mvalues.length;
 
+	    // hacky; curently used to create the target-name pivot
+	    var parent;
+	    if (mission == 'CHANDRA') {
+		parent = 'CHANDRA';
+	    } else {
+		parent = 'MAST';
+	    }
+
 	    for (var idx = 0; idx < mitems; idx += 1) {
 		var ctr = idx + 1;
+		var obsid = mvalues[idx].obsid;
+		// we do not need to protect all values but do so for now
+		var obsidpivot = 'obsids_s:"' + mission + '/' + obsid + '"';
 		$mbody.append($('<tr/>')
 			      .append($('<td/>').text(mission.toUpperCase()))
-			      .append($('<td/>').append(getObslink(mission, mvalues[idx].obsid)))
+			      .append($('<td/>')
+				      .append(getObslink(mission, obsid))
+				      .append(makePivotLink(obsidpivot))
+				     )
 			      .append($('<td/>').text(mvalues[idx].exptime))
 			      .append($('<td/>').text(mvalues[idx].obsdate))
-			      .append($('<td/>').text(mvalues[idx].target))
+			      .append($('<td/>')
+				      .text(mvalues[idx].target)
+				      .append(makePivotLink('targets_s:"' + parent + '/' + mvalues[idx].target + '"'))
+				     )
 			      .append($('<td/>').text(mvalues[idx].ra)) // may want to try <span value=decimal>text value</span> trick?
 			      .append($('<td/>').text(mvalues[idx].dec))
 			     );

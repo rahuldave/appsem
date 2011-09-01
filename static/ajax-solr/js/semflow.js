@@ -172,7 +172,9 @@ var SITEPREFIX='/semantic2/alpha';
       'f.topics.facet.limit': 50,
       'json.nl': 'map',
       'sort':'citationcount_i desc',
-      'rows':20
+	'rows':20,
+	'stats': 'true',
+	'stats.field': 'pubyear_i'
     };
     for (var name in params) {
       Manager.store.addByValue(name, params[name]);

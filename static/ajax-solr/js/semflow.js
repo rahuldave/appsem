@@ -135,8 +135,9 @@ var SITEPREFIX='/semantic2/alpha';
     numericfields=['ra', 'dec', 'exptime'];
     facet_numericfields=['ra_f', 'dec_f', 'exptime_f'];
     min_numericfields=[0.0, -90.0, 0.0];
-    max_numericfields=[360.0, 90.0, 500.0];
-    step_numericfields=[15.0, 10.0, 1.0];
+    max_numericfields=[360.0, 90.0, 500.0 * 1000];
+    step_numericfields=[15.0, 10.0, 1.0 * 1000];
+    // TODO: exposure time needs to scale between s (d/base) and ks (display)
     for (var i = 0, l = numericfields.length; i < l; i++) {
         Manager.addWidget(new AjaxSolr.DualSliderWidget({
             id: numericfields[i],
@@ -155,7 +156,14 @@ var SITEPREFIX='/semantic2/alpha';
         themax: 2011,
         thestep: 10
     }));
-    Manager.setStore(new AjaxSolr.ParameterHashStore());
+    Manager.setStore(new AjaxSolr.ParameterHashStore({
+
+	// overriding the default to include stats.field
+	isMultiple: function (name) {
+	    return name.match(/^(?:bf|bq|facet\.date|facet\.date\.other|facet\.date\.include|facet\.field|facet\.pivot|facet\.range|facet\.range\.other|facet\.range\.include|facet\.query|fq|group\.field|group\.func|group\.query|stats\.field|pf|qf)$/);
+	}
+
+    }));
     Manager.store.exposed = [ 'fq', 'q' ];
     Manager.init();
     Manager.store.addByValue('q', '*:*');
@@ -174,7 +182,9 @@ var SITEPREFIX='/semantic2/alpha';
       'sort':'citationcount_i desc',
 	'rows':20,
 	'stats': 'true',
-	'stats.field': 'pubyear_i'
+	// could add obsvtime_d to the stats but that needs a lot of changes to
+	// the DateRangerWidget which I do not want to do just yet.
+	'stats.field': facet_numericfields.concat('pubyear_i')
     };
     for (var name in params) {
       Manager.store.addByValue(name, params[name]);

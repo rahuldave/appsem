@@ -49,8 +49,9 @@
 		}
 	    }
 
+	    var textdiv = $('#' + self.id + "_amount");
 	    var adjustText = function (values) {
-		$('#amount').val(values[0] + '-' + values[1]);
+		$(textdiv).val(values[0] + '-' + values[1]);
 	    }
 	    
 	    $(this.target).slider("destroy").slider({

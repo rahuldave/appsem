@@ -146,9 +146,9 @@ var SITEPREFIX='/semantic2/alpha';
             id: numericfields[i],
             target: '#'+numericfields[i],
             field: facet_numericfields[i],
-            themin: min_numericfields[i],
-            themax: max_numericfields[i],
-            thestep: step_numericfields[i]
+            datamin: min_numericfields[i],
+            datamax: max_numericfields[i],
+            datastep: step_numericfields[i]
         }));
     }
     Manager.addWidget(new AjaxSolr.DateRangerWidget({

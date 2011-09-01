@@ -6,16 +6,16 @@
     AjaxSolr.DualSliderWidget = AjaxSolr.AbstractFacetWidget.extend({
 	afterRequest: function () {
 	    var self = this;
-	    var fieldstats = self.manager.response.stats.stats_fields[self.field];
+	    var stats = self.manager.response.stats.stats_fields[self.field];
 	    var themin = undefined;
 	    var themax = undefined;
 
-	    if (fieldstats !== undefined && fieldstats.count > 0) {
-		themin = fieldstats.min;
-		themax = fieldstats.max;
+	    if (stats !== undefined && stats.count > 0) {
+		themin = stats.min;
+		themax = stats.max;
 	    } else {
-		themin = this.themin;
-		themax = this.themax;
+		themin = self.datamin;
+		themax = self.datamax;
 
 		// This assumes that we only have a single time range
 		var pqvalues=self.manager.store.values('fq');
@@ -38,25 +38,28 @@
 		}
 	    }
 
+	    var textdiv = $('#' + self.id + "_amount");
+	    var adjustText = function (values) {
+		$(textdiv).val(values[0] + '-' + values[1]);
+	    }
+
 	    $(this.target).slider('destroy').slider({
-		'range':true,
-		'max': this.themax,
-		'min': this.themin,
-		'step':this.thestep,
-		'values':[themin,themax],
-		slide: function( event, ui ) {
-                    console.log('SLIDE EVENT');
-                    $( "#"+self.id+"_amount" ).val(ui.values[0]+'-'+ui.values[1] );
-		},
-		stop: function( event, ui ) {
-                    console.log("ONSTOP"+ui.values);
-                    //self.manager.store.addByValue('fq', facet.field + ':' + facet.value)
-                    if (self.manager.store.addByValue('fq',self.field+':['+ui.values[0]+' TO '+ui.values[1]+']')) {
+		'range': true,
+		'max': self.datamax,
+		'min': self.datamin,
+		'step': self.datastep,
+		'values': [themin,themax],
+		slide: function (event, ui) { adjustText(ui.values); },
+		stop: function (event, ui) {
+		    var val = self.field + ':[' + ui.values[0] + ' TO ' + ui.values[1] + ']';
+		    if (self.manager.store.addByValue('fq', val)) {
                         self.manager.doRequest(0);
                     }
 		}
 	    });
-	    $( "#"+this.id+"_amount" ).val($(this.target).slider( "values" ,0)+'-'+ $(this.target).slider( "values" ,1));
+
+	    adjustText($(this.target).slider("values"));
+
 	}
     });
     

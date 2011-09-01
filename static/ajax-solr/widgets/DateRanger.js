@@ -87,7 +87,6 @@ AjaxSolr.DateRangerWidget = AjaxSolr.AbstractFacetWidget.extend({
         stop: function( event, ui ) {
                     console.log("ONSTOP"+ui.values);
                     //self.manager.store.addByValue('fq', facet.field + ':' + facet.value)
-                    //console.log(self.manager.store.get('facet.pubyear'));
                     if (self.manager.store.addByValue('fq',self.field+':['+convertit(ui.values[0]).toISOString()+' TO '+convertit(ui.values[1]).toISOString()+']')) {
                         self.manager.doRequest(0);
                     }

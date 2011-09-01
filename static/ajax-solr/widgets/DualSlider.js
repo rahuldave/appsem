@@ -1,5 +1,7 @@
-//Dual float or int widget
-//with 2 sliders
+//
+// A range widget which uses a slider with both lower and upper
+// handles to display a numeric range (integer or floating-point).
+//
 
 (function ($) {
 
@@ -10,6 +12,11 @@
 	    var themin = undefined;
 	    var themax = undefined;
 
+	    // TODO: we should probably use the min/max from any user-supplied
+	    // filter even if the data lies outside this range (it can be greater
+	    // for thise fields where there are multiple values per paper) as
+	    // it *seems* less visually confusing. Needs thought.
+	    //
 	    if (stats !== undefined && stats.count > 0) {
 		themin = stats.min;
 		themax = stats.max;
@@ -17,8 +24,8 @@
 		themin = self.datamin;
 		themax = self.datamax;
 
-		// This assumes that we only have a single time range
-		var pqvalues=self.manager.store.values('fq');
+		// This assumes that we only have a single filter for this field
+		var pqvalues = self.manager.store.values('fq');
 		if (pqvalues.length > 0) {
 		    for (var tval in pqvalues) {
 			var splitfq = pqvalues[tval].split(':');
@@ -48,7 +55,7 @@
 		'max': self.datamax,
 		'min': self.datamin,
 		'step': self.datastep,
-		'values': [themin,themax],
+		'values': [themin, themax],
 		slide: function (event, ui) { adjustText(ui.values); },
 		stop: function (event, ui) {
 		    var val = self.field + ':[' + ui.values[0] + ' TO ' + ui.values[1] + ']';

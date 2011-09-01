@@ -130,7 +130,10 @@ var SITEPREFIX='/semantic2/alpha';
     Manager.addWidget(new AjaxSolr.YearWidget({
         id: 'pubyear',
         target: '#pubyear',
-        field: 'pubyear_i'
+        field: 'pubyear_i',
+	datamin: 1978,
+	datamax: 2011,
+	datastep: 1,
     }));
     numericfields=['ra', 'dec', 'exptime'];
     facet_numericfields=['ra_f', 'dec_f', 'exptime_f'];

@@ -138,7 +138,7 @@ var SITEPREFIX='/semantic2/alpha';
     numericfields=['ra', 'dec', 'exptime'];
     facet_numericfields=['ra_f', 'dec_f', 'exptime_f'];
     min_numericfields=[0.0, -90.0, 0.0];
-    max_numericfields=[360.0, 90.0, 500.0 * 1000];
+    max_numericfields=[360.0, 90.0, 350.0 * 1000];
     step_numericfields=[15.0, 10.0, 1.0 * 1000];
     // TODO: exposure time needs to scale between s (d/base) and ks (display)
     for (var i = 0, l = numericfields.length; i < l; i++) {

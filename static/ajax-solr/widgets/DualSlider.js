@@ -2,6 +2,21 @@
 // A range widget which uses a slider with both lower and upper
 // handles to display a numeric range (integer or floating-point).
 //
+// The range displayed by the slider is:
+//    - if no selection has been made then use the datamin/datamax
+//      values of the object
+//
+//    - if a selection has been made but it does not include this
+//      field then use the data range
+//
+//    - if the selection contains the field as a filter then use
+//      the requested limits, even if the actual data does not
+//      match them (it can exceed the limits if the field occurs
+//      multiple times for a document, such as the RA of a source)
+//
+//      The code assumes that there is only one filter in the search
+//      for this field.
+//
 
 (function ($) {
 
@@ -12,11 +27,6 @@
 	    var themin = undefined;
 	    var themax = undefined;
 
-	    // TODO: we should probably use the min/max from any user-supplied
-	    // filter even if the data lies outside this range (it can be greater
-	    // for thise fields where there are multiple values per paper) as
-	    // it *seems* less visually confusing. Needs thought.
-	    //
 	    if (stats !== undefined && stats.count > 0) {
 		themin = stats.min;
 		themax = stats.max;
@@ -24,22 +34,23 @@
 		themin = self.datamin;
 		themax = self.datamax;
 
-		// This assumes that we only have a single filter for this field
-		var pqvalues = self.manager.store.values('fq');
-		if (pqvalues.length > 0) {
-		    for (var tval in pqvalues) {
-			var splitfq = pqvalues[tval].split(':');
-			if (splitfq[0] === this.field) {
-			    var toks = splitfq[1].split('TO');
-			    var lo = toks[0].trim().substr(1);
-			    if (lo !== '') {
-				themin = lo;
-			    }
+	    }
+
+	    // This assumes that we only have a single filter for this field
+	    var pqvalues = self.manager.store.values('fq');
+	    if (pqvalues.length > 0) {
+		for (var tval in pqvalues) {
+		    var splitfq = pqvalues[tval].split(':');
+		    if (splitfq[0] === this.field) {
+			var toks = splitfq[1].split('TO');
+			var lo = toks[0].trim().substr(1);
+			if (lo !== '') {
+			    themin = lo;
+			}
 			    
-			    var hi = toks[1].trim();
-			    if (hi !== '' && hi !== ']') {
-				themax = hi.slice(0, hi.length-1);
-			    }
+			var hi = toks[1].trim();
+			if (hi !== '' && hi !== ']') {
+			    themax = hi.slice(0, hi.length-1);
 			}
 		    }
 		}

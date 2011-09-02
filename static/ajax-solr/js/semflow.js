@@ -132,11 +132,6 @@ var SITEPREFIX='/semantic2/alpha';
 	allowmulti: facet_fields
 
     }));
-    /*Manager.addWidget(new AjaxSolr.TextWidget({
-    id: 'text',
-    target: '#search',
-    field: 'text'
-    }));*/
     Manager.addWidget(new AjaxSolr.AutocompleteWidget({
         id: 'text',
         target: '#search',

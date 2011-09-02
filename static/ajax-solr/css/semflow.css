@@ -332,3 +332,11 @@ div.saved-items div.saveditem:nth-child(odd) {
     background: #EDEBEC;
 }
 
+/*
+ * Styling of facets
+ */
+
+span.rangevalues {
+    color: #f6931f;
+    font-weight: bold;
+}

@@ -58,7 +58,7 @@
 
 	    var textdiv = $('#' + self.id + "_amount");
 	    var adjustText = function (values) {
-		$(textdiv).val(values[0] + '-' + values[1]);
+		$(textdiv).text(values[0] + '-' + values[1]);
 	    }
 
 	    $(this.target).slider('destroy').slider({

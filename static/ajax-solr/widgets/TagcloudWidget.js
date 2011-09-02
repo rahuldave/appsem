@@ -1,12 +1,15 @@
 (function ($) {
 
     AjaxSolr.TagcloudWidget = AjaxSolr.AbstractFacetWidget.extend({
-
-	justthisfacetHandler: function (facet_field, facet_value) {
+	
+	/**
+	 * Pivot on this selection. Currently unused.
+	 */
+	justthisfacetHandler: function (value) {
 	    var self = this;
 	    return function () {
 		self.manager.store.remove('fq');
-		self.manager.store.addByValue('fq', facet_field + ':' + facet_value);
+		self.manager.store.addByValue('fq', self.fq(value));
 		self.manager.doRequest(0);
 		return false;
 	    };
@@ -28,6 +31,8 @@
 		return;
 	    }
 
+	    // alphabetic sort; could allow sort on count and reverse options,
+	    // ideally without re-querying Solr
 	    objectedItems.sort(function (a, b) {
 		return a.facet < b.facet ? -1 : 1;
 	    });
@@ -35,7 +40,10 @@
 	    $(this.target).empty();
 	    for (var i = 0, l = objectedItems.length; i < l; i++) {
 		var facet = objectedItems[i].facet;
-		var $tagthemelist=AjaxSolr.theme('tag', facet, objectedItems[i].count, parseInt(objectedItems[i].count / maxCount * 10), this.clickHandler(facet), this.justthisfacetHandler(this.field, facet));
+		var count = objectedItems[i].count;
+		var $tagthemelist = AjaxSolr.theme('tag', facet, count, parseInt(count / maxCount * 10),
+						   this.clickHandler(facet),
+						   this.justthisfacetHandler(facet));
 		$(this.target).append($tagthemelist);
 	    }
 	}

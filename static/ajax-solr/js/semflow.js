@@ -155,9 +155,9 @@ var SITEPREFIX='/semantic2/alpha';
         id: 'obsvtime',
         target: '#obsvtime',
         field: 'obsvtime_d',
-        themin: 1977,
-        themax: 2011,
-        thestep: 10
+        datamin: 1977,
+        datamax: 2011,
+        datastep: 10
     }));
     Manager.setStore(new AjaxSolr.ParameterHashStore({
 

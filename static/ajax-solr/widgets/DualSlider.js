@@ -40,25 +40,23 @@
 	    var pqvalues = self.manager.store.values('fq');
 	    if (pqvalues.length > 0) {
 		for (var tval in pqvalues) {
-		    var splitfq = pqvalues[tval].split(':');
-		    if (splitfq[0] === this.field) {
-			var toks = splitfq[1].split('TO');
-			var lo = toks[0].trim().substr(1);
-			if (lo !== '') {
-			    themin = lo;
+		    var fcon = pqvalues[tval];
+		    var idx = fcon.indexOf(':');
+
+		    if (fcon.substr(0, idx) === self.field) {
+			var fstr = fcon.substr(idx+2, fcon.length - 3 - idx);
+			var idx = fstr.indexOf(' TO ');
+			var fvals = [fstr.substr(0, idx).trim(),
+				     fstr.substr(idx+4).trim()];
+
+			if (fvals[0] !== '') {
+			    themin = self.fromFacet(fvals[0]);
 			}
-			    
-			var hi = toks[1].trim();
-			if (hi !== '' && hi !== ']') {
-			    themax = hi.slice(0, hi.length-1);
+			if (fvals[1] !== '') {
+			    themax = self.fromFacet(fvals[1]);
 			}
 		    }
 		}
-	    }
-
-	    var textdiv = $('#' + self.id + "_amount");
-	    var adjustText = function (values) {
-		$(textdiv).text(values[0] + '-' + values[1]);
 	    }
 
 	    $(this.target).slider('destroy').slider({
@@ -67,18 +65,51 @@
 		'min': self.datamin,
 		'step': self.datastep,
 		'values': [themin, themax],
-		slide: function (event, ui) { adjustText(ui.values); },
+		slide: function (event, ui) { self.adjustText(ui.values); },
 		stop: function (event, ui) {
-		    var val = self.field + ':[' + ui.values[0] + ' TO ' + ui.values[1] + ']';
+		    var val = self.field + ':[' +
+			self.toFacet(ui.values[0]) +
+			' TO ' + 
+			self.toFacet(ui.values[1]) + ']';
 		    if (self.manager.store.addByValue('fq', val)) {
                         self.manager.doRequest(0);
                     }
 		}
 	    });
 
-	    adjustText($(this.target).slider("values"));
+	    self.adjustText($(this.target).slider("values"));
 
-	}
+	},
+
+	/*
+	 * Function to display the current range in the associated
+	 * span. It is sent an array of two elements, the low and
+	 * high values used by the 
+	 */
+	adjustText: function (values) {
+	    $('#' + this.id + '_amount')
+		.text(this.toDisplay(values[0]) + '-' + 
+		      this.toDisplay(values[1]));
+	},
+
+	/*
+	 * Convert the value (min or max) to the format used in the UI
+	 * for display to the user.
+	 */
+	toDisplay: function (val) { return val; },
+
+	/*
+	 * Convert the value (min or max) to the format used in the UI
+	 * for the Solr facet.
+	 */
+	toFacet: function (val) { return val; },
+
+	/*
+	 * Convert the value (min or max) from the format used in the
+	 * Solr facet query to the value used by the slider.
+	 */
+	fromFacet: function (val) { return val; }
+
     });
     
 })(jQuery);

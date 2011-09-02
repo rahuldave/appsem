@@ -169,51 +169,8 @@ var SITEPREFIX='/semantic2/alpha';
         target: '#obsvtime',
         field: 'obsvtime_d',
 	startYear: 1977,
-        // datamin: 1977,
-        // datamax: 2011,
         datastep: 10
     }));
-
-	  /***
-
-      // could make the maximum be the current year
-      var ymax = 0;
-      for (var y = 1977; y < 2012; y++) {
-	  for (var m = 0; m < 12; m++) {
-	      ymax += Date.getDaysInMonth(y, m);
-	  }
-      }
-
-      var d0 = Date.today().set({ year: 1977, month: 0, day: 1 });
-      var convertit = function (theday) {
-	  return d0.clone().addDays(theday);
-      };
-
-    Manager.addWidget(new AjaxSolr.DualSliderWidget({
-        id: 'obsvtime',
-        target: '#obsvtime',
-        field: 'obsvtime_d',
-        datamin: 0,
-        datamax: ymax,
-        datastep: 10,
-
-	fromFacet: function (value) {
-	    var date = new Date(value);
-	    var span = new TimeSpan(date - d0);
-	    return span.getDays();
-	},
-
-	toFacet: function (value) {
-	    return convertit(value).toISOString();
-	},
-
-	toDisplay: function(value) {
-	    return convertit(value).toString("d-MMM-yyyy");
-	}
-
-    }));
-
-    ***/
 
     Manager.setStore(new AjaxSolr.ParameterHashStore({
 

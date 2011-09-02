@@ -135,12 +135,12 @@ var SITEPREFIX='/semantic2/alpha';
 	datamax: 2011,
 	datastep: 1,
     }));
-    numericfields=['ra', 'dec', 'exptime'];
-    facet_numericfields=['ra_f', 'dec_f', 'exptime_f'];
-    min_numericfields=[0.0, -90.0, 0.0];
-    max_numericfields=[360.0, 90.0, 350.0 * 1000];
-    step_numericfields=[15.0, 10.0, 1.0 * 1000];
-    // TODO: exposure time needs to scale between s (d/base) and ks (display)
+
+    numericfields=['ra', 'dec'];
+    facet_numericfields=['ra_f', 'dec_f'];
+    min_numericfields=[0.0, -90.0];
+    max_numericfields=[360.0, 90.0];
+    step_numericfields=[15.0, 10.0];
     for (var i = 0, l = numericfields.length; i < l; i++) {
         Manager.addWidget(new AjaxSolr.DualSliderWidget({
             id: numericfields[i],
@@ -151,6 +151,20 @@ var SITEPREFIX='/semantic2/alpha';
             datastep: step_numericfields[i]
         }));
     }
+
+      Manager.addWidget(new AjaxSolr.DualSliderWidget({
+          id: 'exptime',
+          target: '#exptime',
+          field: 'exptime_f',
+          datamin: 0,
+          datamax: 350,
+          datastep: 1,
+	  
+	  toFacet: function (val) { return val * 1000; },
+	  fromFacet: function (val) { return val / 1000; }
+      }));
+      
+
     Manager.addWidget(new AjaxSolr.DateRangerWidget({
         id: 'obsvtime',
         target: '#obsvtime',

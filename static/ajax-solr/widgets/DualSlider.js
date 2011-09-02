@@ -27,7 +27,8 @@
 	    var themin = undefined;
 	    var themax = undefined;
 
-	    if (stats !== undefined && stats.count > 0) {
+	    // It may be that stats.count can never be 0?
+	    if (stats != null && stats.count > 0) {
 		themin = stats.min;
 		themax = stats.max;
 	    } else {

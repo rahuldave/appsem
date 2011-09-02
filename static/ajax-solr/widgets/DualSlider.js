@@ -87,9 +87,14 @@
 	 * high values used by the 
 	 */
 	adjustText: function (values) {
-	    $('#' + this.id + '_amount')
-		.text(this.toDisplay(values[0]) + '-' + 
-		      this.toDisplay(values[1]));
+	    var txt;
+	    if (values[0] == values[1]) {
+		txt = this.toDisplay(values[0]);
+	    } else {
+		txt = this.toDisplay(values[0]) + ' to ' + 
+		    this.toDisplay(values[1]);
+	    }
+	    $('#' + this.id + '_amount').text(txt);
 	},
 
 	/*

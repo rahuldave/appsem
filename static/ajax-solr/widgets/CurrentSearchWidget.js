@@ -10,7 +10,7 @@
 //       out so that instead of
 //         (x) keywords_s:"astronomuy uv" [P]
 //       we have
-//         (x) keywords: "astronomy uv" [P]
+//         (x) Keywords: astronomy uv [P]
 //
 
 (function ($) {
@@ -86,15 +86,15 @@
 	    var fq = this.manager.store.values('fq');
 	    var nfq = fq.length;
 
-	    // if we looped through the array backwards then would not need
-	    // to have the two loops, I think.
-	    //
-	    var current = []; // may not be needed
-	    var oldfqs = {};
-	    var likefq = [];
-	    for (var i = 0; i < nfq; i += 1) {
+	    /*
+	     * Since we only want the last constraint for those
+	     * facets not in this.allowmulti we loop over the
+	     * items backwards.
+	     */
+	    var list = [];
+	    var seen = [];
+	    for (var i = nfq - 1; i >= 0; i--) {
 		var c = this.splitConstraint(fq[i]);
-		current.push(c);
 
 		var $link = $('<a href="#"/>')
 		    .text('(x) ' + c.display + ': ' + c.label)
@@ -106,78 +106,32 @@
 		    .append($pivot);
 
 		if (this.allowmulti.indexOf(c.field) == -1) {
-		    oldfqs[c.field] = [i, $span];
-		    likefq.push('UNDONE');  
-		} else {
-		    likefq.push($span);
-		}
-	    }
-
-	    var links = [];
-	    for (var i = 0; i < nfq; i += 1) {
-
-		if (likefq[i] == 'UNDONE') {
-		    var sfq = current[i].field;
-		    if (oldfqs[sfq][0] == i) {
-			links.push(oldfqs[sfq][1]);
+		    if (seen.indexOf(c.field) == -1) {
+			seen.push(c.field);
+			list.push($span);
 		    } else {
-			if (self.manager.store.removeByValue('fq', fq[i])) {
+			if (self.manager.store.removeByValue('fq', c.constraint)) {
+			    // TODO: optimize and only do after processing all elements
+			    // or is this pointless given the behavior of the store?
 			    self.manager.doRequest(0);
 			}            
 		    }
 		} else {
-		    links.push(likefq[i]);       
+		    list.push($span);
 		}
 	    }
 
-	    /***
-	    var oldfqs={};
-	    var likefq=[];
-	    for (var i = 0, l = fq.length; i < l; i++) {
-		var $link=$('<a href="#"/>').text('(x) ' + fq[i]).click(self.removeFacet(fq[i]));
-		var $span=$('<span></span>');
-		var splitfq=fq[i].split(':');
-		var doc=null;
-		var $pivot=AjaxSolr.theme('pivot', doc, this.justthisfacetHandler(splitfq[0], splitfq[1]));
-
-		if (this.ffields.indexOf(splitfq[0])!=-1){
-		    likefq.push($span.append($link).append($pivot));
-		}
-		else {
-		    oldfqs[splitfq[0]]=[i,$span.append($link).append($pivot)];
-		    likefq.push('UNDONE');  
-		}
-	    }
-
-	    for (var i = 0, l = fq.length; i < l; i++) {
-		var sfq=fq[i].split(':')[0];
-		if (likefq[i]=='UNDONE'){
-		    if (oldfqs[sfq][0]==i){
-			links.push(oldfqs[sfq][1]);
-		    }
-		    else {
-			if (self.manager.store.removeByValue('fq', fq[i])) {
-			    self.manager.doRequest(0);
-			}            
-		    }
-		}
-		else {
-		    links.push(likefq[i]);       
-		}
-	    }
-	    
-	    ***/
-
-	    if (links.length > 1) {
-		links.unshift($('<a href="#"/>').text('remove all').click(function () {
+	    if (list.length > 1) {
+		list.push($('<a href="#"/>').text('remove all').click(function () {
 		    self.manager.store.remove('fq');
 		    self.manager.doRequest(0);
 		    return false;
 		}));
 	    }
 	    
-	    if (links.length) {
-		AjaxSolr.theme('list_items', this.target, links);
+	    if (list.length) {
+		list.reverse();
+		AjaxSolr.theme('list_items', this.target, list);
 	    } else {
 		$(this.target).html('<div>Viewing all documents!</div>');
 	    }

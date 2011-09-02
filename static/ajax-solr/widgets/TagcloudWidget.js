@@ -13,11 +13,6 @@
 	},
 
 	afterRequest: function () {
-	    if (this.manager.response.facet_counts.facet_fields[this.field] === undefined) {
-		$(this.target).html(AjaxSolr.theme('no_items_found'));
-		return;
-	    }
-	    
 	    var maxCount = 0;
 	    var objectedItems = [];
 	    for (var facet in this.manager.response.facet_counts.facet_fields[this.field]) {
@@ -27,6 +22,12 @@
 		}
 		objectedItems.push({ facet: facet, count: count });
 	    }
+
+	    if (objectedItems.length == 0) {
+		$(this.target).html(AjaxSolr.theme('no_items_found'));
+		return;
+	    }
+
 	    objectedItems.sort(function (a, b) {
 		return a.facet < b.facet ? -1 : 1;
 	    });

@@ -43,10 +43,17 @@
 
 	// Given a constraint from the store return the components.
 	//
-	// Note: there is a bug in the system where if you reload a page with an author
-	// facet (maybe others) then constraint is actually an object rather than a string?
+	// constraint is normally a string but it could be an array, which can
+	// happen with the current system because the Manager.store.value('fq')
+	// will split the string on commas if it is a "multi" value.
+	// TODO: A better solution would be to percent-encode the values when storing them.
 	//
 	splitConstraint: function (constraint) {
+	    // HACK
+	    if (constraint.constructor != String) {
+		constraint = constraint.toString();
+	    }
+
 	    var i = constraint.indexOf(':'); // assume always succeeds
 	    var field = constraint.substr(0, i);
 	    var label = constraint.substr(i+1);

@@ -21,6 +21,12 @@
 (function ($) {
 
     AjaxSolr.DualSliderWidget = AjaxSolr.AbstractFacetWidget.extend({
+
+	/**
+	 * We assume that only one range can be supplied for this field.
+	 */
+	multivalue: false,
+
 	afterRequest: function () {
 	    var self = this;
 	    var stats = self.manager.response.stats.stats_fields[self.field];
@@ -37,11 +43,23 @@
 
 	    }
 
-	    // This assumes that we only have a single filter for this field
+	    // We only expect 0 or 1 filters for this field but support
+	    // multiple values (use the last one).
+	    //
 	    var pqvalues = self.manager.store.values('fq');
-	    if (pqvalues.length > 0) {
-		for (var tval in pqvalues) {
+	    var pqlen = pqvalues.length;
+	    if (pqlen > 0) {
+		for (var tval = 0; tval < pqlen; tval++) {
 		    var fcon = pqvalues[tval];
+
+		    // For some reason we can have an array here; this must be a bug
+		    // somewhere (it seems to happen when you refresh a search where one
+		    // of the facet constraints contains a ',') but hack around it here.
+		    //
+		    if (fcon.constructor != String) {
+			fcon = fcon.toString();
+		    }
+
 		    var idx = fcon.indexOf(':');
 
 		    if (fcon.substr(0, idx) === self.field) {
@@ -67,12 +85,10 @@
 		'step': self.datastep,
 		'values': [themin, themax],
 		slide: function (event, ui) { self.adjustText(ui.values); },
-		stop: function (event, ui) {
-		    var val = self.field + ':[' +
-			self.toFacet(ui.values[0]) +
-			' TO ' + 
-			self.toFacet(ui.values[1]) + ']';
-		    if (self.manager.store.addByValue('fq', val)) {
+		stop: function (event, ui) { 
+		    var val = '[' + self.toFacet(ui.values[0]) +
+			' TO ' + self.toFacet(ui.values[1]) + ']';
+		    if (self.set(val)) {
                         self.manager.doRequest(0);
                     }
 		}

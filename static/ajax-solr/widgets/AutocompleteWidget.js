@@ -58,13 +58,15 @@
 	    } // end callback
 
 	    // TODO: check what is sent, since this doesn't seem to include the current
-	    // constraints when getting the facet values.
+	    // constraints when getting the facet values. I thought the change below; including self.manager.store.hash,
+	    // would work and it seems to partially work but not always
 	    //
-	    var params = [ 'q=*:*&facet=true&facet.limit=-1&facet.mincount=1&json.nl=map' ];
+	    //var params = [ 'q=*:*&facet=true&facet.limit=-1&facet.mincount=1&json.nl=map' ];
+	    var params = [ self.manager.store.hash, 'facet=true&facet.limit=-1&facet.mincount=1&json.nl=map' ];
 	    for (var i = 0, nf = self.fields.length; i < nf; i++) {
 		params.push('facet.field=' + self.fields[i]);
 	    }
-	    var getjsonstring=this.manager.solrUrl + 'select?' + params.join('&') + '&wt=json&json.wrf=?';
+	    var getjsonstring = this.manager.solrUrl + 'select?' + params.join('&') + '&wt=json&json.wrf=?';
 	    jQuery.getJSON(getjsonstring, {}, callback);
 	}
     });

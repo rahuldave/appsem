@@ -105,7 +105,7 @@
 		var $link = $('<a href="#"/>')
 		    .text('(x) ' + c.display + ': ' + c.label)
 		    .click(self.removeFacet(c.constraint));
-		var $pivot = AjaxSolr.theme('pivot', null,
+		var $pivot = AjaxSolr.theme('pivot_link',
 					    this.pivotHandler(c.constraint));
 		var $span = $('<span/>')
 		    .append($link)

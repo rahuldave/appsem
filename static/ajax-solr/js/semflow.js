@@ -136,7 +136,8 @@ var SITEPREFIX='/semantic2/alpha';
         id: 'text',
         target: '#search',
         field: 'text',
-        fields: facet_fields.concat(['bibcode'])
+        fields: facet_fields.concat(['bibcode']),
+	fieldmap: field_map
     }));
     Manager.addWidget(new AjaxSolr.YearWidget({
         id: 'pubyear',

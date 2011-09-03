@@ -2,6 +2,17 @@
 
     AjaxSolr.AutocompleteWidget = AjaxSolr.AbstractFacetWidget.extend({
 
+	/**
+	 * A mapping from the field names for each facet (as used by Solr)
+	 * and the display version. If there is no entry then the facet field
+	 * name is used.
+	 *
+	 * @public
+	 * @field
+	 * @type Object (map from facet field names to human-readable values)
+	 */
+	fieldmap: {},
+
 	init: function () {
 	    var self = this;
 	    $(this.target).find('input').bind('keydown', function(e) {
@@ -24,11 +35,11 @@
 		for (var i = 0; i < self.fields.length; i++) {
 		    var field = self.fields[i];
 		    for (var facet in response.facet_counts.facet_fields[field]) {
+			var fieldname = self.fieldmap[field] || field;
 			list.push({
 			    field: field,
 			    value: AjaxSolr.Parameter.escapeValue(facet),
-			    // TODO: use a more readable name than field in the text
-			    text: facet + ' (' + response.facet_counts.facet_fields[field][facet] + ') - ' + field
+			    text: facet + ' (' + response.facet_counts.facet_fields[field][facet] + ') - ' + fieldname
 			});
 		    }
 		}

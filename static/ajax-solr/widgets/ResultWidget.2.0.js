@@ -11,7 +11,7 @@ var SITEPREFIX='/semantic2/alpha';
 	    if (i != 0) { $out.append('; '); }
 	    $out.append($('<a href="#"/>')
 			.text(authors[i])
-			.click(facetHandler(self, 'author_s', '"'+authors[i]+'"')));
+			.click(facetHandler(self, 'author_s', authors[i])));
 	}
 	return $out;
     }
@@ -23,7 +23,7 @@ var SITEPREFIX='/semantic2/alpha';
     }
 
     // copy of facetHandler; this is not ideal bit it should be a temporary
-    // addition, since the display of authors is going to change to match
+    // addition, as the display of authors is going to change to match
     // the author list of a publication.
     //
     function facetHandler2(self, facet_field, facet_value) {
@@ -95,7 +95,8 @@ AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
 					 '"'+facet_values[i]+'"', 
 				      */
 				      facet_values[i],
-				      this.facetHandler(facet_field, '"'+facet_values[i]+'"')));
+				      this.facetHandler(facet_field, facet_values[i])));
+				      // this.facetHandler(facet_field, '"'+facet_values[i]+'"')));
         }
     }
     //alert(links);
@@ -165,7 +166,7 @@ AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
     return function () {
 	// console.log("For facet "+facet_field+" Trying value "+facet_value);
         self.manager.store.remove('fq');
-        self.manager.store.addByValue('fq', facet_field + ':' + facet_value);
+        self.manager.store.addByValue('fq', facet_field + ':' + AjaxSolr.Parameter.escapeValue(facet_value));
         self.manager.doRequest(0);
         return false;
     };

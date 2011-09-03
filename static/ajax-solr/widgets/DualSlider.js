@@ -40,7 +40,6 @@
 	    } else {
 		themin = self.datamin;
 		themax = self.datamax;
-
 	    }
 
 	    // We only expect 0 or 1 filters for this field but support
@@ -61,7 +60,6 @@
 		    }
 
 		    var idx = fcon.indexOf(':');
-
 		    if (fcon.substr(0, idx) === self.field) {
 			var fstr = fcon.substr(idx+2, fcon.length - 3 - idx);
 			var idx = fstr.indexOf(' TO ');

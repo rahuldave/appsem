@@ -46,7 +46,6 @@
 	// constraint is normally a string but it could be an array, which can
 	// happen with the current system because the Manager.store.value('fq')
 	// will split the string on commas if it is a "multi" value.
-	// TODO: A better solution would be to percent-encode the values when storing them.
 	//
 	splitConstraint: function (constraint) {
 	    // HACK
@@ -78,11 +77,11 @@
 		   };
 	},
 
-	justthisfacetHandler: function (constraint) {
+	pivotHandler: function (constraint) {
 	    var self = this;
 	    return function () {
 		self.manager.store.remove('fq');
-		self.manager.store.addByValue('fq', constraint);
+		self.add(constraint);
 		self.manager.doRequest(0);
 		return false;
 	    };
@@ -107,7 +106,7 @@
 		    .text('(x) ' + c.display + ': ' + c.label)
 		    .click(self.removeFacet(c.constraint));
 		var $pivot = AjaxSolr.theme('pivot', null,
-					    this.justthisfacetHandler(c.constraint));
+					    this.pivotHandler(c.constraint));
 		var $span = $('<span/>')
 		    .append($link)
 		    .append($pivot);
@@ -117,7 +116,8 @@
 			seen.push(c.field);
 			list.push($span);
 		    } else {
-			if (self.manager.store.removeByValue('fq', c.constraint)) {
+			if (self.remove(c.field)) {
+			    // if (self.manager.store.removeByValue('fq', c.constraint)) {
 			    // TODO: optimize and only do after processing all elements
 			    // or is this pointless given the behavior of the store?
 			    self.manager.doRequest(0);
@@ -144,6 +144,7 @@
 	    }
 	},
 	
+	// This is similar to AbstractFacetWidget.unclickHandler
 	removeFacet: function (facet) {
 	    var self = this;
 	    return function () {

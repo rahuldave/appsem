@@ -9,7 +9,7 @@
 	    var self = this;
 	    return function () {
 		self.manager.store.remove('fq');
-		self.manager.store.addByValue('fq', self.fq(value));
+		self.add(value);
 		self.manager.doRequest(0);
 		return false;
 	    };

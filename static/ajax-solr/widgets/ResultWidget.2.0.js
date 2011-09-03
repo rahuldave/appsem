@@ -30,7 +30,7 @@ var SITEPREFIX='/semantic2/alpha';
 	return function () {
 	    // console.log("For facet "+facet_field+" Trying value "+facet_value);
             self.manager.store.remove('fq');
-            self.manager.store.addByValue('fq', facet_field + ':' + facet_value);
+            self.manager.store.addByValue('fq', facet_field + ':' + AjaxSolr.Parameter.escapeValue(facet_value));
             self.manager.doRequest(0);
             return false;
 	};

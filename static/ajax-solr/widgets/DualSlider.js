@@ -35,8 +35,8 @@
 
 	    // It may be that stats.count can never be 0?
 	    if (stats != null && stats.count > 0) {
-		themin = stats.min;
-		themax = stats.max;
+		themin = self.fromFacet(stats.min);
+		themax = self.fromFacet(stats.max);
 	    } else {
 		themin = self.datamin;
 		themax = self.datamax;

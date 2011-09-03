@@ -205,7 +205,7 @@ var SITEPREFIX='/semantic2/alpha';
       'sort':'citationcount_i desc',
 	'rows':20,
 	'stats': 'true',
-	'stats.field': facet_numericfields.concat('pubyear_i')
+	'stats.field': facet_numericfields.concat(['exptime_f', 'pubyear_i'])
     };
     for (var name in params) {
       Manager.store.addByValue(name, params[name]);

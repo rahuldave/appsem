@@ -42,6 +42,10 @@ AjaxSolr.theme.prototype.title = function (doc) {
 	return $('<a href="#"/>').text(' [P]').click(handler);
     }
     
+    AjaxSolr.theme.prototype.facet_link = function (value, handler) {
+	return $('<a href="#"/>').text(value).click(handler);
+    };
+
     function getSimbadURI(ele) {
 	return 'http://simbad.u-strasbg.fr/simbad/sim-id?Ident='
 	    + encodeURIComponent(ele)
@@ -127,7 +131,7 @@ AjaxSolr.theme.prototype.title = function (doc) {
 	//
 	var objinfo = [];
 	var i, l;
-	for (i = 0; l = objnames.length, i < l; i+= 1) {
+	for (i = 0, l = objnames.length; i < l; i+= 1) {
 	    objinfo.push({"name": objnames[i], "objtype": objtypes[i]});
 	}
 	objinfo.sort(function(a,b) { return a.name.localeCompare(b.name); });
@@ -138,23 +142,23 @@ AjaxSolr.theme.prototype.title = function (doc) {
 		    .append('<tr><th>Name</th><th>Type</th></tr>'));
 
 	var $obody = $('<tbody/>');
-	for (i = 0; l = objinfo.length, i < l; i += 1) {
+	for (i = 0, l = objinfo.length; i < l; i += 1) {
 	    var oname = objinfo[i].name;
 	    var otype = objinfo[i].objtype;
 	    $obody.append($('<tr/>')
 			  .append($('<td/>')
 				  .append(makeSimbadLink(oname))
-				  .append(makePivotLink('objectnames_s:"' + oname + '"'))
+				  .append(makePivotLink('objectnames_s:' + AjaxSolr.Parameter.escapeValue(oname)))
 				 )
 			  .append($('<td/>')
 				  .text(otype)
-				  .append(makePivotLink('objecttypes_s:"' + otype + '"'))
+				  .append(makePivotLink('objecttypes_s:' + AjaxSolr.Parameter.escapeValue(otype)))
 				 )
 			 );
 	} 
 
 	$otable.append($obody);
-	parentarea.append($('<div class="objectdataarea"></div>')
+	parentarea.append($('<div class="objectdataarea"/>')
 			  .append(pubLabel("Objects:"))
 			  .append(' ')
 			  .append($otable));
@@ -182,7 +186,7 @@ AjaxSolr.theme.prototype.title = function (doc) {
     function addDataArea(parentarea, docid, bibcode, obsids, exptimes, expdates, targets, ras, decs) {
 	if (obsids === undefined) { return; }
 
-	var $dataarea = $('<div class="missiondataarea"></div>')
+	var $dataarea = $('<div class="missiondataarea"/>')
 	    .append(pubLabel('Datasets:'))
 	    .append(' ');
 	
@@ -292,8 +296,7 @@ AjaxSolr.theme.prototype.title = function (doc) {
 	    for (var idx = 0; idx < mitems; idx += 1) {
 		var ctr = idx + 1;
 		var obsid = mvalues[idx].obsid;
-		// we do not need to protect all values but do so for now
-		var obsidpivot = 'obsids_s:"' + mission + '/' + obsid + '"';
+		var obsidpivot = 'obsids_s:' + AjaxSolr.Parameter.escapeValue(mission + '/' + obsid);
 		$mbody.append($('<tr/>')
 			      .append($('<td/>').text(mission.toUpperCase()))
 			      .append($('<td/>')
@@ -304,7 +307,8 @@ AjaxSolr.theme.prototype.title = function (doc) {
 			      .append($('<td/>').text(mvalues[idx].obsdate))
 			      .append($('<td/>')
 				      .text(mvalues[idx].target)
-				      .append(makePivotLink('targets_s:"' + parent + '/' + mvalues[idx].target + '"'))
+				      .append(makePivotLink('targets_s:' + 
+							    AjaxSolr.Parameter.escapeValue(parent + '/' + mvalues[idx].target)))
 				     )
 			      .append($('<td/>').text(mvalues[idx].ra)) // may want to try <span value=decimal>text value</span> trick?
 			      .append($('<td/>').text(mvalues[idx].dec))
@@ -368,15 +372,11 @@ AjaxSolr.theme.prototype.title = function (doc) {
 AjaxSolr.theme.prototype.tag = function (value, thecount, weight, handler, handler2) {
   
   var $thelink=$('<a href="#"/>').text(value).click(handler);
-  var $thetext=$('<span></span>').text('('+thecount+')');
+  var $thetext=$('<span/>').text('('+thecount+')');
   //var $thepivot=$('<a href="#""/>').text('P').click(handler2);
-  var $span=$('<span class="tagcloud_item"></span>').addClass('tagcloud_size_' + weight).append('[').append($thelink).append($thetext).append(']');
+  var $span=$('<span class="tagcloud_item"/>').addClass('tagcloud_size_' + weight).append('[').append($thelink).append($thetext).append(']');
   //return [$thelink, $thetext, $thepivot]
   return $span;
-};
-
-AjaxSolr.theme.prototype.facet_link = function (value, handler) {
-  return $('<a href="#"/>').text(value).click(handler);
 };
 
 AjaxSolr.theme.prototype.no_items_found = function () {

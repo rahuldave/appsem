@@ -72,7 +72,7 @@
 	    var self = this;
 	    return function () {
 		self.manager.store.remove('fq');
-		self.add(constraint);
+		self.manager.store.addByValue('fq', constraint);
 		self.manager.doRequest(0);
 		return false;
 	    };

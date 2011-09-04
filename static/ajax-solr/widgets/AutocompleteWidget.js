@@ -53,20 +53,20 @@
 			var fieldname = self.fieldmap[field] || field;
 			list.push({
 			    field: field,
-			    value: AjaxSolr.Parameter.escapeValue(facet),
+			    value: facet,
 			    text: facet + ' (' + response.facet_counts.facet_fields[field][facet] + ') - ' + fieldname
 			});
 		    }
 		}
 		
 		self.requestSent = false;
-		$(self.target).find('input').autocomplete(list, {
+		$(self.target).find('input').unautocomplete().autocomplete(list, {
 		    formatItem: function(facet) {
 			return facet.text;
 		    }
 		}).result(function(e, facet) {
 		    self.requestSent = true;
-		    if (self.manager.store.addByValue('fq', facet.field + ':' + facet.value)) {
+		    if (self.manager.store.addByValue('fq', facet.field + ':' + AjaxSolr.Parameter.escapeValue(facet.value))) {
 			self.manager.doRequest(0);
 		    }
 		});

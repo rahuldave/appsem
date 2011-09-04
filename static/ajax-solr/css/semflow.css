@@ -331,3 +331,9 @@ span.rangevalues {
     color: #f6931f;
     font-weight: bold;
 }
+
+/*
+ * This is for testing; I think it is probably confusing for the user */
+span.facetvalue:nth-child(odd) {
+    background: #EDEBEC;
+}

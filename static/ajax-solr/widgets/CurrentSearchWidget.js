@@ -86,37 +86,53 @@
 	    /*
 	     * Since we only want the last constraint for those
 	     * facets not in this.allowmulti we loop over the
-	     * items backwards.
+	     * items backwards. This means that we don't quite get
+	     * the ordering of multiple facets correct, but I
+	     * think that is acceptable.
 	     */
-	    var list = [];
-	    var seen = [];
+	    var order = [];
+	    var store = {};
+
 	    for (var i = nfq - 1; i >= 0; i--) {
 		var c = this.splitConstraint(fq[i]);
 
+		var $span = $('<span class="facetvalue"/>');
 		var $link = $('<a href="#"/>')
-		    .text('(x) ' + c.display + ': ' + c.label)
+		    .text('(x) ' + c.label)
 		    .click(self.removeFacet(c.constraint));
 		var $pivot = AjaxSolr.theme('pivot_link',
 					    this.pivotHandler(c.constraint));
-		var $span = $('<span/>')
-		    .append($link)
-		    .append($pivot);
+		$span.append($link).append($pivot);
 
-		if (this.allowmulti.indexOf(c.field) == -1) {
-		    if (seen.indexOf(c.field) == -1) {
-			seen.push(c.field);
-			list.push($span);
-		    } else {
-			if (self.remove(c.field)) {
-			    // if (self.manager.store.removeByValue('fq', c.constraint)) {
-			    // TODO: optimize and only do after processing all elements
-			    // or is this pointless given the behavior of the store?
-			    self.manager.doRequest(0);
-			}            
-		    }
-		} else {
-		    list.push($span);
+		if (order.indexOf(c.display) == -1) {
+		    order.push(c.display);
+		    store[c.display] = [];
 		}
+
+		if (this.allowmulti.indexOf(c.field) != -1 || store[c.display].length == 0) {
+		    store[c.display].push($span);
+		} else {
+		    if (self.remove(c.field)) {
+			self.manager.doRequest(0);
+		    }            
+		}
+	    }
+
+	    var list = [];
+	    for (var i = order.length - 1; i >= 0; i--) {
+		var field = order[i];
+		var $span = $('<div class="facetconstraints"/>')
+		    .append($('<span class="facetname"/>')
+			    .text(field + ' '));
+
+		for (j = store[field].length - 1; j >= 0; j--) {
+		    $span.append(store[field][j]);
+		    if (j > 0) {
+			$span.append('; ');
+		    }
+		}
+		    
+		list.push($span);
 	    }
 
 	    if (list.length > 1) {
@@ -128,7 +144,6 @@
 	    }
 	    
 	    if (list.length) {
-		list.reverse();
 		AjaxSolr.theme('list_items', this.target, list);
 	    } else {
 		$(this.target).html('<div>Viewing all documents!</div>');

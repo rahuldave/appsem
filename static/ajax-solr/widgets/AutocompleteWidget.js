@@ -12,7 +12,11 @@
 	 * @type Object (map from facet field names to human-readable values)
 	 */
 	fieldmap: {},
-
+	
+	/*
+	 * moved out of init since this is what 
+	 * https://github.com/evolvingweb/ajax-solr/wiki/Reuters-tutorial%3A-step-7
+	 * uese
 	init: function () {
 	    var self = this;
 	    $(this.target).find('input').bind('keydown', function(e) {
@@ -24,11 +28,22 @@
 		}
 	    });
 	},
+	 *
+	 */
 
 	afterRequest: function () {
 	    $(this.target).find('input').val('');
 	    
 	    var self = this;
+
+	    $(this.target).find('input').unbind().bind('keydown', function(e) {
+		if (self.requestSent === false && e.which == 13) {
+		    var value = $(this).val();
+		    if (value && self.add(value)) {
+			self.manager.doRequest(0);
+		    }
+		}
+	    });
 	    
 	    var callback = function (response) {
 		var list = [];

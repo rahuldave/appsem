@@ -333,7 +333,14 @@ span.rangevalues {
 }
 
 /*
- * This is for testing; I think it is probably confusing for the user */
+ * This is for testing; I think it is probably confusing for the user
+ */
 span.facetvalue:nth-child(odd) {
     background: #EDEBEC;
+}
+
+/* override the CSS from jquery.autocomplete to remove indicator.gif */
+
+.ac_loading { 
+    background: white; 
 }

@@ -43,16 +43,7 @@
 
 	// Given a constraint from the store return the components.
 	//
-	// constraint is normally a string but it could be an array, which can
-	// happen with the current system because the Manager.store.value('fq')
-	// will split the string on commas if it is a "multi" value.
-	//
 	splitConstraint: function (constraint) {
-	    // HACK
-	    if (constraint.constructor != String) {
-		constraint = constraint.toString();
-	    }
-
 	    var i = constraint.indexOf(':'); // assume always succeeds
 	    var field = constraint.substr(0, i);
 	    var label = constraint.substr(i+1);

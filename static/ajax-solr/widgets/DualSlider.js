@@ -50,15 +50,6 @@
 	    if (pqlen > 0) {
 		for (var tval = 0; tval < pqlen; tval++) {
 		    var fcon = pqvalues[tval];
-
-		    // For some reason we can have an array here; this must be a bug
-		    // somewhere (it seems to happen when you refresh a search where one
-		    // of the facet constraints contains a ',') but hack around it here.
-		    //
-		    if (fcon.constructor != String) {
-			fcon = fcon.toString();
-		    }
-
 		    var idx = fcon.indexOf(':');
 		    if (fcon.substr(0, idx) === self.field) {
 			var fstr = fcon.substr(idx+2, fcon.length - 3 - idx);

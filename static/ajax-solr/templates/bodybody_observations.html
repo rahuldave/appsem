@@ -1,0 +1,110 @@
+<div class="left"> 
+  <h2 style="color:#B4241B">Current Selection</h2> 
+  <ul id="selection"></ul> 
+
+  <h2>Search</h2> 
+  <span id="search_help">(press ESC to close suggestions)</span> 
+  <ul id="search"> 
+    <input type="text" id="query" name="query"/> 
+  </ul> 
+  <br/>
+
+<h1>Data Facets</h1>
+
+  
+  <h2>Missions</h2> 
+  <div class="tagcloud" id="missions"></div>
+
+  <h2>Collections</h2> 
+  <div class="tagcloud" id="data_collection"></div>
+
+  <h2>Observation Types</h2> 
+  <div class="tagcloud" id="obsvtypes"></div>
+  
+  <h2>Data Product Types</h2> 
+  <div class="tagcloud" id="datatypes"></div>
+  
+  <h2>Wavelengths</h2> 
+  <div class="tagcloud" id="emdomains"></div>
+  
+  <h2>Instruments</h2> 
+  <div class="tagcloud" id="instruments"></div>
+  
+  <h2>Targets</h2> 
+  <div class="tagcloud" id="targets"></div>
+  
+  <h2>RA</h2>
+  <div id="ra"></div>
+  <input type="text" id="ra_amount" style="border:0; color:#f6931f; font-weight:bold;" />
+  
+  <h2>DEC</h2>
+  <div id="dec"></div>
+  <input type="text" id="dec_amount" style="border:0; color:#f6931f; font-weight:bold;" />
+  
+  <h2>FOV</h2>
+  <div id="fov"></div>
+  <input type="text" id="fov_amount" style="border:0; color:#f6931f; font-weight:bold;" />
+
+  <h2>Resolution</h2>
+  <div id="resolution"></div>
+  <input type="text" id="resolution_amount" style="border:0; color:#f6931f; font-weight:bold;" />
+
+  <h2>Time Resolution</h2>
+  <div id="t_resolution"></div>
+  <input type="text" id="t_resolution_amount" style="border:0; color:#f6931f; font-weight:bold;" />
+
+  <h2>When Observed?</h2>
+  <div id="obsvtime"></div>
+  <span type="text" id="obsvtime_amount" style="border:0; color:#f6931f; font-weight:bold;"></span>
+  
+  <h2>Exposure Time (ksec)</h2>
+  <div id="exptime"></div>
+  <input type="text" id="exptime_amount" style="border:0; color:#f6931f; font-weight:bold;" />
+  
+  <!--h2>Observation Ids</h2> 
+  <div class="tagcloud" id="obsids"></div>
+
+  <div class="clear"></div--> 
+  <br/>
+<br/>
+  <h1>Publication Facets</h1>
+  <h2>Top Keywords</h2> 
+  <div class="tagcloud" id="keywords"></div> 
+
+  <h2>Top Authors</h2> 
+  <div class="tagcloud" id="author"></div>
+
+
+  <!-- Taken out by Doug
+  <h2>Paper Types</h2> 
+  <div class="tagcloud" id="papertype"></div>
+  -->
+
+  <h2>Year of Publication</h2>
+  <div id="pubyear"></div>
+  <input type="text" id="amount" style="border:0; color:#f6931f; font-weight:bold;" />
+  
+<div class="clear"></div> 
+<br/>
+<br/>
+<h1> Object Facets </h1>      
+  <h2>Object Types</h2> 
+  <div class="tagcloud" id="objecttypes"></div>
+  
+  <h2>Object Names</h2> 
+  <div class="tagcloud" id="objectnames"></div>
+   
+      <div class="clear"></div> 
+<br/>
+<br/>
+<h1>Proposal Facets</h1>
+  <h2>Proposal Types</h2> 
+  <div class="tagcloud" id="proposaltype"></div>
+  
+  <h2>Proposal PIs</h2> 
+  <div class="tagcloud" id="proposalpi"></div>
+  
+  <h2>Proposal Ids</h2> 
+  <div class="tagcloud" id="propids"></div>
+</div>
+{{>bodyright}}

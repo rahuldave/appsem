@@ -20,9 +20,9 @@ var SITEPREFIX='/semantic2/alpha';
     var userhasbeengot=false;
     Manager = new AjaxSolr.Manager({
       //solrUrl: 'http://boom.dyndns.org:8983/solr/'
-	  //solrUrl: 'http://adslabs.nareau.com:8983/solr/'
+	  solrUrl: 'http://localhost:8983/solr/'
 	  //solrUrl: 'http://labs.adsabs.harvard.edu/semanticsolr2/solr/'
-	  solrUrl: SITEPREFIX+'/solr/'
+	  //solrUrl: SITEPREFIX+'/solrobsv/'
     });
     Manager.addWidget(new AjaxSolr.ResultWidget({
       id: 'result',
@@ -35,7 +35,7 @@ var SITEPREFIX='/semantic2/alpha';
       nextLabel: '&gt;',
       innerWindow: 1,
       renderHeader: function (perPage, offset, total) {
-          $('#pager-header').html($('<span/>').text('displaying ' + Math.min(total, offset + 1) + ' to ' + Math.min(total, offset + perPage) + ' of ' + total+' ')).append($('<a class="save" id="save-search" href="#">save search</a>')).append($('<a class="delete" id="delete-search" style="display:none" href="#">delete search</a>')); // FOR now remove get-data: append($('<a class="save" id="get-data" href="#">get data</a>'));
+          $('#pager-header').html($('<span/>').text('displating ' + Math.min(total, offset + 1) + ' to ' + Math.min(total, offset + perPage) + ' of ' + total+' ')).append($('<a class="save" id="save-search" href="#">save search</a>')).append($('<a class="delete" id="delete-search" style="display:none" href="#">delete search</a>')); // FOR now remove get-data: append($('<a class="save" id="get-data" href="#">get data</a>'));
         $('#save-search').click(function(){
             $.post(SITEPREFIX+'/savesearch', JSON.stringify({'savedsearch':location.href.split("#")[1]}), function(data){
                 //should we decode uri component above? We do it on server so perhaps not.
@@ -85,8 +85,8 @@ var SITEPREFIX='/semantic2/alpha';
         });
       }
     }));
-    var fields = [ 'keywords', 'author', 'objecttypes', 'objectnames', 'obsvtypes', 'obsids', 'instruments', 'missions', 'emdomains', 'targets', 'datatypes', 'propids', 'proposaltype', 'proposalpi'];
-    var facet_fields= [ 'keywords_s', 'author_s', 'objecttypes_s', 'objectnames_s', 'obsvtypes_s', 'obsids_s', 'instruments_s', 'obsv_mission_s', 'emdomains_s', 'targets_s', 'datatypes_s', 'propids_s', 'proposaltype_s', 'proposalpi_s'];
+    var fields = [ 'keywords', 'author', 'objecttypes', 'objectnames', 'obsvtypes', 'obsids', 'data_collection', 'instruments', 'missions', 'emdomains', 'targets', 'datatypes', 'propids', 'proposaltype', 'proposalpi'];
+    var facet_fields= [ 'keywords_s', 'author_s', 'objecttypes_s', 'objectnames_s', 'obsvtypes_s', 'obsids_s', 'data_collection_s', 'instruments_s', 'obsv_mission_s', 'emdomains_s', 'targets_s', 'datatypes_s', 'propids_s', 'proposaltype_s', 'proposalpi_s'];
     for (var i = 0, l = fields.length; i < l; i++) {
       Manager.addWidget(new AjaxSolr.TagcloudWidget({
         id: fields[i],
@@ -116,11 +116,11 @@ var SITEPREFIX='/semantic2/alpha';
         target: '#pubyear',
         field: 'pubyear_i'
     }));
-    numericfields=['ra', 'dec', 'exptime'];
-    facet_numericfields=['ra_f', 'dec_f', 'exptime_f'];
-    min_numericfields=[0.0, -90.0, 0.0];
-    max_numericfields=[360.0, 90.0, 500.0];
-    step_numericfields=[15.0, 10.0, 1.0];
+    numericfields=['ra', 'dec', 'exptime', 'fov', 'resolution', 't_resolution'];
+    facet_numericfields=['ra_f', 'dec_f', 'exptime_f', 'fov_f', 'resolution_f', 't_resolution_f'];
+    min_numericfields=[0.0, -90.0, 0.0, 0.0, 0.0,0.0];
+    max_numericfields=[360.0, 90.0, 500.0, 0.1, 100.0, 2000.0];
+    step_numericfields=[15.0, 10.0, 1.0, 0.001, 1.0, 10.0];
     for (var i = 0, l = numericfields.length; i < l; i++) {
         Manager.addWidget(new AjaxSolr.DualSliderWidget({
             id: numericfields[i],
@@ -155,9 +155,10 @@ var SITEPREFIX='/semantic2/alpha';
       'facet.mincount': 1,
       'f.topics.facet.limit': 50,
       'json.nl': 'map',
-      'sort':'citationcount_i desc',
+      'sort':'obsvtime_d desc',
       'rows':20
     };
+    //BUG is obsvtime_d optimized for sorting? Probably not. Whats equiv of citation count?
     for (var name in params) {
       Manager.store.addByValue(name, params[name]);
     }

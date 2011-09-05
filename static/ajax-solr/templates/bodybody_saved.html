@@ -160,7 +160,7 @@ function saveToMyADS(form) {
      data.map(function (item) { return 'bibcode=' + encodeURIComponent(item); }).join('&')
  };
  $.post(SITEPREFIX+'/adsproxy', JSON.stringify(opts),
-  function(resp) { $.fancybox('<pre>'+resp+'</pre>'); });
+  function(resp) { $.fancybox(resp); });
  return false;
 }
     

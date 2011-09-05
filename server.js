@@ -705,47 +705,34 @@ function saveToMyADS(payload, req, res, next) {
 
     ifLoggedIn(req, res, function (loginid) {
 	var terms = JSON.parse(payload);
-	var docids = [];
-	if (isArray(terms.docids)) {
-	    docids = terms.docids;
+	var bibcodes = [];
+	if (isArray(terms.bibcodes)) {
+	    bibcodes = terms.bibcodes;
 	} else {
-	    docids = [ terms.docids ];
+	    bibcodes = [ terms.bibcodes ];
 	}
 
-	if (docids.length === 0) {
+	if (bibcodes.length === 0) {
 	    failedRequest(res);
 	} else {
-	    // TODO: set up ADS info/cookies? Or is it just that because not
-	    // running on [labs.]adsabs we don't get them?
-
 	    var urlpath = '/cgi-bin/nph-abs_connect?library=Add&';
-	    redis_client.get('email:'+loginid, function (err, email) {
-		redis_client.hmget('savedbibcodes:'+email, docids, function (err, bibcodes) {
-	 	    var feedthebibcodes=bibcodes.map(function(item){return 'bibcode='+encodeURIComponent(item);});
-		    // Do we need to percent-encode the bibcode?
-		    urlpath += feedthebibcodes.join('&');
+	    var feedthebibcodes = bibcodes.map(function(item){return 'bibcode=' + encodeURIComponent(item);});
+	    urlpath += feedthebibcodes.join('&');
 
-		    console.log("Proxying request to adsabs "+urlpath);
-		    doProxy({host: ADSHOST, port: 80, path: urlpath,
-			     // untested
-			     headers: { 'Cookie': 'NASA_ADS_ID='+req.cookies.nasa_ads_id }
-			    }, req, res);
-		    
-		});
-	    });
+	    console.log("Proxying request to adsabs "+urlpath);
+	    doProxy({host: ADSHOST, port: 80, path: urlpath,
+		     headers: { 'Cookie': 'NASA_ADS_ID='+req.cookies.nasa_ads_id }
+		    }, req, res);
 	}
     });
 
 } // saveToMyADS
 
 // Save the selected publications to myADS.
-// This would be simpler if we used the bibcode
-// rather than solr document id as the key.
 //
 function savePubsToMyADS(req, res, next) {
     postHandler(req, res, saveToMyADS);
 }
-
 
 //why do we not bake logincookie stuff into doPublications? Could simplify some JS shenanigans. Philosophy?
 function doPublications(req, res, next) {

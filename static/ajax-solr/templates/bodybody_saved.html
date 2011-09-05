@@ -142,12 +142,12 @@ function getSearchAsBibTex(form) {
 
 function saveToMyADS(form) {
   var data = [];
-  $(form).find('input[type=checkbox]').each(function() {
-    if (this.checked) { data.push(this.value) };
+  $(form).find('input[type=checkbox][checked|=true]').parent().nextAll('td.bibcode').each(function() {
+    data.push($(this).text());
   });
  if (data.length == 0) { return false; }
  $.fancybox.showActivity();
- $.post(SITEPREFIX+'/savepubstomyads', JSON.stringify({'docids':data}),
+ $.post(SITEPREFIX+'/savepubstomyads', JSON.stringify({'bibcodes':data}),
   function(resp) { $.fancybox('<pre>'+resp+'</pre>'); });
  return false;
 }

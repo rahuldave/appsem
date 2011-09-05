@@ -25,8 +25,8 @@
   {{#savedsearches}}
 <tr class="saveditem" id="search-{{searchctr}}">
 <td><input type="checkbox" name="searchid" value="{{searchuri}}"></td>
-<td><span value="{{searchtime}}">{{searchtimestr}}</span></td>
-<td><a href="/semantic2/alpha/explorer/publications#{{searchuri}}">{{searchtext}}</a></td>
+<td class="savetime"><span value="{{searchtime}}">{{searchtimestr}}</span></td>
+<td class="searchtitle"><a href="/semantic2/alpha/explorer/publications#{{searchuri}}">{{searchtext}}</a></td>
 </tr>
 {{/savedsearches}}
   </tbody>
@@ -65,9 +65,9 @@
 <tr class="saveditem" id="pub-{{pubctr}}">
 <td><input type="checkbox" name="pubid" value="{{{pubid}}}"></td>
 <!-- should not use non-standard value attribute here -->
-<td><span value="{{pubtime}}">{{pubtimestr}}</span></td>
-<td><a href="/semantic2/alpha/explorer/publications#fq={{linkuri}}&q=*%3A*">{{{linktext}}}</a></td>
-<td>{{{bibcode}}}</td>
+<td class="savetime"><span value="{{pubtime}}">{{pubtimestr}}</span></td>
+<td class="papertitle"><a href="/semantic2/alpha/explorer/publications#fq={{linkuri}}&q=*%3A*">{{{linktext}}}</a></td>
+<td class="bibcode">{{{bibcode}}}</td>
 </tr>
     {{/savedpubs}}
     </tbody>
@@ -90,12 +90,14 @@ function changeAllButtons(form, newstate) {
 
 function getAsBibTex(form) {
   var data = [];
-  $(form).find('input[type=checkbox]').each(function() {
-    if (this.checked) { data.push(this.value) };
-  });
+  // could use input:checked but I think I read that there may
+  // be issues, so use the more explicit version.
+ $(form).find('input[type=checkbox][checked|=true]').parent().nextAll('td.bibcode').each(function() {
+ data.push($(this).text());
+   });
  if (data.length == 0) { return false; }
  $.fancybox.showActivity();
- $.post(SITEPREFIX+'/getasbibtex', JSON.stringify({'docids':data}),
+ $.post(SITEPREFIX+'/getasbibtex', JSON.stringify({'bibcodes':data}),
   function(resp) { $.fancybox('<pre>'+resp+'</pre>'); });
  return false;
 }

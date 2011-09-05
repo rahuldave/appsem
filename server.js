@@ -668,36 +668,31 @@ function getBibTex(payload, req, res, next) {
 
     ifLoggedIn(req, res, function (loginid) {
 	var terms = JSON.parse(payload);
-	var docids = [];
-	if (isArray(terms.docids)) {
-	    docids = terms.docids;
+	var bibcodes = [];
+	if (isArray(terms.bibcodes)) {
+	    bibcodes = terms.bibcodes;
 	} else {
-	    docids = [ terms.docids ];
+	    bibcodes = [ terms.bibcodes ];
 	}
 
-	if (docids.length === 0) {
+	if (bibcodes.length === 0) {
 	    failedRequest(res);
 	} else {
 	    var urlpath = '/cgi-bin/nph-bib_query?data_type=BIBTEX&';
-	    redis_client.get('email:'+loginid, function (err, email) {
-		redis_client.hmget('savedbibcodes:'+email, docids, function (err, bibcodes) {
-		    // It doesn't look like we need to percent-encode the bibcode, but we do it anyway
-		    var feedthebibcodes=bibcodes.map(encodeURIComponent);
-		    urlpath += feedthebibcodes.join('&');
+	    // It doesn't look like we need to percent-encode the bibcode, but we do it anyway
+	    var feedthebibcodes = bibcodes.map(encodeURIComponent);
+	    urlpath += feedthebibcodes.join('&');
 		    
-		    console.log("Proxying request to adsabs");
-		    doProxy({host: 'adsabs.harvard.edu', port: 80, path: urlpath},
-			    req, res);
-		});
-	    });
+	    console.log("Proxying request to adsabs: " + urlpath);
+	    doProxy({host: 'adsabs.harvard.edu', port: 80, path: urlpath},
+		    req, res);
 	}
     });
 
 } // getBibTex
 
 // Return bibtex records, which we access from the ADS main server,
-// for the given document ids. This would be simpler if we used the bibcode
-// rather than solr document id as the key.
+// for the bibcodes.
 //
 function getAsBibTex(req, res, next) {
     postHandler(req, res, getBibTex);

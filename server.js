@@ -828,7 +828,7 @@ function doSaved(req, res, next) {
     console.log("In do Saved");
     var logincookie = req.cookies.logincookie;
     var view = {
-        pagehead:{pagetitle:'Saved', pagetype: 'publications', siteprefix: SITEPREFIX, staticprefix: SITEPREFIX+STATICPREFIX},
+        pagehead:{pagetitle:'Saved', pagetype: 'saved', siteprefix: SITEPREFIX, staticprefix: SITEPREFIX+STATICPREFIX},
         bodyhead:{isitchosensaved:'chosen', current_url:req.url, siteprefix: SITEPREFIX, staticprefix: SITEPREFIX+STATICPREFIX},
         bodybody:{siteprefix: SITEPREFIX, staticprefix: SITEPREFIX+STATICPREFIX}
     };

@@ -80,7 +80,7 @@ var SITEPREFIX = '/semantic2/alpha';
 	
 	function myjsonp(data){
             return data; //so that we dont handle url on server
-	}
+	};
 	$('#gosearch').click(function(){
             alert("not yet implemented");
 	});

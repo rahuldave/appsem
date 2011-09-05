@@ -4,6 +4,7 @@
 
 var Manager;
 var SITEPREFIX = '/semantic2/alpha';
+var SOLRURL = SITEPREFIX + '/solr/';
 
 (function() {
     function nop() {}
@@ -20,10 +21,9 @@ var SITEPREFIX = '/semantic2/alpha';
 
 (function ($) {
     $(function () {
-	// console.log("WHEN IS THIS CALLED?");
 	var userhasbeengot=false;
 	Manager = new AjaxSolr.Manager({
-	    solrUrl: SITEPREFIX+'/solr/'
+	    solrUrl: SOLRURL
 	});
 
 /***	

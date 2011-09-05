@@ -124,10 +124,7 @@ function getSearchAsBibTex(form) {
   }
   $.fancybox.showActivity();
 
-  // query Solr for the bibcodes using the global manager; can be
-  // fixed up once this page is created by the client rather than the
-  // server  
-  var query = Manager.solrUrl + 'select?' + data[0] +
+ var query = SOLRURL + 'select?' + data[0] +
         '&fl=bibcode' +
         '&wt=json&json.wrf=?';
 
@@ -180,10 +177,7 @@ function saveSearchToMyADS(form) {
   }
   $.fancybox.showActivity();
 
-  // query Solr for the bibcodes using the global manager; can be
-  // fixed up once this page is created by the client rather than the
-  // server  
-  var query = Manager.solrUrl + 'select?' + data[0] +
+ var query = SOLRURL + 'select?' + data[0] +
         '&fl=bibcode' +
         '&wt=json&json.wrf=?';
 

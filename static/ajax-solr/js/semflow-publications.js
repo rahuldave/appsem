@@ -1,3 +1,6 @@
+/*
+ * Code for the publications page
+ */
 var Manager;
 var SITEPREFIX='';
 var SITEPREFIX='/semantic2/alpha';

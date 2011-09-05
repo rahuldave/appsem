@@ -1,3 +1,6 @@
+/*
+ * Theme for publications page
+ */
 (function ($) {
 
     var fancyboxOpts = { 'autoDimensions': false, 'width': 1024, 'height': 768 };

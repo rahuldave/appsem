@@ -698,7 +698,6 @@ function getAsBibTex(req, res, next) {
     postHandler(req, res, getBibTex);
 }
 
-// THIS DOES NOT WORK AND IS NOT ACCESSED BY THE UI 
 function saveToMyADS(payload, req, res, next) {
     console.log(">> In saveToMyADS");
     console.log(">>   cookies = ", req.cookies);

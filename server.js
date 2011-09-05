@@ -661,78 +661,29 @@ function deleteSearchesFromRedis(req, res, next) {
     postHandler(req, res, deleteSearches);
 }
 
-function getBibTex(payload, req, res, next) {
-    console.log(">> In getBibTex");
-    //console.log(">>   cookies = ", req.cookies);
-    //console.log(">>   payload = ", payload);
-
-    ifLoggedIn(req, res, function (loginid) {
-	var terms = JSON.parse(payload);
-	var bibcodes = [];
-	if (isArray(terms.bibcodes)) {
-	    bibcodes = terms.bibcodes;
-	} else {
-	    bibcodes = [ terms.bibcodes ];
-	}
-
-	if (bibcodes.length === 0) {
-	    failedRequest(res);
-	} else {
-	    var urlpath = '/cgi-bin/nph-bib_query?data_type=BIBTEX&';
-	    // It doesn't look like we need to percent-encode the bibcode, but we do it anyway
-	    var feedthebibcodes = bibcodes.map(encodeURIComponent);
-	    urlpath += feedthebibcodes.join('&');
-		    
-	    console.log("Proxying request to adsabs: " + urlpath);
-	    doProxy({host: 'adsabs.harvard.edu', port: 80, path: urlpath},
-		    req, res);
-	}
-    });
-
-} // getBibTex
-
-// Return bibtex records, which we access from the ADS main server,
-// for the bibcodes.
+// Proxy the call to ADS, setting up the NASA_ADS_ID cookie
 //
-function getAsBibTex(req, res, next) {
-    postHandler(req, res, getBibTex);
-}
-
-function saveToMyADS(payload, req, res, next) {
-    console.log(">> In saveToMyADS");
+function doADSProxyHandler(payload, req, res, next) {
+    console.log(">> In doADSProxyHandler");
     console.log(">>   cookies = ", req.cookies);
-    //console.log(">>   payload = ", payload);
+    console.log(">>   payload = ", payload);
 
     ifLoggedIn(req, res, function (loginid) {
-	var terms = JSON.parse(payload);
-	var bibcodes = [];
-	if (isArray(terms.bibcodes)) {
-	    bibcodes = terms.bibcodes;
-	} else {
-	    bibcodes = [ terms.bibcodes ];
-	}
+	var args = JSON.parse(payload);
+	var urlpath = args.urlpath;
 
-	if (bibcodes.length === 0) {
-	    failedRequest(res);
-	} else {
-	    var urlpath = '/cgi-bin/nph-abs_connect?library=Add&';
-	    var feedthebibcodes = bibcodes.map(function(item){return 'bibcode=' + encodeURIComponent(item);});
-	    urlpath += feedthebibcodes.join('&');
-
-	    console.log("Proxying request to adsabs "+urlpath);
-	    doProxy({host: ADSHOST, port: 80, path: urlpath,
-		     headers: { 'Cookie': 'NASA_ADS_ID='+req.cookies.nasa_ads_id }
-		    }, req, res);
-	}
+	console.log("Proxying request to adsabs " + urlpath);
+	doProxy({host: ADSHOST, port: 80, path: urlpath,
+		 headers: { 'Cookie': 'NASA_ADS_ID=' + req.cookies.nasa_ads_id }
+		}, req, res);
     });
 
-} // saveToMyADS
+} // doADSProxyHandler
 
-// Save the selected publications to myADS.
-//
-function savePubsToMyADS(req, res, next) {
-    postHandler(req, res, saveToMyADS);
+function doADSProxy(req, res, next) {
+    postHandler(req, res, doADSProxyHandler);
 }
+
 
 //why do we not bake logincookie stuff into doPublications? Could simplify some JS shenanigans. Philosophy?
 function doPublications(req, res, next) {
@@ -975,8 +926,7 @@ server.use(SITEPREFIX+'/deletepubs', deletePubsFromRedis);
 // to the saved publications list. This is a hack to work
 // around the same-origin policy.
 //
-server.use(SITEPREFIX+'/getasbibtex', getAsBibTex);
-server.use(SITEPREFIX+'/savepubstomyads', savePubsToMyADS);
+server.use(SITEPREFIX+'/adsproxy', doADSProxy);
 
 server.use(SITEPREFIX+'/savedpubs', getSavedPubs);
 

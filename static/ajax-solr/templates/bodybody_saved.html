@@ -98,8 +98,12 @@ function getAsBibTex(form) {
    });
  if (data.length == 0) { return false; }
  $.fancybox.showActivity();
- $.post(SITEPREFIX+'/getasbibtex', JSON.stringify({'bibcodes':data}),
-  function(resp) { $.fancybox('<pre>'+resp+'</pre>'); });
+ var opts = {
+    urlpath: '/cgi-bin/nph-bib_query?data_type=BIBTEX&' +
+               data.map(encodeURIComponent).join('&')
+   };
+ $.post(SITEPREFIX + '/adsproxy', JSON.stringify(opts),
+    function(resp) { $.fancybox('<pre>'+resp+'</pre>'); });
  return false;
 }
 
@@ -132,10 +136,14 @@ function getSearchAsBibTex(form) {
       var bibcodes = [];
       for (var i = 0, n = response.response.docs.length; i < n; i++) {
         bibcodes.push(response.response.docs[i].bibcode);
-    }
-   $.post(SITEPREFIX+'/getasbibtex', JSON.stringify({'bibcodes': bibcodes}),
+      }
+      var opts = {
+        urlpath: '/cgi-bin/nph-bib_query?data_type=BIBTEX&' +
+          bibcodes.map(encodeURIComponent).join('&')
+      };
+      $.post(SITEPREFIX + '/adsproxy', JSON.stringify(opts),
         function(resp) { $.fancybox('<pre>'+resp+'</pre>'); });
-     return false;
+      return false;
     });
 
 }
@@ -147,7 +155,11 @@ function saveToMyADS(form) {
   });
  if (data.length == 0) { return false; }
  $.fancybox.showActivity();
- $.post(SITEPREFIX+'/savepubstomyads', JSON.stringify({'bibcodes':data}),
+ var opts = {
+   urlpath: '/cgi-bin/nph-abs_connect?library=Add&' +
+     data.map(function (item) { return 'bibcode=' + encodeURIComponent(item); }).join('&')
+ };
+ $.post(SITEPREFIX+'/adsproxy', JSON.stringify(opts),
   function(resp) { $.fancybox('<pre>'+resp+'</pre>'); });
  return false;
 }

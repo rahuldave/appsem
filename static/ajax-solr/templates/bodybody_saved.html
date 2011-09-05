@@ -17,6 +17,10 @@
     <input type="button" value="Clear all" onClick="changeAllButtons(this.form, false)">
     <input type="submit" name="action" value="Delete marked">
     <input type="button" value="Get as BibTex" onClick="getSearchAsBibTex(this.form)">
+    <button type="button" name="myads" value="Send to myADS"
+      onClick="saveSearchToMyADS(this.form)">
+      <img src="/semantic2/alpha/static/images/ADSlabs-button.png" alt="[myADS logo]">
+    </button>
    </div>
   <table class="tablesorter" id="saved-searches-table">
     <thead>
@@ -123,7 +127,7 @@ function getSearchAsBibTex(form) {
   // query Solr for the bibcodes using the global manager; can be
   // fixed up once this page is created by the client rather than the
   // server  
- var query = Manager.solrUrl + 'select?' + data[0] +
+  var query = Manager.solrUrl + 'select?' + data[0] +
         '&fl=bibcode' +
         '&wt=json&json.wrf=?';
 
@@ -160,10 +164,49 @@ function saveToMyADS(form) {
      data.map(function (item) { return 'bibcode=' + encodeURIComponent(item); }).join('&')
  };
  $.post(SITEPREFIX+'/adsproxy', JSON.stringify(opts),
-  function(resp) { $.fancybox(resp); });
+  function(resp) { $.fancybox(resp); });  
  return false;
 }
-    
+   
+function saveSearchToMyADS(form) {
+  var data = [];
+  $(form).find('input[type=checkbox][checked|=true]').each(function() {
+    data.push(this.value);
+  });
+  if (data.length == 0) { return false; }
+  else if (data.length > 1) {
+    alert("Only 1 search can be retrieved as BibTex at a time (you selected " + data.length + ")");
+    return false;
+  }
+  $.fancybox.showActivity();
+
+  // query Solr for the bibcodes using the global manager; can be
+  // fixed up once this page is created by the client rather than the
+  // server  
+  var query = Manager.solrUrl + 'select?' + data[0] +
+        '&fl=bibcode' +
+        '&wt=json&json.wrf=?';
+
+  $.getJSON(query, function (response) {
+     if (response.response.numFound === 0) {
+        $.fancybox.hideActivity();
+        alert("No publications found for this search.");
+        return false;
+      }
+      var bibcodes = [];
+      for (var i = 0, n = response.response.docs.length; i < n; i++) {
+        bibcodes.push(response.response.docs[i].bibcode);
+      }
+     var opts = {
+       urlpath: '/cgi-bin/nph-abs_connect?library=Add&' +
+       bibcodes.map(function (item) { return 'bibcode=' + encodeURIComponent(item); }).join('&')
+     };
+     $.post(SITEPREFIX+'/adsproxy', JSON.stringify(opts),
+       function(resp) { $.fancybox(resp); });
+     return false;
+  });
+}
+
 // relying on SITEPREFIX being in scope
 
 function submitAction(path, idname) {

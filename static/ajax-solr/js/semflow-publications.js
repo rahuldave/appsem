@@ -2,9 +2,15 @@
  * Code for the publications page
  */
 
+var Manager;
+
 (function ($) {
     $(function () {
 	console.log("*** In semflow-publications");
+
+	Manager = new AjaxSolr.Manager({
+	    solrUrl: SOLRURL
+	});
 
 	Manager.addWidget(new AjaxSolr.ResultWidget({
 	    id: 'result',
@@ -166,35 +172,7 @@
             datastep: 10
 	}));
 	
-	Manager.setStore(new AjaxSolr.ParameterHashStore({
-	    
-	    // overriding the default to include stats.field
-	    isMultiple: function (name) {
-		return name.match(/^(?:bf|bq|facet\.date|facet\.date\.other|facet\.date\.include|facet\.field|facet\.pivot|facet\.range|facet\.range\.other|facet\.range\.include|facet\.query|fq|group\.field|group\.func|group\.query|stats\.field|pf|qf)$/);
-	    },
-	    
-	    // Overriding the default behavior to try and fix the issue
-	    // with constraints of author names - which contain commas - being
-	    // broken up when reloaded and so not parsed correctly.
-	    // This may be a sledgehammer aimed at the wrong nut.
-	    //
-	    parseString: function (str) {
-		var pairs = str.split('&');
-		for (var i = 0, l = pairs.length; i < l; i++) {
-		    if (pairs[i]) { // ignore leading, trailing, and consecutive &'s
-			var param = new AjaxSolr.Parameter();
-			param.parseString(pairs[i]);
-			// re-constructing any values that may have been split apart by
-			// param.parseString.
-			if (AjaxSolr.isArray(param.value)) {
-			    param.value = param.value.join(',');
-			}
-			this.add(param.name, param);
-		    }
-		}
-	    }
-	    
-	}));
+	Manager.setStore(new AjaxSolr.AstroExplorerStore());
 	Manager.store.exposed = [ 'fq', 'q' ];
 	Manager.init();
 	Manager.store.addByValue('q', '*:*');

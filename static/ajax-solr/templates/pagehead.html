@@ -4,16 +4,15 @@
 <script type="text/javascript" src="{{ staticprefix }}/ext/jquery-1.4.2.min.js"></script>
 <!--script type="text/javascript" src="js/jquery.ui.ipad.js"></script-->
   <script type="text/javascript" src="{{ staticprefix }}/js/semflow-core.js"></script> 
-  <script type="text/javascript" src="{{ staticprefix }}/js/semflow-{{pagetype}}.js"></script> 
  <script type="text/javascript" src="{{ staticprefix }}/ajax-solr/core/Core.js"></script>
   <script type="text/javascript" src="{{ staticprefix }}/ajax-solr/core/AbstractManager.js"></script>
   <script type="text/javascript" src="{{ staticprefix }}/ajax-solr/managers/Manager.jquery.js"></script>
   <script type="text/javascript" src="{{ staticprefix }}/ajax-solr/core/Parameter.js"></script>
   <script type="text/javascript" src="{{ staticprefix }}/ajax-solr/core/ParameterStore.js"></script>
   <script type="text/javascript" src="{{ staticprefix }}/ajax-solr/core/ParameterHashStore.js"></script>
+  <script type="text/javascript" src="{{ staticprefix }}/widgets/AstroExplorerStore.js"></script>
   <script type="text/javascript" src="{{ staticprefix }}/ajax-solr/core/AbstractWidget.js"></script> 
   <script type="text/javascript" src="{{ staticprefix }}/widgets/ResultWidget.2.0.js"></script> 
-  <script type="text/javascript" src="{{ staticprefix }}/js/semflow-{{pagetype}}.theme.js"></script>
   <script type="text/javascript" src="{{ staticprefix }}/ajax-solr/widgets/jquery/PagerWidget.js"></script>
   <script type="text/javascript" src="{{ staticprefix }}/ajax-solr/core/AbstractFacetWidget.js"></script>
   <script type="text/javascript" src="{{ staticprefix }}/widgets/TagcloudWidget.js"></script>
@@ -41,7 +40,9 @@
 
 <!--script type="text/javascript" src="../../Projects/ajax-solr/helpers/jquery/ajaxsolr.theme.js"></script-->
 
-  <!-- add it last so we can over-ride other stylesheets -->
+  <!-- add last so we can over-ride other stylesheets -->
+  <script type="text/javascript" src="{{ staticprefix }}/js/semflow-{{pagetype}}.js"></script> 
+  <script type="text/javascript" src="{{ staticprefix }}/js/semflow-{{pagetype}}.theme.js"></script>
   <link rel="stylesheet" type="text/css" href="{{ staticprefix }}/css/semflow.css" media="screen" /> 
 
 

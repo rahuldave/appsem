@@ -15,7 +15,8 @@
    <div class="formactions">
     <input type="button" value="Mark all" onClick="changeAllButtons(this.form, true)">
     <input type="button" value="Clear all" onClick="changeAllButtons(this.form, false)">
-    <input type="submit" name="action" value="Delete marked searches">
+    <input type="submit" name="action" value="Delete marked">
+    <input type="button" value="Get as BibTex" onClick="getSearchAsBibTex(this.form)">
    </div>
   <table class="tablesorter" id="saved-searches-table">
     <thead>
@@ -100,6 +101,43 @@ function getAsBibTex(form) {
  $.post(SITEPREFIX+'/getasbibtex', JSON.stringify({'bibcodes':data}),
   function(resp) { $.fancybox('<pre>'+resp+'</pre>'); });
  return false;
+}
+
+// For now only support one search
+function getSearchAsBibTex(form) {
+  var data = [];
+  $(form).find('input[type=checkbox][checked|=true]').each(function() {
+    data.push(this.value);
+  });
+  if (data.length == 0) { return false; }
+  else if (data.length > 1) {
+    alert("Only 1 search can be retrieved as BibTex at a time (you selected " + data.length + ")");
+    return false;
+  }
+  $.fancybox.showActivity();
+
+  // query Solr for the bibcodes using the global manager; can be
+  // fixed up once this page is created by the client rather than the
+  // server  
+ var query = Manager.solrUrl + 'select?' + data[0] +
+        '&fl=bibcode' +
+        '&wt=json&json.wrf=?';
+
+  $.getJSON(query, function (response) {
+     if (response.response.numFound === 0) {
+        $.fancybox.hideActivity();
+        alert("No publications found for this search.");
+        return false;
+      }
+      var bibcodes = [];
+      for (var i = 0, n = response.response.docs.length; i < n; i++) {
+        bibcodes.push(response.response.docs[i].bibcode);
+    }
+   $.post(SITEPREFIX+'/getasbibtex', JSON.stringify({'bibcodes': bibcodes}),
+        function(resp) { $.fancybox('<pre>'+resp+'</pre>'); });
+     return false;
+    });
+
 }
 
 function saveToMyADS(form) {

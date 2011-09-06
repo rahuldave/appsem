@@ -1,35 +1,44 @@
+function encodeObsuri(obsuri){
+    var splist=obsuri.split('/');
+    return splist[0]+'-'+splist[1];
+}
+
 (function ($) {
 
     var fancyboxOpts = { 'autoDimensions': false, 'width': 1024, 'height': 768 };
 
     AjaxSolr.theme.prototype.result = function (doc, snippet, thetitlelink, thepivot, thedocthis) {
 
-	var $morea = $('<a href="#" class="less" id="am_'+doc.id+'">mores</a>')
+	var $morea = $('<a href="#" class="less" id="am_'+encodeObsuri(doc.obsids_s)+'">more</a>')
 	    .click(thedocthis.moreHandler(doc));
-	var $lessa = $('<a href="#" id="al_'+doc.id+'" style="display:none">lesss</a>')
+	var $lessa = $('<a href="#" id="al_'+encodeObsuri(doc.obsids_s)+'" style="display:none">less</a>')
 	    .click(thedocthis.lessHandler(doc));
-	var $bookmark = $('<a href="#" class="save" id="savepub_'+doc.id+'">save</a>')
+	var $bookmark = $('<a href="#" class="save" id="savepub_'+encodeObsuri(doc.obsids_s)+'">save</a>')
 	    .click(thedocthis.saveHandler(doc));
-	var $unbookmark = $('<a href="#" class="delete" id="delpub_'+doc.id+'" style="display:none">delete</a>')
+	var $unbookmark = $('<a href="#" class="delete" id="delpub_'+encodeObsuri(doc.obsids_s)+'" style="display:none">delete</a>')
 	    .click(thedocthis.deleteHandler(doc));
-
+    console.log("SNIP1", snippet[1].text());
 	return $('<div class="publication"/>')
-	    .append($('<h2/>').append(doc.obsv_title + " " + doc.obsids_s + doc.targets_s).append(thetitlelink).append(thepivot))
+	    .append($('<h2/>').append(doc.obsv_mission_s + ": ").append(thetitlelink).append(thepivot))
+	    //.append("<b>Target</b>: " + doc.targets_s).
 	    .append($('<div class="bookmarks"/>'))
-	    .append($('<p class="links"/>').attr('id', 'links_' + doc.obsids_s))
-	    .append('<p id="links_' + doc.obsids_s + '" class="links"></p>')
+	    .append($('<p class="links"/>').attr('id', 'links_' + encodeObsuri(doc.obsids_s)))
+	    .append('<p id="links_' + encodeObsuri(doc.obsids_s) + '" class="links"></p>')
 	    .append(snippet[0])
 	    .append(snippet[1]
 		    .attr('class', 'extrapaperinfo')
-		    .attr('id', 'p_' + doc.obsids_s))
+		    .attr('id', 'p_' + encodeObsuri(doc.obsids_s)))
 	    .append($('<div class="lessmore"></div>').append($bookmark).append($unbookmark).append($morea).append($lessa));
     }
 
 //Bottom should use obslink
 AjaxSolr.theme.prototype.title = function (doc) {
-    return $('<a class="iframe"/>').text('(Link)')
-	.attr('href', getObslink('euve',doc.obsids_s))
-	.fancybox(fancyboxOpts);
+    var splitobsid=doc.obsv_mission_s.split('/')
+    var missionname=splitobsid[splitobsid.length -1]
+    //return $('<a class="iframe"/>').text('(Link)')
+	//.attr('href', getObslink(missionname,doc.obsids_s))
+	//.fancybox(fancyboxOpts);
+	return getObslink(missionname,doc.obsids_s);
 }
 
 AjaxSolr.theme.prototype.pivot = function (doc, handler){
@@ -257,21 +266,21 @@ AjaxSolr.theme.prototype.pivot = function (doc, handler){
 	    
     } // addDataArea
 
-    AjaxSolr.theme.prototype.snippet = function (doc, year) {
+    AjaxSolr.theme.prototype.snippet = function (doc, obsvtime) {
 	var $output1 = $('<p/>')
 	    //.append(pubLabel('Authors:'))
 	    // .append(' ' + doc.author.join(' ; '))
 	    //.append(' ').append(authors)
 	    //.append('<br/>')
-	    .append(pubLabel('Year:'))
+	    .append(pubLabel('Observed at:'))
 	    // .append(' ' + doc.pubyear_i + ' ')
 	    .append(' ')
-	    .append(year)
+	    .append(obsvtime)
 	    .append(' ')
 	    .append(pubLabel('Target:'))
 	    .append(' ' + doc.targets_s + ' ')
 	    .append(pubLabel('Instruments:'))
-	    .append(' ' + doc.citationcount_i);
+	    .append(' ' + doc.instruments_s);
 
 	var $output2 = $('<div/>');
 
@@ -283,9 +292,9 @@ AjaxSolr.theme.prototype.pivot = function (doc, handler){
 
 	// do we need to HTML escape this text?
 	// 
-	//var abtext = doc.abstract;
-	//var $abstract = $('<div class="abstracttext"><span class="pubitem">Abstract:</span> '+abtext+'</div>');
-	//$output2.append($abstract);
+	var abtext = doc.telescopes_s;
+	var $abstract = $('<div class="abstracttext"><span class="pubitem">Meta:</span> '+abtext+'</div>');
+	$output2.append($abstract);
 	return [$output1, $output2];
 
     }; // Ajax.theme.prototype.snippet
@@ -314,6 +323,7 @@ AjaxSolr.theme.prototype.list_items = function (list, items, separator) {
   //console.log($list);
   var $list=$(list);
   $list.empty();
+  //alert(items);
   for (var i = 0, l = items.length; i < l; i++) {
     var li = jQuery('<li/>');
     //console.log("li"+li);
@@ -327,6 +337,7 @@ AjaxSolr.theme.prototype.list_items = function (list, items, separator) {
     }
     else {
       //console.log("here");
+      //alert(items[i]);
       if (separator && i > 0) {
         li.append(separator);
       }

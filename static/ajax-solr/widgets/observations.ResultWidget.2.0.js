@@ -1,5 +1,9 @@
 var SITEPREFIX='';
 var SITEPREFIX='/semantic2/alpha';
+function encodeObsuri(obsuri){
+    var splist=obsuri.split('/');
+    return splist[0]+'-'+splist[1];
+}
 
 (function ($) {
 
@@ -16,10 +20,11 @@ var SITEPREFIX='/semantic2/alpha';
 	return $out;
     }
 
-    function getYear(self, facetHandler, year) {
+    function getObsvtime(self, facetHandler, year) {
 	return $('<a href="#"/>')
 	    .text(year)
 	    .click(facetHandler(self, 'obsvtime_d', '['+year+' TO ' + year +']'));
+	    //this will still work, but should we do a slight interval sround it?
     }
 
     // copy of facetHandler; this is not ideal bit it should be a temporary
@@ -47,7 +52,7 @@ AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
       $(this.target).append(AjaxSolr.theme('result', doc, 
 					   AjaxSolr.theme('snippet', doc,
 							  //getAuthors(self, facetHandler2, doc.author),
-							  getYear(self, facetHandler2, doc.obsvtime_d)
+							  getObsvtime(self, facetHandler2, doc.obsvtime_d)
 							 ), 
 					   AjaxSolr.theme('title', doc),
 					   AjaxSolr.theme('pivot', doc, this.facetHandler('obsids_s', doc.obsids_s)),
@@ -55,11 +60,12 @@ AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
 			   );
       //$(this.target).append(AjaxSolr.theme('result', doc, "DOGDOG"));
       var items = [];
-      //alert(doc.keywords_s);
+      //alert(doc.emdomains_s);
       var gaga=this.facetLinks("emdomains_s", doc.emdomains_s);
       items.concat(gaga);
-      //console.log(gaga.length+","+items.length);
-      AjaxSolr.theme('list_items', '#links_' + doc.obsids_s, gaga, "|| ");
+      //alert(gaga.length+","+items.length);
+      //alert(items);
+      AjaxSolr.theme('list_items', '#links_' + encodeObsuri(doc.obsids_s), gaga, "| ");
       docids.push(doc.obsids_s);
     }
     console.log("DOCIDS", docids);
@@ -90,6 +96,7 @@ AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
   },
   facetLinks: function (facet_field, facet_values) {
     var links = [];
+    //alert(facet_values.length);
     if (facet_values) {
         for (var i = 0, l = facet_values.length; i < l; i++) {
             links.push(AjaxSolr.theme('facet_link',
@@ -107,9 +114,10 @@ AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
 	var self = this;
 	var thedoc=doc;
 	return function() {
-		$('#am_'+thedoc.obdisds_s).hide();
-		$('#p_'+thedoc.obsids_s).show();		
-		$('#al_'+thedoc.obsids_s).show();
+	    console.log("imh", thedoc.obsids_s, $('#p_'+encodeObsuri(thedoc.obsids_s)).text() );
+		$('#am_'+encodeObsuri(thedoc.obsids_s)).hide();
+		$('#p_'+encodeObsuri(thedoc.obsids_s)).show();		
+		$('#al_'+encodeObsuri(thedoc.obsids_s)).show();
 		return false;
 	};
   },
@@ -117,9 +125,9 @@ AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
 	var self = this;
 	var thedoc=doc;
 	return function() {
-		$('#am_'+thedoc.obsids_s).show();
-		$('#p_'+thedoc.obsids_s).hide();
-		$('#al_'+thedoc.obsids_s).hide();
+		$('#am_'+encodeObsuri(thedoc.obsids_s)).show();
+		$('#p_'+encodeObsuri(thedoc.obsids_s)).hide();
+		$('#al_'+encodeObsuri(thedoc.obsids_s)).hide();
 		return false;
 	};
   },
@@ -133,8 +141,8 @@ AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
 			  'title':thedoc.obsv_title
 			  }), function(data){
                 if (data['success']==='defined'){
-                    $('#saveobsv_'+thedoc.obsids_s).hide();
-                    $('#delobsv_'+thedoc.obsids_s).show();
+                    $('#saveobsv_'+encodeObsuri(thedoc.obsids_s)).hide();
+                    $('#delobsv_'+encodeObsuri(thedoc.obsids_s)).show();
                 }
             });
             return false;
@@ -145,10 +153,10 @@ AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
       var thedoc=doc;
       return function(){
 	  $.post(SITEPREFIX+'/deleteobsv', JSON.stringify({
-		      'obsid':thedoc.obsid_s }), function(data){
+		      'obsid':thedoc.obsids_s }), function(data){
                 if (data['success']==='defined'){
-                    $('#savepub_'+thedoc.obsid_s).show();
-                    $('#delpub_'+thedoc.obsid_s).hide();
+                    $('#savepub_'+encodeObsuri(thedoc.obsids_s)).show();
+                    $('#delpub_'+encodeObsuri(thedoc.obsids_s)).hide();
                 }
             });
             return false;

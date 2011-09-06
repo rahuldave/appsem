@@ -11,8 +11,10 @@
   <script type="text/javascript" src="{{ staticprefix }}/ajax-solr/core/ParameterStore.js"></script>
   <script type="text/javascript" src="{{ staticprefix }}/ajax-solr/core/ParameterHashStore.js"></script>
   <script type="text/javascript" src="{{ staticprefix }}/widgets/AstroExplorerStore.js"></script>
-  <script type="text/javascript" src="{{ staticprefix }}/ajax-solr/core/AbstractWidget.js"></script> 
-  <script type="text/javascript" src="{{ staticprefix }}/widgets/ResultWidget.2.0.js"></script> 
+  <script type="text/javascript" src="{{ staticprefix }}/ajax-solr/core/AbstractWidget.js"></script>
+{{#haswidgets}}
+  <script type="text/javascript" src="{{ staticprefix }}/widgets/{{ pageclass }}.ResultWidget.2.0.js"></script>
+{{/haswidgets}}
   <script type="text/javascript" src="{{ staticprefix }}/ajax-solr/widgets/jquery/PagerWidget.js"></script>
   <script type="text/javascript" src="{{ staticprefix }}/ajax-solr/core/AbstractFacetWidget.js"></script>
   <script type="text/javascript" src="{{ staticprefix }}/widgets/TagcloudWidget.js"></script>

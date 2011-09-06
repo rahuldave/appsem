@@ -691,7 +691,8 @@ function doPublications(req, res, next) {
     var camefrom = url.parse(req.url, true).query.camefrom;
     console.log("I CAME FROM:",camefrom);
     var view = {
-        pagehead:{pagetitle:'Publications', pageclass:'publications', siteprefix: SITEPREFIX, staticprefix: SITEPREFIX+STATICPREFIX},
+        pagehead:{pagetitle:'Publications', pageclass:'publications', haswidgets: true,
+		  siteprefix: SITEPREFIX, staticprefix: SITEPREFIX+STATICPREFIX},
         bodyhead:{isitchosenpublications:'chosen', current_url:req.url, siteprefix: SITEPREFIX, staticprefix: SITEPREFIX+STATICPREFIX},
         bodybody:{bodyright:{siteprefix: SITEPREFIX, staticprefix: SITEPREFIX+STATICPREFIX}}
     };
@@ -828,7 +829,8 @@ function doSaved(req, res, next) {
     console.log("In do Saved");
     var logincookie = req.cookies.logincookie;
     var view = {
-        pagehead:{pagetitle:'Saved', pageclass: 'saved', siteprefix: SITEPREFIX, staticprefix: SITEPREFIX+STATICPREFIX},
+        pagehead:{pagetitle:'Saved', pageclass: 'saved', haswidgets: false,
+		  siteprefix: SITEPREFIX, staticprefix: SITEPREFIX+STATICPREFIX},
         bodyhead:{isitchosensaved:'chosen', current_url:req.url, siteprefix: SITEPREFIX, staticprefix: SITEPREFIX+STATICPREFIX},
         bodybody:{siteprefix: SITEPREFIX, staticprefix: SITEPREFIX+STATICPREFIX}
     };

@@ -20,99 +20,84 @@ var SOLRURL = SITEPREFIX + '/solr/';
 
 (function ($) {
     $(function () {
-	var userhasbeengot=false;
 
+	function setLoggedIn(email) {
+	    $('a#logouthref').text("logout " + email).show();
+	    $('a#loginhref').hide();
+	}
+
+	function setLoggedOut() {
+	    $('a#logouthref').hide();
+	    $('a#loginhref').show();
+	}
+	
 	function myjsonp(data){
             return data; //so that we dont handle url on server
 	};
+
 	$('#gosearch').click(function(){
             alert("not yet implemented");
 	});
-	$('a#loginhref').click(function(){
-            var loc=encodeURIComponent(window.location);
-            //alert(loc);
-            //window.location.href="http://adsabs.harvard.edu/cgi-bin/nph-manage_account?man_cmd=login&man_url="+loc;
-            //window.location.href="/login?currenturl="+loc;
+
+	$('a#loginhref').click(function () {
+            var loc = encodeURIComponent(window.location);
             $.ajax({
-		url: "http://labs.adsabs.harvard.edu"+SITEPREFIX+"/adsjsonp?callback=?",
+		url: "http://labs.adsabs.harvard.edu" + SITEPREFIX + "/adsjsonp?callback=?",
 		dataType: 'jsonp',
 		jsonpcallback: myjsonp,
-		success:    function(data) {
-                    if (data['email']!=''){
-			$('a#loginhref').text(data['email']);
-			$('a#loginhref').text(data['email']).attr('href', SITEPREFIX+'/explorer/saved');
-			$.post(SITEPREFIX+'/addtoredis', JSON.stringify(data), function(){
-                            //not correct as it dosent do anything on nonpublication pages
-                            var thisloc=window.location;
-                            //Manager.doRequest();
-                            //alert(thisloc.href);
+		success: function (data) {
+
+		    if (data.email === undefined || data.email == '') {
+			$('a#loginhref').click(function () {
+                            var thispage = window.location;
+                            var prefix = thispage.protocol + '//' + location.host;
+                            var loc = encodeURIComponent(prefix + SITEPREFIX + "/login?redirect=" + window.location);
+                            window.location.href = "http://adsabs.harvard.edu/cgi-bin/nph-manage_account?man_cmd=login&man_url=" + loc;
+			});
+			$('a#loginhref').trigger('click');
+
+		    } else {
+			// setLoggedin(data.email);
+			$.post(SITEPREFIX + '/addtoredis', JSON.stringify(data), function() {
                             window.location.reload();
 			});
-                    } else {//we aint logged in
-			$('a#loginhref').click(function(){
-                            var thispage=window.location;
-                            var prefix=thispage.protocol+'//'+location.host;
-                            var loc=encodeURIComponent(prefix+SITEPREFIX+"/login?redirect="+window.location);
-                            window.location.href="http://adsabs.harvard.edu/cgi-bin/nph-manage_account?man_cmd=login&man_url="+loc;
-                            //window.location.href="/login?redirect="+loc;
-			});
-			//$.cookie('startup', 'anyvalue', { expires: new Date(Date.now()+300000), path: '/' });
-			$('a#loginhref').trigger('click');
                     }
 		}
             });
 	});
-	$('a#logouthref').click(function(){
-            var loc=encodeURIComponent(window.location);
-            console.log("loc",loc);
-            window.location.href=SITEPREFIX+"/logout?redirect="+loc;
+
+	$('a#logouthref').click(function () {
+            var loc = encodeURIComponent(window.location);
+            window.location.href = SITEPREFIX + "/logout?redirect=" + loc;
 	});
 	
-	console.log('Hi');
-	
-        $.getJSON(SITEPREFIX+'/getuser', function(data){
-            console.log("DADATA",data);
-            if (data['email']!='null' && data['email'] != 'undefined'){
-                $('a#loginhref').text(data['email']).attr('href', SITEPREFIX+'/explorer/saved');
-                userhasbeengot=true;
-                
-            }
-            else{//shouldnt we distinguish null from undefined? null is for no db entry, undefined for no cookie
-                //only go in if local cookie found
-                //console.log("$$$$$$$$$$$$$$$$$$$COOK",$.cookie('logincookie'));
-                //if ($.cookie('startup')=='anyvalue'){
-                console.log("making ajax call to jsonp callback");
-                if (data['startup']!='undefined'){
+        $.getJSON(SITEPREFIX + '/getuser', function(data) {
+	    if (data.email === undefined || data.email == 'undefined') {
+		// user is not logged in according to ADS, so check
+		// our database.
+		//
+                if (data.startup !== undefined && data.startup != 'undefined') {
                     $.ajax({
-			url: "http://labs.adsabs.harvard.edu"+SITEPREFIX+"/adsjsonp?callback=?",
+			url: "http://labs.adsabs.harvard.edu" + SITEPREFIX + "/adsjsonp?callback=?",
 			dataType: 'jsonp',
 			jsonpcallback: myjsonp,
-			success:    function(data) {
-                            //$.cookie('startup', null);//should it be only on success?
-                            if (data['email']!=''){
-				$('a#loginhref').text(data['email']);
-				$('a#loginhref').text(data['email']).attr('href', SITEPREFIX+'/explorer/saved');
-				$.post(SITEPREFIX+'/addtoredis', JSON.stringify(data));
-                            }
-                            
+			success: function (adata) {
+                            if (adata.email !== undefined && adata.email != '') {
+				setLoggedIn(adata.email);
+				$.post(SITEPREFIX + '/addtoredis', JSON.stringify(adata));
+                            } else {
+				setLoggedOut();
+			    }
 			}
                     });
-                }
-		
+                } else {
+		    setLoggedOut();
+		}
+
+	    } else {
+		setLoggedIn(data.email);
             }
         });
-	
-	/*
-	  $.ajax({
-          url: "http://labs.adsabs.harvard.edu/semantic2/adsjsonp?callback=?",
-          dataType: 'jsonp',
-          jsonpcallback: myjsonp,
-          success:    function(data) {
-          $('a#loginhref').text(data['email']);
-          $.post('/addtoredis', JSON.stringify(data));
-          }
-          }
-	  );
-	*/
+
     });
 })(jQuery);

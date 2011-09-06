@@ -860,7 +860,6 @@ function doSaved(req, res, next) {
 	});
 
     } else {
-	view.notloggedin = true;
         res.end(mustache.to_html(maint, view, lpartials));
     }
     

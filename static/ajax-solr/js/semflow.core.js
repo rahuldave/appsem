@@ -22,13 +22,18 @@ var SOLRURL = SITEPREFIX + '/solr/';
     $(function () {
 
 	function setLoggedIn(email) {
-	    $('a#logouthref').text("logout " + email).show();
-	    $('a#loginhref').hide();
+	    // $('a#logouthref').text("logout " + email).show();
+	    // $('a#loginhref').hide();
+	    $('a#logouthref').text("logout " + email);
+	    $('.userloggedin').each(function () { $(this).show(); });
+	    $('.userloggedout').each(function () { $(this).hide(); });
 	}
 
 	function setLoggedOut() {
-	    $('a#logouthref').hide();
-	    $('a#loginhref').show();
+	    // $('a#logouthref').hide();
+	    // $('a#loginhref').show();
+	    $('.userloggedout').each(function () { $(this).show(); });
+	    $('.userloggedin').each(function () { $(this).hide(); });
 	}
 	
 	function myjsonp(data){

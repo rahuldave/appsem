@@ -102,12 +102,9 @@ function getAsBibTex(form) {
    });
  if (data.length == 0) { return false; }
  $.fancybox.showActivity();
- var opts = {
-    urlpath: '/cgi-bin/nph-bib_query?data_type=BIBTEX&' +
-               data.map(encodeURIComponent).join('&')
-   };
- $.post(SITEPREFIX + '/adsproxy', JSON.stringify(opts),
-    function(resp) { $.fancybox('<pre>'+resp+'</pre>'); });
+   doADSproxy('/cgi-bin/nph-bib_query?data_type=BIBTEX&' +
+               data.map(encodeURIComponent).join('&'),
+               function (resp) { $.fancybox('<pre>'+resp+'</pre>'); });
  return false;
 }
 
@@ -138,12 +135,9 @@ function getSearchAsBibTex(form) {
       for (var i = 0, n = response.response.docs.length; i < n; i++) {
         bibcodes.push(response.response.docs[i].bibcode);
       }
-      var opts = {
-        urlpath: '/cgi-bin/nph-bib_query?data_type=BIBTEX&' +
-          bibcodes.map(encodeURIComponent).join('&')
-      };
-      $.post(SITEPREFIX + '/adsproxy', JSON.stringify(opts),
-        function(resp) { $.fancybox('<pre>'+resp+'</pre>'); });
+     doADSproxy('/cgi-bin/nph-bib_query?data_type=BIBTEX&' +
+          bibcodes.map(encodeURIComponent).join('&'),
+          function (resp) { $.fancybox('<pre>'+resp+'</pre>'); });
       return false;
     });
 
@@ -156,12 +150,11 @@ function saveToMyADS(form) {
   });
  if (data.length == 0) { return false; }
  $.fancybox.showActivity();
- var opts = {
-   urlpath: '/cgi-bin/nph-abs_connect?library=Add&' +
-     data.map(function (item) { return 'bibcode=' + encodeURIComponent(item); }).join('&')
- };
- $.post(SITEPREFIX+'/adsproxy', JSON.stringify(opts),
-  function(resp) { $.fancybox(resp); });  
+ doADSproxy('/cgi-bin/nph-abs_connect?library=Add&' +
+     data.map(function (item) { return 'bibcode=' +
+     encodeURIComponent(item); }).join('&'),
+     function(resp) { $.fancybox(resp); });  
+     
  return false;
 }
    
@@ -191,11 +184,9 @@ function saveSearchToMyADS(form) {
       for (var i = 0, n = response.response.docs.length; i < n; i++) {
         bibcodes.push(response.response.docs[i].bibcode);
       }
-     var opts = {
-       urlpath: '/cgi-bin/nph-abs_connect?library=Add&' +
-       bibcodes.map(function (item) { return 'bibcode=' + encodeURIComponent(item); }).join('&')
-     };
-     $.post(SITEPREFIX+'/adsproxy', JSON.stringify(opts),
+    doADSproxy('/cgi-bin/nph-abs_connect?library=Add&' +
+       bibcodes.map(function (item) { return 'bibcode=' +
+       encodeURIComponent(item); }).join('&'),
        function(resp) { $.fancybox(resp); });
      return false;
   });

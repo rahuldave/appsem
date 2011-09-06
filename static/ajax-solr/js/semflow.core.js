@@ -22,16 +22,12 @@ var SOLRURL = SITEPREFIX + '/solr/';
     $(function () {
 
 	function setLoggedIn(email) {
-	    // $('a#logouthref').text("logout " + email).show();
-	    // $('a#loginhref').hide();
 	    $('a#logouthref').text("logout " + email);
 	    $('.userloggedin').each(function () { $(this).show(); });
 	    $('.userloggedout').each(function () { $(this).hide(); });
 	}
 
 	function setLoggedOut() {
-	    // $('a#logouthref').hide();
-	    // $('a#loginhref').show();
 	    $('.userloggedout').each(function () { $(this).show(); });
 	    $('.userloggedin').each(function () { $(this).hide(); });
 	}
@@ -44,31 +40,35 @@ var SOLRURL = SITEPREFIX + '/solr/';
             alert("not yet implemented");
 	});
 
-	$('a#loginhref').click(function () {
-            var loc = encodeURIComponent(window.location);
-            $.ajax({
-		url: "http://labs.adsabs.harvard.edu" + SITEPREFIX + "/adsjsonp?callback=?",
-		dataType: 'jsonp',
-		jsonpcallback: myjsonp,
-		success: function (data) {
-
-		    if (data.email === undefined || data.email == '') {
-			$('a#loginhref').click(function () {
-                            var thispage = window.location;
-                            var prefix = thispage.protocol + '//' + location.host;
-                            var loc = encodeURIComponent(prefix + SITEPREFIX + "/login?redirect=" + window.location);
-                            window.location.href = "http://adsabs.harvard.edu/cgi-bin/nph-manage_account?man_cmd=login&man_url=" + loc;
-			});
-			$('a#loginhref').trigger('click');
-
-		    } else {
-			// setLoggedin(data.email);
-			$.post(SITEPREFIX + '/addtoredis', JSON.stringify(data), function() {
-                            window.location.reload();
-			});
-                    }
-		}
-            });
+	// We allow multiple login links
+	$('a.userlogin').each(function () { 
+	    $(this).click(function () {
+		var loc = encodeURIComponent(window.location);
+		$.ajax({
+		    url: "http://labs.adsabs.harvard.edu" + SITEPREFIX + "/adsjsonp?callback=?",
+		    dataType: 'jsonp',
+		    jsonpcallback: myjsonp,
+		    success: function (data) {
+			
+			if (data.email === undefined || data.email == '') {
+			    // for now hard code this particular login link rather than use the one that triggered the callback
+			    $('a#loginhref').click(function () {
+				var thispage = window.location;
+				var prefix = thispage.protocol + '//' + location.host;
+				var loc = encodeURIComponent(prefix + SITEPREFIX + "/login?redirect=" + window.location);
+				window.location.href = "http://adsabs.harvard.edu/cgi-bin/nph-manage_account?man_cmd=login&man_url=" + loc;
+			    });
+			    $('a#loginhref').trigger('click');
+			    
+			} else {
+			    // setLoggedin(data.email);
+			    $.post(SITEPREFIX + '/addtoredis', JSON.stringify(data), function() {
+				window.location.reload();
+			    });
+			}
+		    }
+		});
+	    });
 	});
 
 	$('a#logouthref').click(function () {

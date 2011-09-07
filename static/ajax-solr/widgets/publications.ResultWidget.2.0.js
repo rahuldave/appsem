@@ -1,5 +1,6 @@
-var SITEPREFIX='';
-var SITEPREFIX='/semantic2/alpha';
+/**
+ * Widgets for the publications view.
+ */
 
 (function ($) {
 

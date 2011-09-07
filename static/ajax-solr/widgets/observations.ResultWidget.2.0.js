@@ -1,5 +1,7 @@
-var SITEPREFIX='';
-var SITEPREFIX='/semantic2/alpha';
+/**
+ * Widgets for the observations view.
+ */
+
 function encodeObsuri(obsuri){
     var splist=obsuri.split('/');
     return splist[0]+'-'+splist[1];

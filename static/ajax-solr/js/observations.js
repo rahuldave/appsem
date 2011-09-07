@@ -3,13 +3,14 @@
  */
 
 var Manager;
+var SOLRURL2='http://localhost:8983/solr/';
 
 (function ($) {
     $(function () {
 	console.log("*** In semflow-observations");
 
 	Manager = new AjaxSolr.Manager({
-	    solrUrl: SOLRURL
+	    solrUrl: SOLRURL2
 	});
 
 	Manager.addWidget(new AjaxSolr.ResultWidget({
@@ -170,7 +171,7 @@ var Manager;
             datastep: 10
 	}));
 
-	Manager.setStore(new AjaxSolr.ParameterHashStore());
+	Manager.setStore(new AjaxSolr.AstroExplorerStore());
 	Manager.store.exposed = [ 'fq', 'q' ];
 	Manager.init();
 	Manager.store.addByValue('q', '*:*');

@@ -39,6 +39,7 @@ var partials = {
 };
 
 var bodybodypub = getTemplate('bodybody_publications.html');
+var bodybodyobsv = getTemplate('bodybody_observations.html')
 var bodybodysearch = getTemplate('bodybody_search.html');
 var bodybodysaved = getTemplate('bodybody_saved.html');
 
@@ -703,6 +704,23 @@ function doPublications(req, res, next) {
     res.end(html);    
 }
 
+function doObservations(req, res, next) {
+    console.log("=====================In do Observations", req.url, req.headers.referer, req.originalUrl);
+    var camefrom = url.parse(req.url, true).query.camefrom;
+    console.log("I CAME FROM:",camefrom);
+    var view = {
+        pagehead:{pagetitle:'Observations', pageclass: 'observations', haswidgets: true,
+		  siteprefix: SITEPREFIX, staticprefix: SITEPREFIX+STATICPREFIX},
+        bodyhead:{isitchosenobservations:'chosen', current_url:req.url, siteprefix: SITEPREFIX, staticprefix: SITEPREFIX+STATICPREFIX},
+        bodybody:{bodyright:{siteprefix: SITEPREFIX, staticprefix: SITEPREFIX+STATICPREFIX}}
+    };
+    var lpartials = JSON.parse(globpartialsjson);
+    lpartials.bodybody = bodybodyobsv;
+    var html = mustache.to_html(maint, view, lpartials);
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=UTF-8' });
+    res.end(html);    
+}
+
 /*
  * Given a saved search, which looks something like
  * "fq=keywords_s%3A%22stars%20luminosity%20function%3Bmass%20function%22&fq=author_s%3A%22Stahl%2C%20O%22&fq=instruments_s%3AMAST%2FIUE%2FLWR&q=*%3A*"
@@ -883,7 +901,7 @@ var explorouter = connect(
         app.get('/publications', doPublications);
         app.get('/saved', doSaved);
 	app.get('/objects', quickRedirect('publications/'));
-	app.get('/datasets', quickRedirect('publications/'));
+	app.get('/observations', doObservations);
 	app.get('/proposals', quickRedirect('publications/'));
 	app.get('/', quickRedirect('publications/'));
     })

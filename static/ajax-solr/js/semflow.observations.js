@@ -1,12 +1,12 @@
 /*
- * Code for the publications page
+ * Code for the observations page
  */
 
 var Manager;
 
 (function ($) {
     $(function () {
-	console.log("*** In semflow-publications");
+	console.log("*** In semflow-observations");
 
 	Manager = new AjaxSolr.Manager({
 	    solrUrl: SOLRURL
@@ -29,7 +29,7 @@ var Manager;
 		    .append($('<a class="save" id="save-search" href="#">save search</a>'))
 		    .append($('<a class="delete" id="delete-search" style="display:none" href="#">delete search</a>'));
 		// FOR now remove get-data: append($('<a class="save" id="get-data" href="#">get data</a>'));
-		
+
 		$('#save-search').click(function(){
 		    $.post(SITEPREFIX+'/savesearch', JSON.stringify({'savedsearch':location.href.split("#")[1]}), function(data){
 			//should we decode uri component above? We do it on server so perhaps not.
@@ -50,7 +50,7 @@ var Manager;
 		    });  
 		    return false;
 		});
-		
+
 		/*
 		// get-data button has been removed for now
 		$('#get-data').click(function(){
@@ -58,15 +58,11 @@ var Manager;
 		return false;
 		});
 		*/
-		
-		// Hide the 'save search' button if no search has been made.
-		// TODO: this check may need to be updated when we support OR-style
-		//       queries
-		if (Manager.store.values('fq').length == 0) {
-		    $('#save-search').hide();
-		}
-		
-		//this gets called all the time. How to avoid this?
+
+		/*
+		 * Hide this for now as saving observation searches
+		 * is not fully supported.
+		 *
 		$.getJSON(SITEPREFIX+'/savedsearches', function(data){
 		    var thissearchurl=location.href.split("#")[1];
 		    console.log("THISSEARCHURL", thissearchurl);
@@ -85,45 +81,48 @@ var Manager;
 			// $('#get-data').hide(); currently usunsed
 		    }
 		});
+		 *
+		 */
+
 	    } // renderHeader
 	}));
-	
-	var fields = [ 'keywords', 'author', 'objecttypes', 'objectnames', 'obsvtypes', 'obsids', 'instruments', 'missions', 'emdomains', 'targets', 'datatypes', 'propids', 'proposaltype', 'proposalpi'];
-	var facet_fields= [ 'keywords_s', 'author_s', 'objecttypes_s', 'objectnames_s', 'obsvtypes_s', 'obsids_s', 'instruments_s', 'obsv_mission_s', 'emdomains_s', 'targets_s', 'datatypes_s', 'propids_s', 'proposaltype_s', 'proposalpi_s'];
-	var field_names = ['Keyword', 'Author', 'Object Type', 'Object Name', 'Observation Type', 'Obsid', 'Instrument',
+
+	var fields = [ 'keywords', 'author', 'objecttypes', 'objectnames', 'obsvtypes', 'obsids', 'data_collection', 'instruments', 'missions', 'emdomains', 'targets', 'datatypes', 'propids', 'proposaltype', 'proposalpi'];
+	var facet_fields= [ 'keywords_s', 'author_s', 'objecttypes_s', 'objectnames_s', 'obsvtypes_s', 'obsids_s', 'data_collection_s', 'instruments_s', 'obsv_mission_s', 'emdomains_s', 'targets_s', 'datatypes_s', 'propids_s', 'proposaltype_s', 'proposalpi_s'];
+	var field_names = ['Keyword', 'Author', 'Object Type', 'Object Name', 'Observation Type', 'Obsid', 
+			   'Data Collection', 'Instrument',
 			   'Mission', 'Wavelength', 'Target Name',
 			   'Data Type', 'Proposal ID', 'Proposal Type', 'Proposal PI'];
 	var field_map = {};
-	
+
 	for (var i = 0, l = fields.length; i < l; i++) {
 	    field_map[facet_fields[i]] = field_names[i];
-	    
+
 	    Manager.addWidget(new AjaxSolr.TagcloudWidget({
 		id: fields[i],
 		target: '#' + fields[i],
 		field: facet_fields[i]
 	    }));
 	}
-	
+    
 	// Additions
 	field_map['pubyear_i'] = 'Publication Year'
 	field_map['ra_f'] = 'RA'
 	field_map['dec_f'] = 'Dec'
 	field_map['obsvtime_d'] = 'Observation Date'
 	field_map['exptime_f'] = 'Exposure Time'
-	
+
 	Manager.addWidget(new AjaxSolr.CurrentSearchWidget({
             id: 'currentsearch',
             target: '#selection',
 	    fieldmap: field_map,
-	    allowmulti: facet_fields
-	    
+            allowmulti: facet_fields
 	}));
 	Manager.addWidget(new AjaxSolr.AutocompleteWidget({
             id: 'text',
             target: '#search',
             field: 'text',
-            fields: facet_fields.concat(['bibcode']),
+            fields: facet_fields, // not adding bibcode unlike publications
 	    fieldmap: field_map
 	}));
 	Manager.addWidget(new AjaxSolr.YearWidget({
@@ -134,12 +133,12 @@ var Manager;
 	    datamax: 2011,
 	    datastep: 1
 	}));
-	
-	numericfields=['ra', 'dec'];
-	facet_numericfields=['ra_f', 'dec_f'];
-	min_numericfields=[0.0, -90.0];
-	max_numericfields=[360.0, 90.0];
-	step_numericfields=[15.0, 10.0];
+
+	numericfields=['ra', 'dec', 'fov', 'resolution', 't_resolution'];
+	facet_numericfields=['ra_f', 'dec_f', 'fov_f', 'resolution_f', 't_resolution_f'];
+	min_numericfields=[0.0, -90.0, 0.0, 0.0,0.0];
+	max_numericfields=[360.0, 90.0, 0.1, 100.0, 2000.0];
+	step_numericfields=[15.0, 10.0, 0.001, 1.0, 10.0];
 	for (var i = 0, l = numericfields.length; i < l; i++) {
             Manager.addWidget(new AjaxSolr.DualSliderWidget({
 		id: numericfields[i],
@@ -150,7 +149,7 @@ var Manager;
 		datastep: step_numericfields[i]
             }));
 	}
-	
+
 	Manager.addWidget(new AjaxSolr.DualSliderWidget({
             id: 'exptime',
             target: '#exptime',
@@ -162,16 +161,16 @@ var Manager;
 	    toFacet: function (val) { return val * 1000; },
 	    fromFacet: function (val) { return val / 1000; }
 	}));
-	
+
 	Manager.addWidget(new AjaxSolr.DateRangerWidget({
             id: 'obsvtime',
             target: '#obsvtime',
             field: 'obsvtime_d',
-	    startYear: 1977,
+            startYear: 1977,
             datastep: 10
 	}));
-	
-	Manager.setStore(new AjaxSolr.AstroExplorerStore());
+
+	Manager.setStore(new AjaxSolr.ParameterHashStore());
 	Manager.store.exposed = [ 'fq', 'q' ];
 	Manager.init();
 	Manager.store.addByValue('q', '*:*');
@@ -179,19 +178,21 @@ var Manager;
 	var params = {
 	    'facet': true,
 	    'facet.field': facet_fields,
-	    'facet.limit': 20, // change this to set autocompletion limits differently...or solr 1.5
+	    'facet.limit': 20,/* change this to set autocompletion limits differently...or solr 1.5*/
 	    'facet.mincount': 1,
 	    'f.topics.facet.limit': 50,
 	    'json.nl': 'map',
-	    'sort':'citationcount_i desc',
+	    'sort':'obsvtime_d desc',
 	    'rows':20,
 	    'stats': 'true',
 	    'stats.field': facet_numericfields.concat(['exptime_f', 'pubyear_i'])
 	};
+
+	//BUG is obsvtime_d optimized for sorting? Probably not. Whats equiv of citation count?
 	for (var name in params) {
 	    Manager.store.addByValue(name, params[name]);
 	}
 	Manager.doRequest();
-
+    
     });
 })(jQuery);

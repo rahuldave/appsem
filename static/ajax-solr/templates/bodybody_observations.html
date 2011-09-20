@@ -1,110 +1,112 @@
-<div class="left"> 
-  <h2 style="color:#B4241B">Current Selection</h2> 
+<div class="sidebar"> 
+<div class="well">
+  <h5 style="color:#B4241B">Current Selection</h5> 
   <ul id="selection"></ul> 
 
-  <h2>Search</h2> 
+  <h5>Search</h5> 
   <span id="search_help">(press ESC to close suggestions)</span> 
   <ul id="search"> 
     <input type="text" id="query" name="query"/> 
   </ul> 
   <br/>
 
-<h1>Data Facets</h1>
+<h3>Data Facets</h3>
 
   
-  <h2>Missions</h2> 
+  <h5>Missions</h5> 
   <div class="tagcloud" id="missions"></div>
 
-  <h2>Collections</h2> 
+  <h5>Collections</h5> 
   <div class="tagcloud" id="data_collection"></div>
 
-  <h2>Observation Types</h2> 
+  <h5>Observation Types</h5> 
   <div class="tagcloud" id="obsvtypes"></div>
   
-  <h2>Data Product Types</h2> 
+  <h5>Data Product Types</h5> 
   <div class="tagcloud" id="datatypes"></div>
   
-  <h2>Wavelengths</h2> 
+  <h5>Wavelengths</h5> 
   <div class="tagcloud" id="emdomains"></div>
   
-  <h2>Instruments</h2> 
+  <h5>Instruments</h5> 
   <div class="tagcloud" id="instruments"></div>
   
-  <h2>Targets</h2> 
+  <h5>Targets</h5> 
   <div class="tagcloud" id="targets"></div>
   
-  <h2>RA</h2>
+  <h5>RA</h5>
   <div id="ra"></div>
   <span id="ra_amount" class="rangevalues"></span>
   
-  <h2>DEC</h2>
+  <h5>DEC</h5>
   <div id="dec"></div>
   <span id="dec_amount" class="rangevalues"></span>
   
-  <h2>FOV</h2>
+  <h5>FOV</h5>
   <div id="fov"></div>
   <span id="fov_amount" class="rangevalues"></span>
 
-  <h2>Resolution</h2>
+  <h5>Resolution</h5>
   <div id="resolution"></div>
   <span id="resolution_amount" class="rangevalues"></span>
 
-  <h2>Time Resolution</h2>
+  <h5>Time Resolution</h5>
   <div id="t_resolution"></div>
   <span id="t_resolution_amount" class="rangevalues"></span>
 
-  <h2>When Observed?</h2>
+  <h5>When Observed?</h5>
   <div id="obsvtime"></div>
   <span id="obsvtime_amount" class="rangevalues"></span>
   
-  <h2>Exposure Time (ksec)</h2>
+  <h5>Exposure Time (ksec)</h5>
   <div id="exptime"></div>
   <span id="exptime_amount" class="rangevalues"></span>
   
-  <!--h2>Observation Ids</h2> 
+  <!--h5>Observation Ids</h5> 
   <div class="tagcloud" id="obsids"></div>
 
   <div class="clear"></div--> 
   <br/>
 <br/>
-  <h1>Publication Facets</h1>
-  <h2>Top Keywords</h2> 
+  <h3>Publication Facets</h3>
+  <h5>Top Keywords</h5> 
   <div class="tagcloud" id="keywords"></div> 
 
-  <h2>Top Authors</h2> 
+  <h5>Top Authors</h5> 
   <div class="tagcloud" id="author"></div>
 
 
   <!-- Taken out by Doug
-  <h2>Paper Types</h2> 
+  <h5>Paper Types</h5> 
   <div class="tagcloud" id="papertype"></div>
   -->
 
-  <h2>Year of Publication</h2>
+  <h5>Year of Publication</h5>
   <div id="pubyear"></div>
   <span id="pubyear_amount" class="rangevalues"></span>
   
 <div class="clear"></div> 
 <br/>
 <br/>
-<h1> Object Facets </h1>      
-  <h2>Object Types</h2> 
+<h3> Object Facets </h3>      
+  <h5>Object Types</h5> 
   <div class="tagcloud" id="objecttypes"></div>
   
-  <h2>Object Names</h2> 
+  <h5>Object Names</h5> 
   <div class="tagcloud" id="objectnames"></div>
    
       <div class="clear"></div> 
 <br/>
 <br/>
-<h1>Proposal Facets</h1>
-  <h2>Proposal Types</h2> 
+<h3>Proposal Facets</h3>
+  <h5>Proposal Types</h5> 
   <div class="tagcloud" id="proposaltype"></div>
   
-  <h2>Proposal PIs</h2> 
+  <h5>Proposal PIs</h5> 
   <div class="tagcloud" id="proposalpi"></div>
   
-  <h2>Proposal Ids</h2> 
+  <h5>Proposal Ids</h5> 
   <div class="tagcloud" id="propids"></div>
+</div>
 </div>
 {{>bodyright}}

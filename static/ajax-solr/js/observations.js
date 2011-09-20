@@ -3,7 +3,7 @@
  */
 
 var Manager;
-var SOLRURL2='http://localhost:8983/solr/';
+var SOLRURL2='http://localhost:8982/solr/';
 
 (function ($) {
     $(function () {

@@ -1,59 +1,23 @@
-<div id="header"> 
-	<table width="100%"> 
-  	    <tr><td> 
-            <div id="logos"> 
-            <table width="100%"> 
-            <tr><td class="titletd"> 
-            <!--a href="http://labs.adsabs.harvard.edu"> 
-                    <img src="/images/adslogo_labs.jpg" height="84" width="174" alt="[The NASA Astrophysics Data System]" /> 
-            </a-->
-            <h1 class="title">AstroExplorer&nbsp;<sup>&alpha;:1</sup></h1>
-            </td><td align="left"> 
-            <h1 id="pagetitle"><span id="searchbig"><input type="text"
-	id="querybig" name="query"/>&nbsp;&nbsp;<a class="go" id="gosearch" style="cursor: pointer;">Go</a></span></h1><br/>
-            <!--h1 id="pagetitle">Prototype ADSLabs/VAO Semantic Browser</h1><br/-->
-            <div>
-                <!--span class="tab {{isitchosensearch}}"><a href="/explorer/search">Search</a></span-->
-                <span class="tab {{isitchosenpublications}}"><a href="{{ siteprefix }}/explorer/publications">Publications</a></span>
-                <span class="tab {{isitchosenobjects}}"><a href="{{ siteprefix }}/explorer/objects">Objects</a></span>
-                <span class="tab {{isitchosenobservations}}"><a href="{{ siteprefix }}/explorer/observations">Observations</a></span>
-                <span class="tab {{isithosenproposals}}"><a href="{{ siteprefix }}/explorer/proposals">Proposals</a></span>
-				<span class="tab saved {{isitchosensaved}}"><a href="{{ siteprefix }}/explorer/saved">Saved</a></span>
-            </div>
-  		<!--h2>With RDF, Faceting, Objects, Data, and SOLR, Oh My!</h2--> 
-            </td><td valign="top" align="left">
-
-	      <span valign="top">
-	      <a id="loginhref" class="userlogin userloggedout"
-	      style="display: none; cursor: pointer;">login</a>
-	      <a id="logouthref" class="userloggedin"
-	      style="display: none; cursor: pointer;">logout</a>
-	      </span>
-	      <br/>
-	      <br/>
-
-	 		
-            <!--/td><td valign="bottom"-->
-            	<a href="http://www.usvao.org/"> 
-                        <img src="{{ staticprefix }}/images/vao.png" width="66" height="33" alt="VAO" /> 
-                </a>
-			
-				<a href="http://labs.adsabs.harvard.edu/"> 
-                        <img src="{{ staticprefix }}/images/ads_small.gif" width="35" height="31" alt="ADS" /> 
-                </a>
-			
-            	<a href="http://www.nasa.gov/"> 
-                        <img src="{{ staticprefix }}/images/NasaPNG.png" width="35" height="35" alt="NASA" /> 
-                </a>
-			
-			    <a href="http://www.nsf.gov/"> 
-                        <img src="{{ staticprefix }}/images/nsf1.gif" width="35" height="35" alt="[NSF]" /> 
-                </a>
-            </td></tr> 
-            </table> 
-            </div> 
-        </td></tr> 
-    </table> 
-  <!--h1>ADS Semantic Search</h1> 
-  <h2>With RDF, Faceting, Objects, Data, and SOLR, Oh My!</h2-->
+<div class="topbar">
+    <div class="topbar-inner">
+        <div class="container-fluid">
+            <a class="brand" href="#">AstroExplorer&nbsp;<sup>&alpha;:1</sup></a>
+            <ul class="nav"> 
+                <li class="{{ isitchosenpublications }}"><a href="{{ siteprefix }}/explorer/publications">Publications</a></li> 
+                <li class="{{ isitchosenobjects }}"><a href="{{ siteprefix }}/explorer/objects">Objects</a></li>
+                <li class="{{ isitchosenobservations }}"><a href="{{ siteprefix }}/explorer/observations">Observations</a></li>
+                <li class="{{ isitchosenproposals }}"><a href="{{ siteprefix }}/explorer/proposals">Proposals</a></li>
+                <li class="{{ isitchosensaved }}"><a href="{{ siteprefix }}/explorer/saved">Saved</a></li>
+            </ul>
+            <form class="pull-left">
+                <input type="text" id="querybig" name="query"/>&nbsp;&nbsp;<a  id="gosearch" style="cursor: pointer;">Go</a>
+            </form>
+            <p class="pull-right">
+                <a href="#" class="userlogin userloggedout" id="loginhref" style="display: none; cursor: pointer;">login</a>
+                <a id="logouthref" class="userloggedin" style="display: none; cursor: pointer;">logout</a>
+	        </p> 
+        </div> 
+    </div>
 </div>
+
+

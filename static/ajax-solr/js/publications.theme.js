@@ -17,7 +17,7 @@
 	    .click(thedocthis.deleteHandler(doc));
 
 	return $('<div class="publication"/>')
-	    .append($('<h2/>').append(doc.title + " ").append(thetitlelink).append(thepivot))
+	    .append($('<h5/>').append(doc.title + " ").append(thetitlelink).append(thepivot))
 	    .append($('<div class="bookmarks"/>'))
 	    .append($('<p class="links"/>').attr('id', 'links_' + doc.id))
 	    .append('<p id="links_' + doc.id + '" class="links"></p>')

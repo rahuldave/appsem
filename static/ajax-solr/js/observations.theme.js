@@ -19,7 +19,7 @@ function encodeObsuri(obsuri){
 	    .click(thedocthis.deleteHandler(doc));
     console.log("SNIP1", snippet[1].text());
 	return $('<div class="publication"/>')
-	    .append($('<h2/>').append(doc.obsv_mission_s + ": ").append(thetitlelink).append(thepivot))
+	    .append($('<h5/>').append(doc.obsv_mission_s + ": ").append(thetitlelink).append(thepivot))
 	    //.append("<b>Target</b>: " + doc.targets_s).
 	    .append($('<div class="bookmarks"/>'))
 	    .append($('<p class="links"/>').attr('id', 'links_' + encodeObsuri(doc.obsids_s)))

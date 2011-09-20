@@ -1,29 +1,4 @@
-* {
-  padding: 0;
-  margin: 0;
-} 
 
-body {
-  background: #fff url(../images/header.gif) repeat-x;
-  color: #333;
-  font-family: Verdana, Arial, Helvetica, sans-serif;
-  font-size: 12px;
-  line-height: 18px;
-}
-
-.tab {
-   border-top: 1px solid #aaa; 
-   border-left: 1px solid #aaa; 
-   border-right: 1px solid #aaa; 
-   padding-left: 10px;
-   padding-right: 10px;
-   padding-top: 5px;
-   padding-bottom: 3px;
-   float:bottom;
-}
-.chosen {
-background: #fff;
-}
 
 .saved {
    border-top: 1px solid black; 
@@ -36,15 +11,13 @@ background: #fff;
    font-weight:100;
    font-size: 15px;    
 }
-img {
-  border: none;
-}
+
 a {
   color: #6998f0;
   text-decoration: none;
 }
 
-a.save {
+.content a.save {
     color: #333;
     border: 1px solid;
     padding-left: 5px;
@@ -53,7 +26,7 @@ a.save {
     border-radius: 10px;
 }
 
-a.delete {
+.content a.delete {
     color: #333;
     border: 1px solid;
     padding-left: 5px;
@@ -62,72 +35,44 @@ a.delete {
     border-radius: 10px;
 }
 
-a:hover {
+.content a:hover {
   color: #000;
   text-decoration: underline;
 }
 
-#wrap {
-  width: 1000px;
-  margin: 0px auto;
-}
-.clear {
-  clear: both;
-}
-
-/* header */
-
-#header {
-  height: 90px;
-}
-
-/*#header td.titletd {
-    border: 1px solid;
-}*/
-#header h1 {
-  padding: 20px 0 5px 15px;
-  font-size: 18px;
-}
-#header h1.title {
-  padding: 5px 10px 5px 5px;
-  font-size: 30px;
-  letter-spacing: -2px;
-}
-
+/*
 a.go {
-    /*color: #333;*/
     font-size: 16px;
     border: 1px solid;
     padding-left: 5px;
     padding-right: 5px;
-    /*background: #FAF8CC;*/
     border-radius: 10px;
 }
-#header h3 {
-  padding-left: 10px;
-  color: #666;
-  font-size: 14px;
-  font-weight: 100;
-}
+*/
 
 /* right */
 
 .right {
-  float: right;
-  width: 538px;
-  padding: 10px 20px 10px 40px;
+  /*float: right;
+  width: 538px;*/
+  /*padding: 10px 20px 10px 40px;*/
   /*border-left: 1px solid #aaa;*/
   text-align: justify;
+  /*float:right;*/
   
 }
-.right h2 {
-  padding: 15px 0 5px 0;
+.right h5 {
+  margin-top: 10px;
   color: #B4241B;
-  font-size: 15px;
+  line-height:18px;
   font-weight: 100;
-  /*letter-spacing: -2px;*/
+  /*font-size: 15px;
+  padding: 15px 0 5px 0;
+  letter-spacing: -2px;*/
 }
-
+.right p {
+    margin-bottom:2px;
+}
 .full h1  {
   padding: 2px 0 2px 0;
   color: #B4241B;
@@ -190,14 +135,18 @@ a.go {
   border-right: 1px solid #aaa;
   border-left: 1px solid #aaa;
 }
-.left h1 {
+
+.well {
+    padding:-20px;
+}
+.well h3 {
   clear: left;
   /*padding-top: 20px;*/
   color: #B4241B;
   font-size: 15px;
   border-bottom: 1px solid #aaa;
 }
-.left h2 {
+.well h5 {
   clear: left;
   padding-top: 20px;
 /*  border-top: 1px solid #aaa;*/
@@ -285,7 +234,7 @@ p.links {
 
 span.pubitem {
     font-weight: bolder;
-    font-size: larger;
+    /*font-size: larger;*/
 }
 
 div.extrapaperinfo {
@@ -343,4 +292,13 @@ span.facetvalue:nth-child(odd) {
 
 .ac_loading { 
     background: white; 
+}
+
+/*overriding bootstrap*/
+.container-fluid > .sidebar {
+  float: left;
+  width: 380px;
+}
+.container-fluid > .content {
+  margin-left: 400px;
 }

@@ -694,7 +694,7 @@ function doPublications(req, res, next) {
     var view = {
         pagehead:{pagetitle:'Publications', pageclass:'publications', haswidgets: true,
 		  siteprefix: SITEPREFIX, staticprefix: SITEPREFIX+STATICPREFIX},
-        bodyhead:{isitchosenpublications:'chosen', current_url:req.url, siteprefix: SITEPREFIX, staticprefix: SITEPREFIX+STATICPREFIX},
+        bodyhead:{isitchosenpublications:'active', current_url:req.url, siteprefix: SITEPREFIX, staticprefix: SITEPREFIX+STATICPREFIX},
         bodybody:{bodyright:{siteprefix: SITEPREFIX, staticprefix: SITEPREFIX+STATICPREFIX}}
     };
     var lpartials = JSON.parse(globpartialsjson);
@@ -711,7 +711,7 @@ function doObservations(req, res, next) {
     var view = {
         pagehead:{pagetitle:'Observations', pageclass: 'observations', haswidgets: true,
 		  siteprefix: SITEPREFIX, staticprefix: SITEPREFIX+STATICPREFIX},
-        bodyhead:{isitchosenobservations:'chosen', current_url:req.url, siteprefix: SITEPREFIX, staticprefix: SITEPREFIX+STATICPREFIX},
+        bodyhead:{isitchosenobservations:'active', current_url:req.url, siteprefix: SITEPREFIX, staticprefix: SITEPREFIX+STATICPREFIX},
         bodybody:{bodyright:{siteprefix: SITEPREFIX, staticprefix: SITEPREFIX+STATICPREFIX}}
     };
     var lpartials = JSON.parse(globpartialsjson);
@@ -849,7 +849,7 @@ function doSaved(req, res, next) {
     var view = {
         pagehead:{pagetitle:'Saved', pageclass: 'saved', haswidgets: false,
 		  siteprefix: SITEPREFIX, staticprefix: SITEPREFIX+STATICPREFIX},
-        bodyhead:{isitchosensaved:'chosen', current_url:req.url, siteprefix: SITEPREFIX, staticprefix: SITEPREFIX+STATICPREFIX},
+        bodyhead:{isitchosensaved:'active', current_url:req.url, siteprefix: SITEPREFIX, staticprefix: SITEPREFIX+STATICPREFIX},
         bodybody:{siteprefix: SITEPREFIX, staticprefix: SITEPREFIX+STATICPREFIX}
     };
     var lpartials = JSON.parse(globpartialsjson);
@@ -953,7 +953,7 @@ server.use(SITEPREFIX+'/savedpubs', getSavedPubs);
 // ajax-loader.gif and this way avoids hacking ResultWidget.2.0.js
 //
 server.use('/images', connect.static(__dirname + '/static/ajax-solr/images/'));
-
+server.use('/bootstrap', connect.static(__dirname + '/bootstrap/'));
 function runServer(port) {
     var now = new Date();
     var url = 'http://localhost:' + port + SITEPREFIX + '/explorer/publications/';
@@ -962,6 +962,6 @@ function runServer(port) {
 }
 
 var migration = require('./migration');
-migration.validateRedis(redis_client, function () { runServer(3002); });
-
+migration.validateRedis(redis_client, function () { runServer(3003); });
+//<!--span class="tab {{isitchosenpublications}}"><a href="{{ siteprefix }}/explorer/publications">Publications</a></span-->
 //http://adsabs.harvard.edu/cgi-bin/nph-manage_account?man_cmd=logout&man_url=http%3A//labs.adsabs.harvard.edu/ui/%3Frefresh%3D1eec2387-96cb-11e0-a591-842b2b65702a

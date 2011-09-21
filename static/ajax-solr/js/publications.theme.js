@@ -5,180 +5,210 @@
 
     var fancyboxOpts = { 'autoDimensions': false, 'width': 1024, 'height': 768 };
 
-    AjaxSolr.theme.prototype.result = function (doc, snippet, thetitlelink, thepivot, thedocthis) {
+    AjaxSolr.theme.prototype.result = function (doc, thetitlestuff, snippet, thedocthis) {
 
-	var $morea = $('<a href="#" class="less" id="am_'+doc.id+'">more</a>')
-	    .click(thedocthis.moreHandler(doc));
-	var $lessa = $('<a href="#" id="al_'+doc.id+'" style="display:none">less</a>')
-	    .click(thedocthis.lessHandler(doc));
-	var $bookmark = $('<a href="#" class="save" id="savepub_'+doc.id+'">save</a>')
-	    .click(thedocthis.saveHandler(doc));
-	var $unbookmark = $('<a href="#" class="delete" id="delpub_'+doc.id+'" style="display:none">delete</a>')
-	    .click(thedocthis.deleteHandler(doc));
+	    var $morea = $('<a href="#" class="less" id="am_'+doc.id+'">more</a>')
+	        .click(thedocthis.moreHandler(doc));
+	    var $lessa = $('<a href="#" id="al_'+doc.id+'" style="display:none">less</a>')
+	        .click(thedocthis.lessHandler(doc));
+	    var $bookmark = $('<a href="#" class="save" id="savepub_'+doc.id+'">save</a>')
+	        .click(thedocthis.saveHandler(doc));
+	    var $unbookmark = $('<a href="#" class="delete" id="delpub_'+doc.id+'" style="display:none">delete</a>')
+	        .click(thedocthis.deleteHandler(doc));
 
-	return $('<div class="publication"/>')
-	    .append($('<h5/>').append(doc.title + " ").append(thetitlelink).append(thepivot))
-	    .append($('<div class="bookmarks"/>'))
-	    .append($('<p class="links"/>').attr('id', 'links_' + doc.id))
-	    .append('<p id="links_' + doc.id + '" class="links"></p>')
-	    .append(snippet[0])
-	    .append(snippet[1]
-		    .attr('class', 'extrapaperinfo')
-		    .attr('id', 'p_' + doc.id))
-	    .append($('<div class="lessmore"></div>').append($bookmark).append($unbookmark).append($morea).append($lessa));
+	    return $('<div class="publication"/>')
+	                .append(thetitlestuff.$title
+	                    .append(thetitlestuff.$titlelink)
+	                    .append(thetitlestuff.$pivot)
+	                )
+	                .append($('<div class="bookmarks"/>'))
+	                .append($('<p class="links"/>').attr('id', 'links_' + doc.id))
+	                .append('<p id="links_' + doc.id + '" class="links"></p>')
+	                .append(snippet[0])
+	                .append(snippet[1]
+		                .attr('class', 'extrapaperinfo')
+		                .attr('id', 'p_' + doc.id)
+		            )
+	                .append($('<div class="lessmore"></div>')
+	                    .append($bookmark)
+	                    .append($unbookmark)
+	                    .append($morea)
+	                    .append($lessa)
+	                );
     }
 
-AjaxSolr.theme.prototype.title = function (doc) {
-    return $('<a class="iframe"/>').text('(Link)')
-	.attr('href', "http://labs.adsabs.harvard.edu/ui/abs/"+doc.bibcode)
-	.fancybox(fancyboxOpts);
-}
+    AjaxSolr.theme.prototype.title = function (doc) {
+        return $('<h5/>').append(doc.title + " ")
+    }
 
+    AjaxSolr.theme.prototype.titlelink = function (doc) {
+        return $('<a class="iframe"/>').text('(Link)')
+            .attr('href', "http://labs.adsabs.harvard.edu/ui/abs/"+doc.bibcode)
+            .fancybox(fancyboxOpts);
+    }
+
+    AjaxSolr.theme.prototype.authors = function (doc, facetHandler, authors) {
+	        var $out = $('<span class="authors"/>');
+	        for (var i in authors) {
+	            if (i != 0) { $out.append('; '); }
+	            $out.append($('<a href="#"/>')
+			        .text(authors[i])
+			        .click(facetHandler(self, 'author_s', authors[i])));
+	        }
+	        return $out;
+    }
+
+    AjaxSolr.theme.prototype.authors = function (doc, facetHandler, year) {
+	        return $('<a href="#"/>')
+	            .text(year)
+	            .click(facetHandler(self, 'pubyear_i', '['+year+' TO ' + year +']'));
+    }
+    
     // for now have pivot that requires a doc argument (unused) and
     // pivot_link that doesn't.
     //
     AjaxSolr.theme.prototype.pivot = function (doc, handler){
-	return $('<a href="#"/>').text(' [P]').click(handler);
+        return $('<a href="#"/>').text(' [P]').click(handler);
     }
 
     AjaxSolr.theme.prototype.pivot_link = function (handler) {
-	return $('<a href="#"/>').text(' [P]').click(handler);
+        return $('<a href="#"/>').text(' [P]').click(handler);
     }
     
     AjaxSolr.theme.prototype.facet_link = function (value, handler) {
-	return $('<a href="#"/>').text(value).click(handler);
+        return $('<a href="#"/>').text(value).click(handler);
     };
 
     function getSimbadURI(ele) {
-	return 'http://simbad.u-strasbg.fr/simbad/sim-id?Ident='
-	    + encodeURIComponent(ele)
-	    + '&NbIdent=1&Radius=2&Radius.unit=arcmin&submit=submit+id';
+        return 'http://simbad.u-strasbg.fr/simbad/sim-id?Ident='
+            + encodeURIComponent(ele)
+            + '&NbIdent=1&Radius=2&Radius.unit=arcmin&submit=submit+id';
     }
 
     function makeSimbadLink(ele) {
-	return $('<a class="iframe"></a>')
-	    .text(ele)
-	    .attr('href', getSimbadURI(ele))
-	    .fancybox(fancyboxOpts);
+	    return $('<a class="iframe"></a>')
+	        .text(ele)
+	        .attr('href', getSimbadURI(ele))
+	        .fancybox(fancyboxOpts);
     }
 
     // Need mission specific info to determine what to link to here
     //
     function getChandraObsidlink (label, link) {
-	if (link === undefined) {
-	    link = label;
-	}
+	    if (link === undefined) {
+	        link = label;
+	    }
 
-	return $('<a class="iframe"/>')
-	    .text(label)
-	    .attr('href', 'http://cda.harvard.edu/chaser/ocatList.do?obsid='+link)
-	    .fancybox(fancyboxOpts);
+	    return $('<a class="iframe"/>')
+	        .text(label)
+	        .attr('href', 'http://cda.harvard.edu/chaser/ocatList.do?obsid='+link)
+	        .fancybox(fancyboxOpts);
     }
 
     function getMASTObsidlink (mission, label, link) {
-	if (link === undefined) {
-	    link = label;
-	}
+	    if (link === undefined) {
+	        link = label;
+	    }
 
-	return $('<a class="iframe"></a>')
-	    .text(label)
-	    .attr('href', 'http://archive.stsci.edu/cgi-bin/mastpreview?mission='+mission+'&dataid='+link)
-	    .fancybox(fancyboxOpts);
+	    return $('<a class="iframe"></a>')
+	        .text(label)
+	        .attr('href', 'http://archive.stsci.edu/cgi-bin/mastpreview?mission='+mission+'&dataid='+link)
+	        .fancybox(fancyboxOpts);
     }
 
     var obslinks = {
-	'CHANDRA': getChandraObsidlink,
+	    'CHANDRA': getChandraObsidlink,
 
-	'euve': function (obsid) { return getMASTObsidlink('euve', obsid); },
-	'fuse': function (obsid) { return getMASTObsidlink('fuse', obsid); },
-	'hpol': function (obsid) { return getMASTObsidlink('hpol', obsid, obsid.slice(8, obsid.length-3)); },
-	'hut':  function (obsid) { return getMASTObsidlink('hut',  obsid, obsid.split('=')[0]); },
-	'iue':  function (obsid) { return getMASTObsidlink('iue',  obsid, obsid.slice(0, obsid.length-4)); },
-	'wuppe': function (obsid) { return getMASTObsidlink('wuppe', obsid); }
+	    'euve': function (obsid) { return getMASTObsidlink('euve', obsid); },
+	    'fuse': function (obsid) { return getMASTObsidlink('fuse', obsid); },
+	    'hpol': function (obsid) { return getMASTObsidlink('hpol', obsid, obsid.slice(8, obsid.length-3)); },
+	    'hut':  function (obsid) { return getMASTObsidlink('hut',  obsid, obsid.split('=')[0]); },
+	    'iue':  function (obsid) { return getMASTObsidlink('iue',  obsid, obsid.slice(0, obsid.length-4)); },
+	    'wuppe': function (obsid) { return getMASTObsidlink('wuppe', obsid); }
 
     };
 
     function getObslink(mission, obsid) {
-	if (obslinks[mission] === undefined) {
-	    alert("Internal error: no idea how to get link to mission=" + mission + " obsid=" + obsid);
-	} else {
-	    return obslinks[mission](obsid);
-	}
+	    if (obslinks[mission] === undefined) {
+	        alert("Internal error: no idea how to get link to mission=" + mission + " obsid=" + obsid);
+	    } else {
+	        return obslinks[mission](obsid);
+	    }
     }
 
     function pubLabel(label) {
-	return $('<span class="pubitem"/>').text(label);
+        return $('<span class="pubitem"/>').text(label);
     }
 
     function makePivotHandler(pivot) {
-	return function () {
-	    // use global Manager which is not ideal
-	    Manager.store.remove('fq');
-	    Manager.store.addByValue('fq', pivot);
-	    Manager.doRequest(0);
-	    return false;
-	};
+	    return function () {
+	        // use global Manager which is not ideal
+	        Manager.store.remove('fq');
+	        Manager.store.addByValue('fq', pivot);
+	        Manager.doRequest(0);
+	        return false;
+	    };
     }
 
     function makePivotLink(pivot) {
-	return AjaxSolr.theme('pivot_link', makePivotHandler(pivot));
+        return AjaxSolr.theme('pivot_link', makePivotHandler(pivot));
     }
 
 
     function addObjectArea(parentarea, docid, objnames, objtypes) {
-	if (objnames === undefined) { return; }
+	    if (objnames === undefined) { return; }
 
-	// We want a sorted list here. We could come up with a sort
-	// function to handle sorting "M80" and "M81" but for now
-	// live with the current system.
-	//
-	var objinfo = [];
-	var i, l;
-	for (i = 0, l = objnames.length; i < l; i+= 1) {
-	    objinfo.push({"name": objnames[i], "objtype": objtypes[i]});
-	}
-	objinfo.sort(function(a,b) { return a.name.localeCompare(b.name); });
+	    // We want a sorted list here. We could come up with a sort
+	    // function to handle sorting "M80" and "M81" but for now
+	    // live with the current system.
+	    //
+	    var objinfo = [];
+	    var i, l;
+	    for (i = 0, l = objnames.length; i < l; i+= 1) {
+	        objinfo.push({"name": objnames[i], "objtype": objtypes[i]});
+	    }
+	    objinfo.sort(function(a,b) { return a.name.localeCompare(b.name); });
 
-	var $otable = $('<table class="tablesorter"/>')
-	    .attr('id', 'objs_' + docid)
-	    .append($('<thead/>')
-		    .append('<tr><th>Name</th><th>Type</th></tr>'));
+	    var $otable = $('<table class="tablesorter"/>')
+	        .attr('id', 'objs_' + docid)
+	        .append($('<thead/>')
+		        .append('<tr><th>Name</th><th>Type</th></tr>'));
 
-	var $obody = $('<tbody/>');
-	for (i = 0, l = objinfo.length; i < l; i += 1) {
-	    var oname = objinfo[i].name;
-	    var otype = objinfo[i].objtype;
-	    $obody.append($('<tr/>')
-			  .append($('<td/>')
-				  .append(makeSimbadLink(oname))
-				  .append(makePivotLink('objectnames_s:' + AjaxSolr.Parameter.escapeValue(oname)))
-				 )
-			  .append($('<td/>')
-				  .text(otype)
-				  .append(makePivotLink('objecttypes_s:' + AjaxSolr.Parameter.escapeValue(otype)))
-				 )
-			 );
-	} 
+	    var $obody = $('<tbody/>');
+	    for (i = 0, l = objinfo.length; i < l; i += 1) {
+	        var oname = objinfo[i].name;
+	        var otype = objinfo[i].objtype;
+	        $obody.append($('<tr/>')
+			      .append($('<td/>')
+				      .append(makeSimbadLink(oname))
+				      .append(makePivotLink('objectnames_s:' + AjaxSolr.Parameter.escapeValue(oname)))
+				  )
+			      .append($('<td/>')
+				      .text(otype)
+				      .append(makePivotLink('objecttypes_s:' + AjaxSolr.Parameter.escapeValue(otype)))
+				  )
+			);
+	    } 
 
-	$otable.append($obody);
-	parentarea.append($('<div class="objectdataarea"/>')
-			  .append(pubLabel("Objects:"))
-			  .append(' ')
-			  .append($otable));
-	parentarea.append($('<br/>'));
+	    $otable.append($obody);
+	    parentarea.append($('<div class="objectdataarea"/>')
+			      .append(pubLabel("Objects:"))
+			      .append(' ')
+			      .append($otable));
+	    parentarea.append($('<br/>'));
 
-	// as with the data area, this should only be needed when the table
-	// is actually viewed.
-	$otable.tablesorter();
+	    // as with the data area, this should only be needed when the table
+	    // is actually viewed.
+	    $otable.tablesorter();
     }
 
     // sort on exposure length, but we want largest first
     function compareObs(a, b) {
-	// return a.obsid.localeCompare(b.obsid);
-	var va = a.exptime, vb = b.exptime;
-	if (va > vb)      { return -1; }
-	else if (va < vb) { return 1; }
-	else              { return 0; }
+	    // return a.obsid.localeCompare(b.obsid);
+	    var va = a.exptime, vb = b.exptime;
+	    if (va > vb)      { return -1; }
+	    else if (va < vb) { return 1; }
+	    else              { return 0; }
     } 
 
     // Create the data area for this publication. Some code could probably be
@@ -337,10 +367,11 @@ AjaxSolr.theme.prototype.title = function (doc) {
     } // addDataArea
 
     AjaxSolr.theme.prototype.snippet = function (doc, authors, year) {
-	var $output1 = $('<p/>')
+	var $output1 = $('<p class="links"/>')
 	    .append(pubLabel('Authors:'))
 	    // .append(' ' + doc.author.join(' ; '))
-	    .append(' ').append(authors)
+	    .append(' ')
+	    .append(authors)
 	    .append('<br/>')
 	    .append(pubLabel('Year:'))
 	    // .append(' ' + doc.pubyear_i + ' ')
@@ -386,11 +417,7 @@ AjaxSolr.theme.prototype.no_items_found = function () {
   return 'no items found in current selection';
 };
 
-AjaxSolr.theme.prototype.list_items = function (list, items, separator) {
-  //var $list=$('#'+list);
-  //console.log(list);
-  //console.log($list);
-  var $list=$(list);
+AjaxSolr.theme.prototype.list_items = function ($list, items, separator) {
   $list.empty();
   for (var i = 0, l = items.length; i < l; i++) {
     var li = jQuery('<li/>');
@@ -412,6 +439,7 @@ AjaxSolr.theme.prototype.list_items = function (list, items, separator) {
     }
     $list.append(li);
   }
+  return $list
   //console.log("C"+$list);
 };
 

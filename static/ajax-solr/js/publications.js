@@ -18,7 +18,7 @@ var Manager;
 	}));
 	Manager.addWidget(new AjaxSolr.PagerWidget({
 	    id: 'pager',
-	    target: '#pager',
+	    target: $('#pager'),
 	    prevLabel: '&lt;',
 	    nextLabel: '&gt;',
 	    innerWindow: 1,

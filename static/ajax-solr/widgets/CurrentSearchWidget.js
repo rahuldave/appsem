@@ -144,7 +144,7 @@
 	    }
 	    
 	    if (list.length) {
-		AjaxSolr.theme('list_items', this.target, list);
+		AjaxSolr.theme('list_items', $(this.target), list);
 	    } else {
 		$(this.target).html('<div>Viewing all documents!</div>');
 	    }

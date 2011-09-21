@@ -7,20 +7,20 @@
     // should we be using facetLinks?
     //
     function getAuthors(self, facetHandler, authors) {
-	var $out = $('<span class="authors"/>');
-	for (var i in authors) {
-	    if (i != 0) { $out.append('; '); }
-	    $out.append($('<a href="#"/>')
-			.text(authors[i])
-			.click(facetHandler(self, 'author_s', authors[i])));
-	}
-	return $out;
+	    var $out = $('<span class="authors"/>');
+	    for (var i in authors) {
+	        if (i != 0) { $out.append('; '); }
+	        $out.append($('<a href="#"/>')
+			    .text(authors[i])
+			    .click(facetHandler(self, 'author_s', authors[i])));
+	    }
+	    return $out;
     }
 
     function getYear(self, facetHandler, year) {
-	return $('<a href="#"/>')
-	    .text(year)
-	    .click(facetHandler(self, 'pubyear_i', '['+year+' TO ' + year +']'));
+	    return $('<a href="#"/>')
+	        .text(year)
+	        .click(facetHandler(self, 'pubyear_i', '['+year+' TO ' + year +']'));
     }
 
     // copy of facetHandler; this is not ideal bit it should be a temporary
@@ -28,13 +28,13 @@
     // the author list of a publication.
     //
     function facetHandler2(self, facet_field, facet_value) {
-	return function () {
-	    // console.log("For facet "+facet_field+" Trying value "+facet_value);
+	    return function () {
+	        // console.log("For facet "+facet_field+" Trying value "+facet_value);
             self.manager.store.remove('fq');
             self.manager.store.addByValue('fq', facet_field + ':' + AjaxSolr.Parameter.escapeValue(facet_value));
             self.manager.doRequest(0);
             return false;
-	};
+	    };
     }
 	
 AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
@@ -44,22 +44,28 @@ AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
     docids=[];
     for (var i = 0, l = this.manager.response.response.docs.length; i < l; i++) {
       var doc = this.manager.response.response.docs[i];
+      var keywords = this.facetLinks("keywords_s", doc.keywords_s);
+      var authors= this.facetLinks("author_s", doc.author);
       $(this.target).append(AjaxSolr.theme('result', doc, 
-					   AjaxSolr.theme('snippet', doc,
-							  getAuthors(self, facetHandler2, doc.author),
-							  getYear(self, facetHandler2, doc.pubyear_i)
-							 ), 
-					   AjaxSolr.theme('title', doc),
-					   AjaxSolr.theme('pivot', doc, this.facetHandler('bibcode', doc.bibcode)),
-					   self)
-			   );
+        {
+            $title: AjaxSolr.theme('title', doc),
+            $titlelink: AjaxSolr.theme('titlelink', doc),
+            $pivot: AjaxSolr.theme('pivot', doc, this.facetHandler('bibcode', doc.bibcode))
+        },
+        AjaxSolr.theme('snippet', doc,
+            //getAuthors(self, facetHandler2, doc.author),
+            AjaxSolr.theme('list_items', $('<span class="authors"/>'), authors, "; "),
+            getYear(self, facetHandler2, doc.pubyear_i)
+        ), 
+        self)
+      );
       //$(this.target).append(AjaxSolr.theme('result', doc, "DOGDOG"));
-      var items = [];
+
       //alert(doc.keywords_s);
-      var gaga=this.facetLinks("keywords_s", doc.keywords_s);
-      items.concat(gaga);
+      //items.concat(this.facetLinks("keywords_s", doc.keywords_s));
+      //authors.concat(this.facetLinks("authors_s", doc.authors_s));
       //console.log(gaga.length+","+items.length);
-      AjaxSolr.theme('list_items', '#links_' + doc.id, gaga, "| ");
+      AjaxSolr.theme('list_items', $('#links_' + doc.id), keywords, "| ");
       docids.push(doc.id);
     }
     console.log("DOCIDS", docids);

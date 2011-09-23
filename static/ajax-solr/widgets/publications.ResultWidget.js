@@ -4,38 +4,6 @@
 
 (function ($) {
 
-    // should we be using facetLinks?
-    //
-    function getAuthors(self, facetHandler, authors) {
-	    var $out = $('<span class="authors"/>');
-	    for (var i in authors) {
-	        if (i != 0) { $out.append('; '); }
-	        $out.append($('<a href="#"/>')
-			    .text(authors[i])
-			    .click(facetHandler(self, 'author_s', authors[i])));
-	    }
-	    return $out;
-    }
-
-    function getYear(self, facetHandler, year) {
-	    return $('<a href="#"/>')
-	        .text(year)
-	        .click(facetHandler(self, 'pubyear_i', '['+year+' TO ' + year +']'));
-    }
-
-    // copy of facetHandler; this is not ideal bit it should be a temporary
-    // addition, as the display of authors is going to change to match
-    // the author list of a publication.
-    //
-    function facetHandler2(self, facet_field, facet_value) {
-	    return function () {
-	        // console.log("For facet "+facet_field+" Trying value "+facet_value);
-            self.manager.store.remove('fq');
-            self.manager.store.addByValue('fq', facet_field + ':' + AjaxSolr.Parameter.escapeValue(facet_value));
-            self.manager.doRequest(0);
-            return false;
-	    };
-    }
 	
 AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
   afterRequest: function () {
@@ -44,6 +12,7 @@ AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
     docids=[];
     for (var i = 0, l = this.manager.response.response.docs.length; i < l; i++) {
       var doc = this.manager.response.response.docs[i];
+      var year=doc.pubyear_i;
       var keywords = this.facetLinks("keywords_s", doc.keywords_s);
       var authors= this.facetLinks("author_s", doc.author);
       $(this.target).append(AjaxSolr.theme('result', doc, 
@@ -55,16 +24,10 @@ AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
         AjaxSolr.theme('snippet', doc,
             //getAuthors(self, facetHandler2, doc.author),
             AjaxSolr.theme('list_items', $('<span class="authors"/>'), authors, "; "),
-            getYear(self, facetHandler2, doc.pubyear_i)
-        ), 
-        self)
+            AjaxSolr.theme('facet_link', year, this.facetHandler('pubyear_i','['+year+' TO ' + year +']' ))
+            //getYear(self, facetHandler2, doc.pubyear_i)
+        )
       );
-      //$(this.target).append(AjaxSolr.theme('result', doc, "DOGDOG"));
-
-      //alert(doc.keywords_s);
-      //items.concat(this.facetLinks("keywords_s", doc.keywords_s));
-      //authors.concat(this.facetLinks("authors_s", doc.authors_s));
-      //console.log(gaga.length+","+items.length);
       AjaxSolr.theme('list_items', $('#links_' + doc.id), keywords, "| ");
       docids.push(doc.id);
     }

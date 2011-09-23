@@ -5,7 +5,7 @@
 
     var fancyboxOpts = { 'autoDimensions': false, 'width': 1024, 'height': 768 };
 
-    AjaxSolr.theme.prototype.result = function (doc, thetitlestuff, snippet, thedocthis) {
+    AjaxSolr.theme.prototype.result = function (doc, thetitlestuff, snippet) {
 
 	    var $morea = $('<a href="#" class="less" id="am_'+doc.id+'">more</a>')
 	        .click(thedocthis.moreHandler(doc));
@@ -40,6 +40,7 @@
     AjaxSolr.theme.prototype.title = function (doc) {
         return $('<h5/>').append(doc.title + " ")
     }
+
 
     AjaxSolr.theme.prototype.titlelink = function (doc) {
         return $('<a class="iframe"/>').text('(Link)')
@@ -79,6 +80,84 @@
         return $('<a href="#"/>').text(value).click(handler);
     };
 
+    AjaxSolr.theme.prototype.snippet = function (doc, authors, year) {
+	    var $output1 = $('<p class="links"/>')
+	        .append(pubLabel('Authors:'))
+	        // .append(' ' + doc.author.join(' ; '))
+	        .append(' ')
+	        .append(authors)
+	        .append('<br/>')
+	        .append(pubLabel('Year:'))
+	        // .append(' ' + doc.pubyear_i + ' ')
+	        .append(' ')
+	        .append(year)
+	        .append(' ')
+	        .append(pubLabel('BibCode:'))
+	        .append(' ' + doc.bibcode + ' ')
+	        .append(pubLabel('Citations:'))
+	        .append(' ' + doc.citationcount_i);
+
+	    var $output2 = $('<div/>');
+
+	    var objectnames = doc.objectnames_s;
+	    var obsids = doc.obsids_s;
+
+	    addObjectArea($output2, doc.id, doc.objectnames_s, doc.objecttypes_s);
+	    addDataArea($output2, doc.id, doc.bibcode, 
+		        doc.obsids_s, doc.exptime_f,
+		        doc.obsvtime_d, doc.targets_s,
+		        doc.ra_f, doc.dec_f);
+
+	    // do we need to HTML escape this text?
+	    // 
+	    var abtext = doc.abstract;
+	    var $abstract = $('<div class="abstracttext"><span class="pubitem">Abstract:</span> '+abtext+'</div>');
+	    $output2.append($abstract);
+	    return [$output1, $output2];
+
+    }; // Ajax.theme.prototype.snippet
+
+    AjaxSolr.theme.prototype.tag = function (value, thecount, weight, handler, handler2) {
+      
+      var $thelink=$('<a href="#"/>').text(value).click(handler);
+      var $thetext=$('<span/>').text('('+thecount+')');
+      //var $thepivot=$('<a href="#""/>').text('P').click(handler2);
+      var $span=$('<span class="tagcloud_item"/>').addClass('tagcloud_size_' + weight).append('[').append($thelink).append($thetext).append(']');
+      //return [$thelink, $thetext, $thepivot]
+      return $span;
+    };
+
+    AjaxSolr.theme.prototype.no_items_found = function () {
+      return 'no items found in current selection';
+    };
+
+    AjaxSolr.theme.prototype.list_items = function ($list, items, separator) {
+      $list.empty();
+      for (var i = 0, l = items.length; i < l; i++) {
+        var li = jQuery('<li/>');
+        //console.log("li"+li);
+        if (AjaxSolr.isArray(items[i])) {
+          for (var j = 0, m = items[i].length; j < m; j++) {
+            if (separator && j > 0) {
+              li.append(separator);
+            }
+            li.append(items[i][j]);
+          }
+        }
+        else {
+          //console.log("here");
+          if (separator && i > 0) {
+            li.append(separator);
+          }
+          li.append(items[i]);
+        }
+        $list.append(li);
+      }
+      return $list;
+      //console.log("C"+$list);
+    };
+    
+    
     function getSimbadURI(ele) {
         return 'http://simbad.u-strasbg.fr/simbad/sim-id?Ident='
             + encodeURIComponent(ele)
@@ -366,81 +445,6 @@
 	    
     } // addDataArea
 
-    AjaxSolr.theme.prototype.snippet = function (doc, authors, year) {
-	var $output1 = $('<p class="links"/>')
-	    .append(pubLabel('Authors:'))
-	    // .append(' ' + doc.author.join(' ; '))
-	    .append(' ')
-	    .append(authors)
-	    .append('<br/>')
-	    .append(pubLabel('Year:'))
-	    // .append(' ' + doc.pubyear_i + ' ')
-	    .append(' ')
-	    .append(year)
-	    .append(' ')
-	    .append(pubLabel('BibCode:'))
-	    .append(' ' + doc.bibcode + ' ')
-	    .append(pubLabel('Citations:'))
-	    .append(' ' + doc.citationcount_i);
 
-	var $output2 = $('<div/>');
-
-	var objectnames = doc.objectnames_s;
-	var obsids = doc.obsids_s;
-
-	addObjectArea($output2, doc.id, doc.objectnames_s, doc.objecttypes_s);
-	addDataArea($output2, doc.id, doc.bibcode, 
-		    doc.obsids_s, doc.exptime_f,
-		    doc.obsvtime_d, doc.targets_s,
-		    doc.ra_f, doc.dec_f);
-
-	// do we need to HTML escape this text?
-	// 
-	var abtext = doc.abstract;
-	var $abstract = $('<div class="abstracttext"><span class="pubitem">Abstract:</span> '+abtext+'</div>');
-	$output2.append($abstract);
-	return [$output1, $output2];
-
-    }; // Ajax.theme.prototype.snippet
-
-AjaxSolr.theme.prototype.tag = function (value, thecount, weight, handler, handler2) {
-  
-  var $thelink=$('<a href="#"/>').text(value).click(handler);
-  var $thetext=$('<span/>').text('('+thecount+')');
-  //var $thepivot=$('<a href="#""/>').text('P').click(handler2);
-  var $span=$('<span class="tagcloud_item"/>').addClass('tagcloud_size_' + weight).append('[').append($thelink).append($thetext).append(']');
-  //return [$thelink, $thetext, $thepivot]
-  return $span;
-};
-
-AjaxSolr.theme.prototype.no_items_found = function () {
-  return 'no items found in current selection';
-};
-
-AjaxSolr.theme.prototype.list_items = function ($list, items, separator) {
-  $list.empty();
-  for (var i = 0, l = items.length; i < l; i++) {
-    var li = jQuery('<li/>');
-    //console.log("li"+li);
-    if (AjaxSolr.isArray(items[i])) {
-      for (var j = 0, m = items[i].length; j < m; j++) {
-        if (separator && j > 0) {
-          li.append(separator);
-        }
-        li.append(items[i][j]);
-      }
-    }
-    else {
-      //console.log("here");
-      if (separator && i > 0) {
-        li.append(separator);
-      }
-      li.append(items[i]);
-    }
-    $list.append(li);
-  }
-  return $list
-  //console.log("C"+$list);
-};
 
 })(jQuery);

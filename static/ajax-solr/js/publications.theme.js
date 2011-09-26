@@ -5,7 +5,7 @@
 
     var fancyboxOpts = { 'autoDimensions': false, 'width': 1024, 'height': 768 };
 
-    AjaxSolr.theme.prototype.result = function (doc, thetitlestuff, snippet) {
+    AjaxSolr.theme.prototype.result = function (doc, thetitlestuff, snippet, thedocthis) {
 
 	    var $morea = $('<a href="#" class="less" id="am_'+doc.id+'">more</a>')
 	        .click(thedocthis.moreHandler(doc));

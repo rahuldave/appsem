@@ -26,8 +26,9 @@ AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
             AjaxSolr.theme('list_items', $('<span class="authors"/>'), authors, "; "),
             AjaxSolr.theme('facet_link', year, this.facetHandler('pubyear_i','['+year+' TO ' + year +']' ))
             //getYear(self, facetHandler2, doc.pubyear_i)
-        )
-      );
+        ),
+        self
+      ));
       AjaxSolr.theme('list_items', $('#links_' + doc.id), keywords, "| ");
       docids.push(doc.id);
     }

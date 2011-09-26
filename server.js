@@ -954,6 +954,7 @@ server.use(SITEPREFIX+'/savedpubs', getSavedPubs);
 //
 server.use('/images', connect.static(__dirname + '/static/ajax-solr/images/'));
 server.use('/bootstrap', connect.static(__dirname + '/bootstrap/'));
+server.use('/backbone', connect.static(__dirname + '/backbone/'));
 function runServer(port) {
     var now = new Date();
     var url = 'http://localhost:' + port + SITEPREFIX + '/explorer/publications/';

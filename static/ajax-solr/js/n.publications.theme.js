@@ -5,7 +5,7 @@
 
     var fancyboxOpts = { 'autoDimensions': false, 'width': 1024, 'height': 768 };
 
-    AjaxSolr.theme.prototype.result = function (doc, thetitlestuff, snippet, thedocthis) {
+    AjaxSolr.theme.prototype.result = function (doc, $thetitlestuff, snippet, thedocthis) {
 
 	    var $morea = $('<a href="#" class="less" id="am_'+doc.id+'">more</a>')
 	        .click(thedocthis.moreHandler(doc));
@@ -16,11 +16,11 @@
 	    var $unbookmark = $('<a href="#" class="delete" id="delpub_'+doc.id+'" style="display:none">delete</a>')
 	        .click(thedocthis.deleteHandler(doc));
 
-	    return $('<div class="publication"/>')
-	                .append(thetitlestuff.$title
-	                    .append(thetitlestuff.$titlelink)
-	                    .append(thetitlestuff.$pivot)
-	                )
+	    return $("<div/>")
+	                .append($thetitlestuff)
+	                //    .append(thetitlestuff.$titlelink)
+	                //    .append(thetitlestuff.$pivot)
+	                //)
 	                .append($('<div class="bookmarks"/>'))
 	                .append($('<p class="links"/>').attr('id', 'links_' + doc.id))
 	                .append('<p id="links_' + doc.id + '" class="links"></p>')
@@ -38,7 +38,13 @@
     }
 
     AjaxSolr.theme.prototype.title = function (doc) {
+        var $titlelink=$('<a class="iframe"/>').text('(Link)')
+            .attr('href', "http://labs.adsabs.harvard.edu/ui/abs/"+doc.bibcode)
+            .fancybox(fancyboxOpts);
+        var $titlepivot=AjaxSolr.theme.prototype.pivot();
         return $('<h5/>').append(doc.title + " ")
+                         .append($titlelink)
+                         .append($titlepivot);
     }
 
 
@@ -68,8 +74,8 @@
     // for now have pivot that requires a doc argument (unused) and
     // pivot_link that doesn't.
     //
-    AjaxSolr.theme.prototype.pivot = function (doc, handler){
-        return $('<a href="#"/>').text(' [P]').click(handler);
+    AjaxSolr.theme.prototype.pivot = function (){
+        return $('<a class="pivotlink" href="#"/>').text(' [P]');
     }
 
     AjaxSolr.theme.prototype.pivot_link = function (handler) {

@@ -9,20 +9,33 @@ ResultModel=Backbone.Model.extend({
 ResultView=Backbone.View.extend({
    tagName:  "div",
    className: "publication",
+   pvothandler: function(){
+    //alert("Hi");
+    //return false;
+    var facet_field='bibcode:';
+    var facet_value=this.model.get('document').bibcode
+    var pivot=facet_field + ':' + AjaxSolr.Parameter.escapeValue(facet_value);
+    var widget=this.model.get('widget');
+    widget.manager.store.remove('fq');
+	widget.manager.store.addByValue('fq', pivot);
+	widget.manager.doRequest(0);
+	return false;
+     //return this.model.get('widget').facetHandler('bibcode', this.model.get('document').bibcode);
+   },
    events: {
-       
+       "click a.pivotlink" : "pvothandler"
    },
-   initialize: function() {
-       
-   },
+
    render: function() {
+       //alert(this.el);
        var year=this.model.get('document').pubyear_i;
-       var ajrtheme=AjaxSolr.theme('result', this.model.get('document'), 
-        {
+       var ajrtheme=AjaxSolr.theme('result',this.model.get('document'), 
+        /*{
             $title: AjaxSolr.theme('title', this.model.get('document')),
             $titlelink: AjaxSolr.theme('titlelink', this.model.get('document')),
             $pivot: AjaxSolr.theme('pivot', this.model.get('document'), this.model.get('widget').facetHandler('bibcode', this.model.get('document').bibcode))
-        },
+        }*/
+        AjaxSolr.theme('title', this.model.get('document')),
         AjaxSolr.theme('snippet', this.model.get('document'),
             //getAuthors(self, facetHandler2, doc.author),
             AjaxSolr.theme('list_items', $('<span class="authors"/>'), this.model.get('authors'), "; "),
@@ -30,8 +43,9 @@ ResultView=Backbone.View.extend({
             //getYear(self, facetHandler2, doc.pubyear_i)
         ),
         this.model.get('widget')
-      )
-      return ajrtheme;
+      );
+      $(this.el).html(ajrtheme);
+      return this;
    },
 });
 AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
@@ -50,7 +64,7 @@ AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
       var resultview=new ResultView({
         model:result, 
       });
-      $target.append(resultview.render());
+      $target.append(resultview.render().el);
       //$(this.target).append();
       AjaxSolr.theme('list_items', $('#links_' + doc.id), keywords, "| ");
       docids.push(doc.id);
@@ -155,15 +169,19 @@ AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
       }
   },
     */
+   pivothandler: function (pivot) {
+        var self = this;
+	    return function () {
+	        // use global Manager which is not ideal
+	            self.manager.store.remove('fq');
+	            self.manager.store.addByValue('fq', pivot);
+	            self.manager.doRequest(0);
+	            return false;
+	    };
+  },
   facetHandler: function (facet_field, facet_value) {
-    var self = this;
-    return function () {
-	// console.log("For facet "+facet_field+" Trying value "+facet_value);
-        self.manager.store.remove('fq');
-        self.manager.store.addByValue('fq', facet_field + ':' + AjaxSolr.Parameter.escapeValue(facet_value));
-        self.manager.doRequest(0);
-        return false;
-    };
+        var self = this;
+        return self.pivothandler(facet_field + ':' + AjaxSolr.Parameter.escapeValue(facet_value));
   },
 
   init: function () {

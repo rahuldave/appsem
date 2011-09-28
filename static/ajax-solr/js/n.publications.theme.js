@@ -7,6 +7,7 @@
     AjaxSolr.theme.prototype.loader = function(){
         return $('<img/>').attr('src', '/semantic2/alpha/static/images/ajax-loader.gif');
     };
+    //HANDLER
     AjaxSolr.theme.prototype.result = function (doc, $thetitlestuff, $keywordstuff, $additional, $lessmore, thedocthis) {
 
 	    var $morea = $('<a href="#" class="less" id="am_'+doc.id+'">more</a>')
@@ -22,23 +23,23 @@
 	                .append($thetitlestuff)
 	                .append($keywordstuff)
 	                .append($additional)
-	                .append($lessmore
-		                .attr('class', 'extrapaperinfo')
-		                .attr('id', 'p_' + doc.id)
-		            )
 	                .append($('<div class="lessmore"></div>')
 	                    .append($bookmark)
 	                    .append($unbookmark)
 	                    .append($morea)
 	                    .append($lessa)
-	                );
+	                )
+	                .append($lessmore
+		                .attr('class', 'extrapaperinfo')
+		                .attr('id', 'p_' + doc.id)
+		            );
     }
 
     AjaxSolr.theme.prototype.title = function (doc) {
         var $titlelink=$('<a class="iframe"/>').text('(Link)')
             .attr('href', "http://labs.adsabs.harvard.edu/ui/abs/"+doc.bibcode)
             .fancybox(fancyboxOpts);
-        var $titlepivot=AjaxSolr.theme.prototype.pivot();
+        var $titlepivot=AjaxSolr.theme.prototype.pivot('bibcode');
         return $('<h5/>').append(doc.title + " ")
                          .append($titlelink)
                          .append($titlepivot);
@@ -54,16 +55,16 @@
     // for now have pivot that requires a doc argument (unused) and
     // pivot_link that doesn't.
     //
-    AjaxSolr.theme.prototype.pivot = function (){
-        return $('<a class="pivotlink" href="#"/>').text(' [P]');
+    AjaxSolr.theme.prototype.pivot = function (pivotclass){
+        return $('<a class="pivotlink '+pivotclass+'" href="#"/>').text(' [P]');
     }
-
+    //HANDLER
     AjaxSolr.theme.prototype.pivot_link = function (handler) {
         return $('<a href="#"/>').text(' [P]').click(handler);
     }
-    
-    AjaxSolr.theme.prototype.facet_link = function (value, handler) {
-        return $('<a href="#"/>').text(value).click(handler);
+    //HANDLER
+    AjaxSolr.theme.prototype.facet_link = function (value, pivotclass, handler) {
+        return $('<a class="pivotlink '+pivotclass+'" href="#"/>').text(value).click(handler);
     };
     AjaxSolr.theme.prototype.authors = function(){
         return $('<span class="authors"/>');
@@ -96,7 +97,9 @@
 
 	    var objectnames = doc.objectnames_s;
 	    var obsids = doc.obsids_s;
-
+	    var abtext = doc.abstract;
+	    var $abstract = $('<div class="abstracttext"><span class="pubitem">Abstract:</span> '+abtext+'</div>');
+	    $output2.append($abstract);
 	    addObjectArea($output2, doc.id, doc.objectnames_s, doc.objecttypes_s);
 	    addDataArea($output2, doc.id, doc.bibcode, 
 		        doc.obsids_s, doc.exptime_f,
@@ -105,13 +108,11 @@
 
 	    // do we need to HTML escape this text?
 	    // 
-	    var abtext = doc.abstract;
-	    var $abstract = $('<div class="abstracttext"><span class="pubitem">Abstract:</span> '+abtext+'</div>');
-	    $output2.append($abstract);
+
 	    return $output2;
 
     }; // Ajax.theme.prototype.snippet
-
+    //HANDLER: need this as not in resultwidget system
     AjaxSolr.theme.prototype.tag = function (value, thecount, weight, handler) {
       
       var $thelink=$('<a href="#"/>').text(value).click(handler);
@@ -228,7 +229,7 @@
         return AjaxSolr.theme('pivot_link', makePivotHandler(pivot));
     }
 
-
+    //HANDLER: do later
     function addObjectArea(parentarea, docid, objnames, objtypes) {
 	    if (objnames === undefined) { return; }
 
@@ -289,7 +290,7 @@
     // cleaned up by processing based on the name of the "mission parent" - e.g.
     // we encode target names as 'MAST/foo' and 'CHANDRA/bar' and so we could
     // use 'MAST' to possibly simplify some logic below
-    // 
+    // HANDLER: do later
     function addDataArea(parentarea, docid, bibcode, obsids, exptimes, expdates, targets, ras, decs) {
 	if (obsids === undefined) { return; }
 

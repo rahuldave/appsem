@@ -25,14 +25,18 @@ ResultView=Backbone.View.extend({
        var pivot=facet_field + ':' + AjaxSolr.Parameter.escapeValue(facet_value);
        var that=this;
        return function() {
+           //alert($(e.target).attr('class'));
            that.widget.manager.store.remove('fq');
            that.widget.manager.store.addByValue('fq', pivot);
            that.widget.manager.doRequest(0);
            return false;
        }
    },
-   facetHandler: function (facet_field, facet_value) {
+   facetHandlerMaker: function (facet_field, facet_value) {
            return this.pivothandlerMaker2(facet_field, facet_value);
+   },
+   facetishHandler: function(event){
+       var $target=$(event.target);
    },
    facetLinks: function (facet_field, facet_values) {
        var links = [];
@@ -40,14 +44,20 @@ ResultView=Backbone.View.extend({
            for (var i = 0, l = facet_values.length; i < l; i++) {
                links.push(AjaxSolr.theme('facet_link',
                         facet_values[i],
-                        this.facetHandler(facet_field, facet_values[i])));
+                        facet_field,
+                        //doing it like below overrides event bubbling.
+                        this.facetHandlerMaker(facet_field, facet_values[i])));
            }
        }
        //alert(links);
        return links;
      },
    events: function(){
-       var eventhash={'click .pivotlink':"pivothandler_bibcode"};
+       var eventhash={
+        'click .pivotlink.bibcode':"pivothandler_bibcode",
+        //'click .pivotlink.author_s':"pivothandler_author_s",
+        //'click .pivotlink.keywords_s':"pivothandler_keywords_s",
+       };
        this['pivothandler_bibcode']=this.pivothandlerMaker2('bibcode', this.model.get('bibcode'));
        return eventhash;
    },
@@ -65,7 +75,7 @@ ResultView=Backbone.View.extend({
             AjaxSolr.theme('additional', 
                 doc,
                 AjaxSolr.theme('list_items', AjaxSolr.theme('authors'), authors, "; "),
-                AjaxSolr.theme('facet_link', year, this.facetHandler('pubyear_i','['+year+' TO ' + year +']' ))
+                AjaxSolr.theme('facet_link', year, 'pubyear_i', this.facetHandlerMaker('pubyear_i','['+year+' TO ' + year +']' ))
             ),
             AjaxSolr.theme('lessmore', doc),
             this.widget
@@ -84,8 +94,7 @@ AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
     for (var i = 0, l = self.manager.response.response.docs.length; i < l; i++) {
       var doc = self.manager.response.response.docs[i];
       var year=doc.pubyear_i;
-      var keywords = this.facetLinks("keywords_s", doc.keywords_s);
-      var authors= this.facetLinks("author_s", doc.author);
+
       var result=new ResultModel(doc);
       var resultview=new ResultView({
         model:result, 
@@ -120,22 +129,6 @@ AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
         }
     });
 
-  },
-  facetLinks: function (facet_field, facet_values) {
-    var links = [];
-    if (facet_values) {
-        for (var i = 0, l = facet_values.length; i < l; i++) {
-            links.push(AjaxSolr.theme('facet_link',
-				      /*  Doug thinks the quotes are visually distracting
-					 '"'+facet_values[i]+'"', 
-				      */
-				      facet_values[i],
-				      this.facetHandler(facet_field, facet_values[i])));
-				      // this.facetHandler(facet_field, '"'+facet_values[i]+'"')));
-        }
-    }
-    //alert(links);
-    return links;
   },
   moreHandler: function(doc){
 	var self = this;
@@ -188,44 +181,7 @@ AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
             return false;
       }
   },
-    /* have removed this for now
-  dataHandler: function(doc){
-      return function(){
-          alert("not yet implemented");
-          return false;
-      }
-  },
-    */
 
-   pivothandler: function (pivot) {
-        var self = this;
-	    return function () {
-	        // use global Manager which is not ideal
-	            self.manager.store.remove('fq');
-	            self.manager.store.addByValue('fq', pivot);
-	            self.manager.doRequest(0);
-	            return false;
-	    };
-  },
-  facetHandler: function (facet_field, facet_value) {
-        var self = this;
-        return self.pivothandler(facet_field + ':' + AjaxSolr.Parameter.escapeValue(facet_value));
-  },
-
-  init: function () {
-	//$('a.more').click(alert("Hi"));
-    /*$('a.more').live(function () {
-        $(this).toggle(function () {
-            $(this).parent().find('span.abstract').show();
-            $(this).text('less');
-            return false;
-        }, function () {
-            $(this).parent().find('span.abstract').hide();
-            $(this).text('more');
-            return false;
-        });
-    });*/
-  },
   beforeRequest: function () {
     $(this.target).html(AjaxSolr.theme('loader'));
   }

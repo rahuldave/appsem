@@ -13,11 +13,6 @@ ResultView=Backbone.View.extend({
        this.widget=viewhash.widget;
    },
    pivothandlerMaker: function(pivot){
-    //alert("Hi");
-    //return false;
-    //var facet_field='bibcode';
-    //var facet_value=this.model.get('document').bibcode
-    //var pivot=facet_field + ':' + AjaxSolr.Parameter.escapeValue(facet_value);
     var that=this;
     return function() {
         that.widget.manager.store.remove('fq');
@@ -25,13 +20,8 @@ ResultView=Backbone.View.extend({
         that.widget.manager.doRequest(0);
         return false;
     }
-     //return this.model.get('widget').facetHandler('bibcode', this.model.get('document').bibcode);
    },
    pivothandlerMaker2: function(facet_field, facet_value){
-       //alert("Hi");
-       //return false;
-       //var facet_field='bibcode';
-       //var facet_value=this.model.get('document').bibcode
        var pivot=facet_field + ':' + AjaxSolr.Parameter.escapeValue(facet_value);
        var that=this;
        return function() {
@@ -40,7 +30,6 @@ ResultView=Backbone.View.extend({
            that.widget.manager.doRequest(0);
            return false;
        }
-        //return this.model.get('widget').facetHandler('bibcode', this.model.get('document').bibcode);
    },
    facetHandler: function (facet_field, facet_value) {
            return this.pivothandlerMaker2(facet_field, facet_value);
@@ -207,6 +196,7 @@ AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
       }
   },
     */
+
    pivothandler: function (pivot) {
         var self = this;
 	    return function () {

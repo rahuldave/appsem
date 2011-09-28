@@ -2,21 +2,21 @@
  * Code for the publications page
  */
 
-var Manager;
+var PublicationsManager;
 
 (function ($) {
     $(function () {
 	console.log("*** In semflow-publications");
 
-	Manager = new AjaxSolr.Manager({
+	PublicationsManager = new AjaxSolr.Manager({
 	    solrUrl: SOLRURL
 	});
 
-	Manager.addWidget(new AjaxSolr.ResultWidget({
+	PublicationsManager.addWidget(new AjaxSolr.ResultWidget({
 	    id: 'result',
 	    target: '#docs'
 	}));
-	Manager.addWidget(new AjaxSolr.PagerWidget({
+	PublicationsManager.addWidget(new AjaxSolr.PagerWidget({
 	    id: 'pager',
 	    target: $('#pager'),
 	    prevLabel: '&lt;',
@@ -62,7 +62,7 @@ var Manager;
 		// Hide the 'save search' button if no search has been made.
 		// TODO: this check may need to be updated when we support OR-style
 		//       queries
-		if (Manager.store.values('fq').length == 0) {
+		if (PublicationsManager.store.values('fq').length == 0) {
 		    $('#save-search').hide();
 		}
 		
@@ -98,7 +98,7 @@ var Manager;
 	for (var i = 0, l = fields.length; i < l; i++) {
 	    field_map[facet_fields[i]] = field_names[i];
 	    
-	    Manager.addWidget(new AjaxSolr.TagcloudWidget({
+	    PublicationsManager.addWidget(new AjaxSolr.TagcloudWidget({
 		id: fields[i],
 		target: '#' + fields[i],
 		field: facet_fields[i]
@@ -112,21 +112,21 @@ var Manager;
 	field_map['obsvtime_d'] = 'Observation Date'
 	field_map['exptime_f'] = 'Exposure Time'
 	
-	Manager.addWidget(new AjaxSolr.CurrentSearchWidget({
+	PublicationsManager.addWidget(new AjaxSolr.CurrentSearchWidget({
             id: 'currentsearch',
             target: '#selection',
 	    fieldmap: field_map,
 	    allowmulti: facet_fields
 	    
 	}));
-	Manager.addWidget(new AjaxSolr.AutocompleteWidget({
+	PublicationsManager.addWidget(new AjaxSolr.AutocompleteWidget({
             id: 'text',
             target: '#search',
             field: 'text',
             fields: facet_fields.concat(['bibcode']),
 	    fieldmap: field_map
 	}));
-	Manager.addWidget(new AjaxSolr.YearWidget({
+	PublicationsManager.addWidget(new AjaxSolr.YearWidget({
             id: 'pubyear',
             target: '#pubyear',
             field: 'pubyear_i',
@@ -141,7 +141,7 @@ var Manager;
 	max_numericfields=[360.0, 90.0];
 	step_numericfields=[15.0, 10.0];
 	for (var i = 0, l = numericfields.length; i < l; i++) {
-            Manager.addWidget(new AjaxSolr.DualSliderWidget({
+            PublicationsManager.addWidget(new AjaxSolr.DualSliderWidget({
 		id: numericfields[i],
 		target: '#'+numericfields[i],
 		field: facet_numericfields[i],
@@ -151,7 +151,7 @@ var Manager;
             }));
 	}
 	
-	Manager.addWidget(new AjaxSolr.DualSliderWidget({
+	PublicationsManager.addWidget(new AjaxSolr.DualSliderWidget({
             id: 'exptime',
             target: '#exptime',
             field: 'exptime_f',
@@ -163,7 +163,7 @@ var Manager;
 	    fromFacet: function (val) { return val / 1000; }
 	}));
 	
-	Manager.addWidget(new AjaxSolr.DateRangerWidget({
+	PublicationsManager.addWidget(new AjaxSolr.DateRangerWidget({
             id: 'obsvtime',
             target: '#obsvtime',
             field: 'obsvtime_d',
@@ -171,10 +171,10 @@ var Manager;
             datastep: 10
 	}));
 	
-	Manager.setStore(new AjaxSolr.AstroExplorerStore());
-	Manager.store.exposed = [ 'fq', 'q' ];
-	Manager.init();
-	Manager.store.addByValue('q', '*:*');
+	PublicationsManager.setStore(new AjaxSolr.AstroExplorerStore());
+	PublicationsManager.store.exposed = [ 'fq', 'q' ];
+	PublicationsManager.init();
+	PublicationsManager.store.addByValue('q', '*:*');
 	console.log("facet_fields:", facet_fields);
 	var params = {
 	    'facet': true,
@@ -189,9 +189,9 @@ var Manager;
 	    'stats.field': facet_numericfields.concat(['exptime_f', 'pubyear_i'])
 	};
 	for (var name in params) {
-	    Manager.store.addByValue(name, params[name]);
+	    PublicationsManager.store.addByValue(name, params[name]);
 	}
-	Manager.doRequest();
+	PublicationsManager.doRequest();
 
     });
 })(jQuery);

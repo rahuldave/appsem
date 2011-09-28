@@ -4,8 +4,10 @@
 (function ($) {
 
     var fancyboxOpts = { 'autoDimensions': false, 'width': 1024, 'height': 768 };
-
-    AjaxSolr.theme.prototype.result = function (doc, $thetitlestuff, snippet, thedocthis) {
+    AjaxSolr.theme.prototype.loader = function(){
+        return $('<img/>').attr('src', '/semantic2/alpha/static/images/ajax-loader.gif');
+    };
+    AjaxSolr.theme.prototype.result = function (doc, $thetitlestuff, $keywordstuff, $additional, $lessmore, thedocthis) {
 
 	    var $morea = $('<a href="#" class="less" id="am_'+doc.id+'">more</a>')
 	        .click(thedocthis.moreHandler(doc));
@@ -18,14 +20,9 @@
 
 	    return $("<div/>")
 	                .append($thetitlestuff)
-	                //    .append(thetitlestuff.$titlelink)
-	                //    .append(thetitlestuff.$pivot)
-	                //)
-	                .append($('<div class="bookmarks"/>'))
-	                .append($('<p class="links"/>').attr('id', 'links_' + doc.id))
-	                .append('<p id="links_' + doc.id + '" class="links"></p>')
-	                .append(snippet[0])
-	                .append(snippet[1]
+	                .append($keywordstuff)
+	                .append($additional)
+	                .append($lessmore
 		                .attr('class', 'extrapaperinfo')
 		                .attr('id', 'p_' + doc.id)
 		            )
@@ -54,23 +51,6 @@
             .fancybox(fancyboxOpts);
     }
 
-    AjaxSolr.theme.prototype.authors = function (doc, facetHandler, authors) {
-	        var $out = $('<span class="authors"/>');
-	        for (var i in authors) {
-	            if (i != 0) { $out.append('; '); }
-	            $out.append($('<a href="#"/>')
-			        .text(authors[i])
-			        .click(facetHandler(self, 'author_s', authors[i])));
-	        }
-	        return $out;
-    }
-
-    AjaxSolr.theme.prototype.authors = function (doc, facetHandler, year) {
-	        return $('<a href="#"/>')
-	            .text(year)
-	            .click(facetHandler(self, 'pubyear_i', '['+year+' TO ' + year +']'));
-    }
-    
     // for now have pivot that requires a doc argument (unused) and
     // pivot_link that doesn't.
     //
@@ -85,8 +65,13 @@
     AjaxSolr.theme.prototype.facet_link = function (value, handler) {
         return $('<a href="#"/>').text(value).click(handler);
     };
-
-    AjaxSolr.theme.prototype.snippet = function (doc, authors, year) {
+    AjaxSolr.theme.prototype.authors = function(){
+        return $('<span class="authors"/>');
+    };
+    AjaxSolr.theme.prototype.keywords = function(){
+        return $('<p class="links"/>');
+    };
+    AjaxSolr.theme.prototype.additional = function(doc, authors, year){
 	    var $output1 = $('<p class="links"/>')
 	        .append(pubLabel('Authors:'))
 	        // .append(' ' + doc.author.join(' ; '))
@@ -102,6 +87,10 @@
 	        .append(' ' + doc.bibcode + ' ')
 	        .append(pubLabel('Citations:'))
 	        .append(' ' + doc.citationcount_i);
+	        return $output1;
+	};
+    AjaxSolr.theme.prototype.lessmore = function (doc) {
+
 
 	    var $output2 = $('<div/>');
 
@@ -119,11 +108,11 @@
 	    var abtext = doc.abstract;
 	    var $abstract = $('<div class="abstracttext"><span class="pubitem">Abstract:</span> '+abtext+'</div>');
 	    $output2.append($abstract);
-	    return [$output1, $output2];
+	    return $output2;
 
     }; // Ajax.theme.prototype.snippet
 
-    AjaxSolr.theme.prototype.tag = function (value, thecount, weight, handler, handler2) {
+    AjaxSolr.theme.prototype.tag = function (value, thecount, weight, handler) {
       
       var $thelink=$('<a href="#"/>').text(value).click(handler);
       var $thetext=$('<span/>').text('('+thecount+')');
@@ -137,7 +126,7 @@
       return 'no items found in current selection';
     };
 
-    AjaxSolr.theme.prototype.list_items = function ($list, items, separator) {
+    AjaxSolr.theme.prototype.list_items = function ($list,items, separator) {
       $list.empty();
       for (var i = 0, l = items.length; i < l; i++) {
         var li = jQuery('<li/>');
@@ -228,9 +217,9 @@
     function makePivotHandler(pivot) {
 	    return function () {
 	        // use global Manager which is not ideal
-	        Manager.store.remove('fq');
-	        Manager.store.addByValue('fq', pivot);
-	        Manager.doRequest(0);
+	        PublicationsManager.store.remove('fq');
+	        PublicationsManager.store.addByValue('fq', pivot);
+	        PublicationsManager.doRequest(0);
 	        return false;
 	    };
     }

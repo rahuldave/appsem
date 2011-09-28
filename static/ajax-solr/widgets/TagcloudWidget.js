@@ -8,10 +8,10 @@
 	justthisfacetHandler: function (value) {
 	    var self = this;
 	    return function () {
-		self.manager.store.remove('fq');
-		self.add(value);
-		self.manager.doRequest(0);
-		return false;
+		    self.manager.store.remove('fq');
+		    self.add(value);
+		    self.manager.doRequest(0);
+		    return false;
 	    };
 	},
 
@@ -42,8 +42,8 @@
 		var facet = objectedItems[i].facet;
 		var count = objectedItems[i].count;
 		var $tagthemelist = AjaxSolr.theme('tag', facet, count, parseInt(count / maxCount * 10),
-						   this.clickHandler(facet),
-						   this.justthisfacetHandler(facet));
+						   this.clickHandler(facet));
+						   //this.justthisfacetHandler(facet));
 		$(this.target).append($tagthemelist);
 	    }
 	}

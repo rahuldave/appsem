@@ -9,21 +9,20 @@
     };
     //HANDLER
     AjaxSolr.theme.prototype.result = function (doc, $thetitlestuff, $keywordstuff, $additional, $lessmore, thedocthis) {
-
-	    var $morea = $('<a href="#" class="less" id="am_'+doc.id+'">more</a>')
-	        .click(thedocthis.moreHandler(doc));
-	    var $lessa = $('<a href="#" id="al_'+doc.id+'" style="display:none">less</a>')
-	        .click(thedocthis.lessHandler(doc));
-	    var $bookmark = $('<a href="#" class="save" id="savepub_'+doc.id+'">save</a>')
-	        .click(thedocthis.saveHandler(doc));
-	    var $unbookmark = $('<a href="#" class="delete" id="delpub_'+doc.id+'" style="display:none">delete</a>')
-	        .click(thedocthis.deleteHandler(doc));
+	    var $morea = $('<a href="#" class="morelink" id="am_'+doc.id+'">more</a>');
+	        //.click(thedocthis.moreHandler(doc));
+	    var $lessa = $('<a href="#" class="lesslink" id="al_'+doc.id+'" style="display:none">less</a>');
+	        //.click(thedocthis.lessHandler(doc));
+	    var $bookmark = $('<a href="#" class="savelink" id="savepub_'+doc.id+'">save</a>');
+	        //.click(thedocthis.saveHandler(doc));
+	    var $unbookmark = $('<a href="#" class="deletelink" id="delpub_'+doc.id+'" style="display:none">delete</a>');
+	        //.click(thedocthis.deleteHandler(doc));
 
 	    return $("<div/>")
 	                .append($thetitlestuff)
 	                .append($keywordstuff)
 	                .append($additional)
-	                .append($('<div class="lessmore"></div>')
+	                .append($('<div class="lessmore" state="less"></div>')
 	                    .append($bookmark)
 	                    .append($unbookmark)
 	                    .append($morea)
@@ -56,15 +55,20 @@
     // pivot_link that doesn't.
     //
     AjaxSolr.theme.prototype.pivot = function (pivotclass){
-        return $('<a class="pivotlink '+pivotclass+'" href="#"/>').text(' [P]');
+        return $('<a facet_field="'+pivotclass+'" class="pivotlink '+pivotclass+'" href="#"/>').text(' [P]');
     }
     //HANDLER
     AjaxSolr.theme.prototype.pivot_link = function (handler) {
         return $('<a href="#"/>').text(' [P]').click(handler);
     }
     //HANDLER
-    AjaxSolr.theme.prototype.facet_link = function (value, pivotclass, handler) {
-        return $('<a class="pivotlink '+pivotclass+'" href="#"/>').text(value).click(handler);
+    //if value has quotes or single quotes, escape it BUG not done yet just do it.
+    //AjaxSolr.theme.prototype.facet_link = function (value, pivotclass, handler) { .click(handler)
+    AjaxSolr.theme.prototype.facet_link = function (value, pivotclass, valuestring) {
+        if (valuestring===undefined){
+            valuestring=value;
+        }
+        return $('<a facet_field="'+pivotclass+'" facet_value="'+valuestring+'" class="facetlink '+pivotclass+'" href="#"/>').text(value);
     };
     AjaxSolr.theme.prototype.authors = function(){
         return $('<span class="authors"/>');

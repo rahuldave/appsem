@@ -163,63 +163,28 @@
       //console.log("C"+$list);
     };
     
-    
-    function getSimbadURI(ele) {
-        return 'http://simbad.u-strasbg.fr/simbad/sim-id?Ident='
-            + encodeURIComponent(ele)
-            + '&NbIdent=1&Radius=2&Radius.unit=arcmin&submit=submit+id';
-    }
 
-    function makeSimbadLink(ele) {
-	    return $('<a class="iframe"></a>')
+
+    AjaxSolr.theme.prototype.simbad_link = function(ele){
+        return $('<a class="iframe"></a>')
 	        .text(ele)
 	        .attr('href', getSimbadURI(ele))
 	        .fancybox(fancyboxOpts);
     }
+    AjaxSolr.theme.prototype.mission_link = function(mission, labelisobsid, formatlink){
+        if (formatlink===undefined || formatlink===null){
+            formatlink=getObslink(mission, labelisobsid);
+        }
+        return $('<a class="iframe"></a>')
+	        .text(labelisobsid)
+	        .attr('href', formatlink)
+	        .fancybox(fancyboxOpts);
+    }
+
 
     // Need mission specific info to determine what to link to here
     //
-    function getChandraObsidlink (label, link) {
-	    if (link === undefined) {
-	        link = label;
-	    }
 
-	    return $('<a class="iframe"/>')
-	        .text(label)
-	        .attr('href', 'http://cda.harvard.edu/chaser/ocatList.do?obsid='+link)
-	        .fancybox(fancyboxOpts);
-    }
-
-    function getMASTObsidlink (mission, label, link) {
-	    if (link === undefined) {
-	        link = label;
-	    }
-
-	    return $('<a class="iframe"></a>')
-	        .text(label)
-	        .attr('href', 'http://archive.stsci.edu/cgi-bin/mastpreview?mission='+mission+'&dataid='+link)
-	        .fancybox(fancyboxOpts);
-    }
-
-    var obslinks = {
-	    'CHANDRA': getChandraObsidlink,
-
-	    'euve': function (obsid) { return getMASTObsidlink('euve', obsid); },
-	    'fuse': function (obsid) { return getMASTObsidlink('fuse', obsid); },
-	    'hpol': function (obsid) { return getMASTObsidlink('hpol', obsid, obsid.slice(8, obsid.length-3)); },
-	    'hut':  function (obsid) { return getMASTObsidlink('hut',  obsid, obsid.split('=')[0]); },
-	    'iue':  function (obsid) { return getMASTObsidlink('iue',  obsid, obsid.slice(0, obsid.length-4)); },
-	    'wuppe': function (obsid) { return getMASTObsidlink('wuppe', obsid); }
-
-    };
-
-    function getObslink(mission, obsid) {
-	    if (obslinks[mission] === undefined) {
-	        alert("Internal error: no idea how to get link to mission=" + mission + " obsid=" + obsid);
-	    } else {
-	        return obslinks[mission](obsid);
-	    }
-    }
 
     function pubLabel(label) {
         return $('<span class="pubitem"/>').text(label);
@@ -259,7 +224,7 @@
 	        var otype = objinfo[i].objtype;
 	        $obody.append($('<tr/>')
 			      .append($('<td/>')
-				      .append(makeSimbadLink(oname))
+				      .append(AjaxSolr.theme.prototype.simbad_link(oname))
 				      .append(AjaxSolr.theme.prototype.facet_link('[P]', 'objectnames_s', oname))
 				  )
 			      .append($('<td/>')
@@ -345,9 +310,8 @@
 
 	        if (nm > 1) {
 		    var mobsids = marray.map(function(e) { return e.obsid; });
-		    $dataarea.append(
-		        getChandraObsidlink('All CHANDRA (' + nm + ')',
-					    mobsids.join(','))
+		    $dataarea.append(AjaxSolr.theme.prototype.mission_link('', 'All CHANDRA (' + nm + ')',
+		        getChandraObsidlink('',mobsids.join(',')))
 		    );
 		    $dataarea.append(' ');
 
@@ -360,10 +324,7 @@
 		    + mastmissions.map(function (m) { return missionmap[m].length + ' ' + m; }).join(', ') 
 		    + ')';
 	        $dataarea.append(
-		        $('<a class="iframe"/>')
-		            .text(label)
-		            .attr('href', 'http://archive.stsci.edu/mastbibref.php?bibcode='+encodeURIComponent(bibcode))
-		            .fancybox(fancyboxOpts)
+		        AjaxSolr.theme.prototype.mission_link('', label, getMASTBibrefLink(bibcode))
 	        );
 	    }
 
@@ -403,7 +364,7 @@
 		    $mbody.append($('<tr/>')
 			          .append($('<td/>').text(mission.toUpperCase()))
 			          .append($('<td/>')
-				          .append(getObslink(mission, obsid))
+				          .append(AjaxSolr.theme.prototype.mission_link(mission, obsid))
 				          .append(AjaxSolr.theme.prototype.facet_link('[P]', 'obsids_s', mission + '/' + obsid))
 				         )
 			          .append($('<td/>').text(mvalues[idx].exptime))

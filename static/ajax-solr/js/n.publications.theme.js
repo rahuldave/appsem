@@ -95,7 +95,7 @@
 	        .append(' ' + doc.citationcount_i);
 	        return $output1;
 	};
-    AjaxSolr.theme.prototype.lessmore = function (doc) {
+    AjaxSolr.theme.prototype.lessmore = function (doc, obsvcollectionview_el) {
 
 
 	    var $output2 = $('<div/>');
@@ -107,10 +107,13 @@
 	    $output2.append($abstract);
 	    //addObjectArea($output2, doc.id, doc.objectnames_s, doc.objecttypes_s);
 	    $output2.append(AjaxSolr.theme.prototype.objectarea(doc.id, doc.objectnames_s, doc.objecttypes_s));
+	    /*
 	    $output2.append(AjaxSolr.theme.prototype.dataarea(doc.id, doc.bibcode, 
 		        doc.obsids_s, doc.exptime_f,
 		        doc.obsvtime_d, doc.targets_s,
 		        doc.ra_f, doc.dec_f));
+		*/
+		$output2.append(obsvcollectionview_el);
 	    /*addDataArea($output2, doc.id, doc.bibcode, 
 		        doc.obsids_s, doc.exptime_f,
 		        doc.obsvtime_d, doc.targets_s,
@@ -252,6 +255,54 @@
 	    else              { return 0; }
     } 
 
+    AjaxSolr.theme.prototype.datapreamble=function(doc, nobsv){
+        var docid=doc.id;
+        var $start=$('<div/>').append(pubLabel('Datasets')).append(' ');
+        if (nobsv===0){
+            $start.append('None');
+            return $start.append($('<br/>'));
+        }
+        var colnames = ["Mission", "Observation", "Exposure time (s)",
+			    "Observation date", "Target name", "RA", "Dec"];
+	    var $mtable = $('<table class="tablesorter"/>')
+	        .attr('id', 'obsdata_' + docid)
+	        .append($('<thead/>')
+		        .append($('<tr/>')
+			        .append(colnames.map(function (c) { return "<th>" + c + "</th>"; }).join('')))
+		       );
+
+	    var $mbody = $('<tbody class="datatbody"/>');
+	    $mtable.append($mbody);
+	    $mtable.tablesorter();
+
+	    //$dataarea.append($('<div class="missiondata"/>').append($mtable));
+	    $start.append($mtable);
+	    return $start.append($('<br/>'));
+    };
+    AjaxSolr.theme.prototype.dataline=function(doc){
+        // hacky; curently used to create the target-name pivot
+        var parent;
+        var $mbody=$("<tr/>");
+        if (doc.mission == 'CHANDRA') {
+	        parent = 'CHANDRA';
+        } else {
+	        parent = 'MAST';
+        }
+        $mbody.append($('<td/>').text(doc.mission.toUpperCase()))
+		    .append($('<td/>')
+			          .append(AjaxSolr.theme.prototype.mission_link(doc.mission, doc.obsids_s))
+			          .append(AjaxSolr.theme.prototype.facet_link('[P]', 'obsids_s', doc.mission + '/' + doc.obsids_s))
+			)
+		    .append($('<td/>').text(doc.exptime_f))
+		    .append($('<td/>').text(doc.obsvtime_d))
+		    .append($('<td/>')
+			          .text(doc.targets_s)
+			          .append(AjaxSolr.theme.prototype.facet_link('[P]', 'targets_s',parent + '/' + doc.targets_s))
+			)
+		    .append($('<td/>').text(doc.ra_f)) // may want to try <span value=decimal>text value</span> trick?
+		    .append($('<td/>').text(doc.dec_f));
+        return $mbody;
+    };
     AjaxSolr.theme.prototype.dataarea = function(docid, bibcode, obsids, exptimes, expdates, targets, ras, decs){
         var $dataarea = $('<div class="missiondataarea"/>')
 	    .append(pubLabel('Datasets:'))
@@ -274,9 +325,9 @@
 		           "dec": decs[i]
 		          };
 	        if (missionmap[mission] === undefined) {
-		    missionmap[mission] = [out];
+		        missionmap[mission] = [out];
 	        } else {
-		    missionmap[mission].push(out);
+		        missionmap[mission].push(out);
 	        }
 	    }
 

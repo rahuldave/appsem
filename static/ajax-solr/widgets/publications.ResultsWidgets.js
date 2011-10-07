@@ -3,10 +3,85 @@
  */
 
 (function ($) {
-ResultModel=Backbone.Model.extend({
     
+ObservationModel=Backbone.Model.extend({
+    //We'll just initialize with an attribute dict passed into constructor by Collection.
 });
-ResultView=Backbone.View.extend({
+ObservationView=Backbone.View.extend({
+    //We'll just initialize with an attribute dict passed into constructor by Collection.
+});
+
+//Later this can be used to get doc from server by overriding sync. Challenge is how to make it useful
+//for the general case, perhaps by making simple dictionary copies.
+ObservationCollection=Backbone.Collection.extend({
+    initialize: function(pubmodel){
+        this.pubmodel=pubmodel;
+        this.doc=this.pubmodel.toJSON();
+        this.missionmap={};
+        //if this array is not present, because a pub had nothing, we need to deal with that: BUG
+        //BUG2: we have lost pagination
+        this.nobs=this.doc.obsids_s.length;
+    },
+    populate: function(){
+        var doc=this.doc;
+        var docid=this.doc.id;
+        var docbibcode=this.doc.bibcode;
+        var obsids=doc.obsids_s;
+        var nobs=this.nobs;
+        for (var i = 0; i < nobs; i += 1) {
+	        var toks = obsids[i].split('/');
+	        mission = toks[0];
+	        var out = {"mission": mission,
+	               "docid": docid,
+	               "bibcode": docbibcode,    
+		           "obsids_s": toks[1],
+		           "exptime_f": doc.exptime_f[i],
+		           "obsvtime_d": doc.obsvtime_d[i],
+		           "targets_s": doc.targets_s[i].split('/', 2)[1],
+		           "ra_f": doc.ra_f[i],
+		           "dec_f": doc.dec_f[i]
+		    };
+	        if (this.missionmap[mission] === undefined) {
+		        this.missionmap[mission] = [toks[1]];
+	        } else {
+		        this.missionmap[mission].push(toks[1]);
+	        }
+	        this.add(out)
+	        //currently use add, later use reset and build all views together to avoid firing so many events
+	    }
+    },
+    comparator: function(observationmodel){
+        //couldnt we just return the slashed obsid
+        var mission=observationmodel.get('mission');
+        var obsids_s=observationmodel.get('obsids_s');
+        return mission+'_'+obsids_s;
+    }
+});
+//Call this with an appropriate el. And appropriate model!
+//el must be <div class="missiondataarea"/>
+ObservationCollectionView=Backbone.View.extend({
+    tagName: "div",
+    className: "missiondataarea",
+    initialize: function(){
+        this.viewdict={};
+        this.model.bind("add", this.addOne, this);
+        $(this.el).append(AjaxSolr.theme("datapreamble", this.model.nobs));
+    },
+    addOne: function(observationmodel){
+        var view=new ObservationView({model:observationmodel});
+        this.viewdict[view.model.get('obsid_s')]=view;
+        this.$('.datatbody').append(AjaxSolr.theme("dataline", view.model.toJSON()));
+    },
+    render: function(){
+        return this;
+    }
+});
+PublicationModel=Backbone.Model.extend({
+    initialize: function(){
+        this.observationcollection=new ObservationCollection(this);
+    }
+});
+PublicationView=Backbone.View.extend({
    tagName:  "div",
    className: "publication",
    initialize: function (viewhash){
@@ -111,6 +186,10 @@ ResultView=Backbone.View.extend({
        var year=doc.pubyear_i;
        var keywords = this.facetLinks("keywords_s", doc.keywords_s);
        var authors= this.facetLinks("author_s", doc.author_s);
+       var obsvcollection=this.model.observationcollection;
+       var collectionview=new ObservationCollectionView({model:obsvcollection});
+       //This will fire things and add things to view? What about ordering?
+       obsvcollection.populate();
        var ajrtheme=AjaxSolr.theme('result',
             doc, 
             AjaxSolr.theme('title', doc),
@@ -120,27 +199,64 @@ ResultView=Backbone.View.extend({
                 AjaxSolr.theme('list_items', AjaxSolr.theme('authors'), authors, "; "),
                 AjaxSolr.theme('facet_link', year, 'pubyear_i', '['+year+' TO ' + year +']')
             ),
-            AjaxSolr.theme('lessmore', doc),
+            AjaxSolr.theme('lessmore', doc, collectionview.el),
             this.widget
       );
       $(this.el).html(ajrtheme);
       return this;
    },
 });
+
+PublicationCollection=Backbone.Collection.extend({
+    initialize: function(ajaxsolrmanager){
+        this.docids=[];
+        this.manager=ajaxsolrmanager;
+    },
+    populate: function(){
+        for (var i = 0, l = this.manager.response.response.docs.length; i < l; i++) {
+          var doc = this.manager.response.response.docs[i];
+
+          var result=new PublicationModel(doc);
+          this.add(result)
+          this.docids.push(doc.id);
+        }
+    }
+});
+PublicationCollectionView=Backbone.View.extend({
+    initialize: function(inihash){
+        this.widget=inihash.widget;
+        this.viewdict={};
+        this.model.bind("add", this.addOne, this);
+    },
+    addOne: function(publicationmodel){
+        var view=new PublicationView({model:publicationmodel, widget:this.widget});
+        this.viewdict[view.model.get('id')]=view;
+        this.el.append(view.render().el);
+    }
+});
+
 AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
 
   afterRequest: function () {
     var self=this;
     var $target=$(this.target); 
     $target.empty();
-    docids=[];
-    viewhash={};
+    var docids=[];
+    var viewhash={};
+    
+    var page=new PublicationCollection(self.manager);
+    var pageview=new PublicationCollectionView({el:$target, widget:self, model:page});
+    page.populate();
+    docids=page.docids;
+    viewhash=pageview.viewdict;
+    
+    /*
     for (var i = 0, l = self.manager.response.response.docs.length; i < l; i++) {
       var doc = self.manager.response.response.docs[i];
       var year=doc.pubyear_i;
 
-      var result=new ResultModel(doc);
-      var resultview=new ResultView({
+      var result=new PublicationModel(doc);
+      var resultview=new PublicationView({
         model:result, 
         widget:self
       });
@@ -150,6 +266,7 @@ AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
       viewhash[doc.id]=resultview;
       docids.push(doc.id);
     }
+    */
     console.log("DOCIDS", docids);
     // Find out which papers have been saved so that we can change the 
     // Saved text/icon to delete.

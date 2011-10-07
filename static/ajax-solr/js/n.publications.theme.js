@@ -95,7 +95,7 @@
 	        .append(' ' + doc.citationcount_i);
 	        return $output1;
 	};
-    AjaxSolr.theme.prototype.lessmore = function (doc, obsvcollectionview_el) {
+    AjaxSolr.theme.prototype.lessmore = function (doc, objcollectionview_el, obsvcollectionview_el) {
 
 
 	    var $output2 = $('<div/>');
@@ -107,6 +107,7 @@
 	    $output2.append($abstract);
 	    //addObjectArea($output2, doc.id, doc.objectnames_s, doc.objecttypes_s);
 	    $output2.append(AjaxSolr.theme.prototype.objectarea(doc.id, doc.objectnames_s, doc.objecttypes_s));
+	    $output2.append(objcollectionview_el);
 	    /*
 	    $output2.append(AjaxSolr.theme.prototype.dataarea(doc.id, doc.bibcode, 
 		        doc.obsids_s, doc.exptime_f,
@@ -246,6 +247,47 @@
     }
     //HANDLER: do later
     
+    
+    AjaxSolr.theme.prototype.objectpreamble=function(doc, nobj){
+        var docid=doc.id;
+        var $start=$('<div class="insideobjectarea"/>').append(pubLabel('Objects')).append('<p class="extrapara"/>').append(' ');
+        if (nobj===0){
+            $start.append('None');
+            return $start.append($('<br/>'));
+        }
+        var $otable = $('<table class="tablesorter"/>')
+	        .attr('id', 'objs_' + docid)
+	        //.attr("class", "zebra-striped")
+	        .append($('<thead/>')
+		        .append('<tr><th>Name</th><th>Type</th></tr>'));
+		var $obody = $('<tbody class="objecttbody"/>');
+	    $otable.append($obody);
+	    $otable.tablesorter();
+
+	    //$dataarea.append($('<div class="missiondata"/>').append($mtable));
+	    $start.append($otable);
+	    return $start.append($('<br/>'));
+     };
+    
+     AjaxSolr.theme.prototype.objectline=function(doc){
+        var $obody=$("<tr/>");
+        var oname=doc.name;
+        var otype=doc.objtype;
+        $obody.append($('<td/>')
+				      .append(AjaxSolr.theme.prototype.simbad_link(oname))
+				      .append(AjaxSolr.theme.prototype.facet_link('[P]', 'objectnames_s', oname))
+				  )
+			      .append($('<td/>')
+				      .text(otype)
+				      .append(AjaxSolr.theme.prototype.facet_link('[P]', 'objecttypes_s', otype))
+				  )
+		return $obody;
+      };
+    
+    
+    
+    
+    
     // sort on exposure length, but we want largest first
     function compareObs(a, b) {
 	    // return a.obsid.localeCompare(b.obsid);
@@ -279,6 +321,9 @@
 	    $start.append($mtable);
 	    return $start.append($('<br/>'));
     };
+    
+    
+    
     AjaxSolr.theme.prototype.dataline=function(doc){
         // hacky; curently used to create the target-name pivot
         var parent;
@@ -303,6 +348,9 @@
 		    .append($('<td/>').text(doc.dec_f));
         return $mbody;
     };
+    
+    
+/*
     AjaxSolr.theme.prototype.dataarea = function(docid, bibcode, obsids, exptimes, expdates, targets, ras, decs){
         var $dataarea = $('<div class="missiondataarea"/>')
 	    .append(pubLabel('Datasets:'))
@@ -449,7 +497,7 @@
     // use 'MAST' to possibly simplify some logic below
     // HANDLER: do later
 
-
+*/
 
 
 })(jQuery);

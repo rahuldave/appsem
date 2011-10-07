@@ -19,6 +19,13 @@ ObservationView=Backbone.View.extend({
     //We'll just initialize with an attribute dict passed into constructor by Collection.
 });
 
+ObjectModel=Backbone.Model.extend({
+    //We'll just initialize with an attribute dict passed into constructor by Collection.
+});
+ObjectView=Backbone.View.extend({
+    //We'll just initialize with an attribute dict passed into constructor by Collection.
+});
+
 //Later this can be used to get doc from server by overriding sync. Challenge is how to make it useful
 //for the general case, perhaps by making simple dictionary copies.
 ObservationCollection=Backbone.Collection.extend({
@@ -28,7 +35,10 @@ ObservationCollection=Backbone.Collection.extend({
         this.missionmap={};
         //if this array is not present, because a pub had nothing, we need to deal with that: BUG
         //BUG2: we have lost pagination
-        this.nobs=this.doc.obsids_s.length;
+        this.nobs=0;
+        if (this.doc.obsids_s !== undefined){
+            this.nobs=this.doc.obsids_s.length;
+        }
     },
     populate: function(){
         var doc=this.doc;
@@ -132,9 +142,63 @@ ObservationCollectionView=Backbone.View.extend({
         return this;
     }
 });
+
+ObjectCollection=Backbone.Collection.extend({
+   initialize: function(pubmodel){
+        this.pubmodel=pubmodel;
+        this.doc=this.pubmodel.toJSON();
+
+        //if this array is not present, because a pub had nothing, we need to deal with that: BUG
+        //BUG2: we have lost pagination
+        this.nobj=0;
+        if (this.doc.objectnames_s !== undefined){
+            this.nobs=this.doc.objectnames_s.length;
+        }
+    },
+    populate: function(){
+        var doc=this.doc;
+        var docid=this.doc.id;
+        var docbibcode=this.doc.bibcode;
+        var objectnames=doc.objectnames_s;
+        var objecttypes=doc.objecttypes_s;
+        var nobj=this.nobj;
+        for (var i = 0; i < nobj; i += 1) {
+	        var out = {
+	               "docid": docid,
+	               "bibcode": docbibcode,    
+		           "name": objectnames[i],
+		           "objtype": objecttypes[i],
+		    };
+	        this.add(out)
+	        //currently use add, later use reset and build all views together to avoid firing so many events
+	    }
+	   
+    },
+    comparator: function(objectmodel){
+        return objectmodel.get('name');
+    }
+});
+
+ObjectCollectionView=Backbone.View.extend({
+    tagName: "div",
+    className: "objectarea",
+    initialize: function(){
+        this.model.bind("add", this.addOne, this);
+        $(this.el).append(AjaxSolr.theme("objectpreamble", this.model.nobj));
+    },
+    addOne: function(objectmodel){
+        var view=new ObjectView({model:objectmodel});
+        this.$('.objecttbody').append(AjaxSolr.theme("objectline", view.model.toJSON()));
+    },
+    render: function(){
+        return this;
+    }
+});
+
 PublicationModel=Backbone.Model.extend({
     initialize: function(){
         this.observationcollection=new ObservationCollection(this);
+        this.objectcollection=new ObjectCollection(this);
     }
 });
 PublicationView=Backbone.View.extend({
@@ -243,9 +307,12 @@ PublicationView=Backbone.View.extend({
        var keywords = this.facetLinks("keywords_s", doc.keywords_s);
        var authors= this.facetLinks("author_s", doc.author_s);
        var obsvcollection=this.model.observationcollection;
-       var collectionview=new ObservationCollectionView({model:obsvcollection});
+       var objcollection=this.model.objectcollection;
+       var obsvcollectionview=new ObservationCollectionView({model:obsvcollection});
+       var objcollectionview=new ObjectCollectionView({model:objcollection});
        //This will fire things and add things to view? What about ordering?
        obsvcollection.populate();
+       objcollection.populate();
        var ajrtheme=AjaxSolr.theme('result',
             doc, 
             AjaxSolr.theme('title', doc),
@@ -255,7 +322,7 @@ PublicationView=Backbone.View.extend({
                 AjaxSolr.theme('list_items', AjaxSolr.theme('authors'), authors, "; "),
                 AjaxSolr.theme('facet_link', year, 'pubyear_i', '['+year+' TO ' + year +']')
             ),
-            AjaxSolr.theme('lessmore', doc, collectionview.render().el),
+            AjaxSolr.theme('lessmore', doc, objcollectionview.render().el, obsvcollectionview.render().el),
             this.widget
       );
       $(this.el).html(ajrtheme);

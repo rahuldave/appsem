@@ -257,7 +257,7 @@
 
     AjaxSolr.theme.prototype.datapreamble=function(doc, nobsv){
         var docid=doc.id;
-        var $start=$('<div/>').append(pubLabel('Datasets')).append(' ');
+        var $start=$('<div class="insidemissionarea"/>').append(pubLabel('Datasets')).append('<p class="extrapara"/>').append(' ');
         if (nobsv===0){
             $start.append('None');
             return $start.append($('<br/>'));

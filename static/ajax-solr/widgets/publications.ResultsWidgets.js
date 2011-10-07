@@ -3,7 +3,15 @@
  */
 
 (function ($) {
-    
+
+    function compareObsv(a, b) {
+ 	    // return a.obsid.localeCompare(b.obsid);
+ 	    var va = a.exptime, vb = b.exptime;
+ 	    if (va > vb)      { return -1; }
+ 	    else if (va < vb) { return 1; }
+ 	    else              { return 0; }
+     }
+         
 ObservationModel=Backbone.Model.extend({
     //We'll just initialize with an attribute dict passed into constructor by Collection.
 });
@@ -49,6 +57,17 @@ ObservationCollection=Backbone.Collection.extend({
 	        this.add(out)
 	        //currently use add, later use reset and build all views together to avoid firing so many events
 	    }
+	    var missions = [];
+	    var mastmissions = [];
+	    for (mission in this.missionmap) {
+	        this.missionmap[mission].sort(compareObsv);
+	        missions.push(mission);
+	        if (mission !== "CHANDRA") { mastmissions.push(mission); }
+	    }
+	    missions.sort();
+	    mastmissions.sort();
+	    this.missions=missions;
+	    this.mastmissions=mastmissions;
     },
     comparator: function(observationmodel){
         //couldnt we just return the slashed obsid
@@ -59,6 +78,7 @@ ObservationCollection=Backbone.Collection.extend({
 });
 //Call this with an appropriate el. And appropriate model!
 //el must be <div class="missiondataarea"/>
+//BUG: is explicit append ok in views?
 ObservationCollectionView=Backbone.View.extend({
     tagName: "div",
     className: "missiondataarea",
@@ -73,6 +93,42 @@ ObservationCollectionView=Backbone.View.extend({
         this.$('.datatbody').append(AjaxSolr.theme("dataline", view.model.toJSON()));
     },
     render: function(){
+        //render additional stuff
+
+	    // Display any 'download all data' links
+	    //  - multiple chandra
+	    //  - multiple MAST
+	    //
+	    // At present we only support "all MAST", not
+	    // per mission within MAST.
+	    //
+	    var marray, nm;
+	    var missionmap=this.model.missionmap;
+	    var missions=this.model.missions;
+	    var mastmissions=this.model.mastmissions;
+	    var nmissions = missions.length;
+        
+	    if (missionmap["CHANDRA"] !== undefined) {
+	        marray = missionmap["CHANDRA"];
+	        nm = marray.length;
+
+	        if (nm > 1) {
+		        var mobsids = marray.map(function(e) { return e.obsid; });
+		        this.$('.extrapara').append(AjaxSolr.theme.prototype.mission_link('', 'All CHANDRA (' + nm + ')',
+		            getChandraObsidlink('',mobsids.join(',')))
+		        ).append(' ');
+	        }
+	    }
+
+	    var nmast = mastmissions.length;
+	    if (nmast > 1 || (nmast == 1 && missionmap[mastmissions[0]].length > 1)) {
+	        var label = 'All MAST ('
+		    + mastmissions.map(function (m) { return missionmap[m].length + ' ' + m; }).join(', ') 
+		    + ')';
+	        this.$('.extrapara').append(
+		        AjaxSolr.theme.prototype.mission_link('', label, getMASTBibrefLink(this.model.doc.bibcode))
+	        );
+	    }
         return this;
     }
 });
@@ -199,7 +255,7 @@ PublicationView=Backbone.View.extend({
                 AjaxSolr.theme('list_items', AjaxSolr.theme('authors'), authors, "; "),
                 AjaxSolr.theme('facet_link', year, 'pubyear_i', '['+year+' TO ' + year +']')
             ),
-            AjaxSolr.theme('lessmore', doc, collectionview.el),
+            AjaxSolr.theme('lessmore', doc, collectionview.render().el),
             this.widget
       );
       $(this.el).html(ajrtheme);

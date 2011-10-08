@@ -152,7 +152,7 @@ ObjectCollection=Backbone.Collection.extend({
         //BUG2: we have lost pagination
         this.nobj=0;
         if (this.doc.objectnames_s !== undefined){
-            this.nobs=this.doc.objectnames_s.length;
+            this.nobj=this.doc.objectnames_s.length;
         }
     },
     populate: function(){

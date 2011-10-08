@@ -106,7 +106,7 @@
 	    var $abstract = $('<div class="abstracttext"><span class="pubitem">Abstract:</span> '+abtext+'</div>');
 	    $output2.append($abstract);
 	    //addObjectArea($output2, doc.id, doc.objectnames_s, doc.objecttypes_s);
-	    $output2.append(AjaxSolr.theme.prototype.objectarea(doc.id, doc.objectnames_s, doc.objecttypes_s));
+	    //$output2.append(AjaxSolr.theme.prototype.objectarea(doc.id, doc.objectnames_s, doc.objecttypes_s));
 	    $output2.append(objcollectionview_el);
 	    /*
 	    $output2.append(AjaxSolr.theme.prototype.dataarea(doc.id, doc.bibcode, 

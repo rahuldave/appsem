@@ -9,15 +9,15 @@ var SOLRURL2='http://localhost:8982/solr/';
     $(function () {
 	console.log("*** In semflow-observations");
 
-	Manager = new AjaxSolr.Manager({
+	ObservationsManager = new AjaxSolr.Manager({
 	    solrUrl: SOLRURL2
 	});
 
-	Manager.addWidget(new AjaxSolr.ResultWidget({
+	ObservationsManager.addWidget(new AjaxSolr.ResultWidget({
 	    id: 'result',
 	    target: '#docs'
 	}));
-	Manager.addWidget(new AjaxSolr.PagerWidget({
+	ObservationsManager.addWidget(new AjaxSolr.PagerWidget({
 	    id: 'pager',
 	    target: '#pager',
 	    prevLabel: '&lt;',
@@ -32,7 +32,7 @@ var SOLRURL2='http://localhost:8982/solr/';
 		// FOR now remove get-data: append($('<a class="save" id="get-data" href="#">get data</a>'));
 
 		$('#save-search').click(function(){
-		    $.post(SITEPREFIX+'/savesearch', JSON.stringify({'savedsearch':location.href.split("#")[1]}), function(data){
+		    $.post(SITEPREFIX+'/savesearch', JSON.stringify({'savedsearch':'observations#'+location.href.split("#")[1]}), function(data){
 			//should we decode uri component above? We do it on server so perhaps not.
 			if (data['success']==='defined'){
 			    $('#save-search').hide();
@@ -42,7 +42,7 @@ var SOLRURL2='http://localhost:8982/solr/';
 		    return false;
 		});
 		$('#delete-search').click(function(){
-		    $.post(SITEPREFIX+'/deletesearch', JSON.stringify({'searchid':location.href.split("#")[1]}), function(data){
+		    $.post(SITEPREFIX+'/deletesearch', JSON.stringify({'searchid':'observations#'+location.href.split("#")[1]}), function(data){
 			//should we decode uri component above? We do it on server so perhaps not.
 			if (data['success']==='defined'){
 			    $('#delete-search').hide();
@@ -59,13 +59,12 @@ var SOLRURL2='http://localhost:8982/solr/';
 		return false;
 		});
 		*/
+        if (ObservationsManager.store.values('fq').length == 0) {
+		    $('#save-search').hide();
+		}
 
-		/*
-		 * Hide this for now as saving observation searches
-		 * is not fully supported.
-		 *
 		$.getJSON(SITEPREFIX+'/savedsearches', function(data){
-		    var thissearchurl=location.href.split("#")[1];
+		    var thissearchurl='observations#'+location.href.split("#")[1];
 		    console.log("THISSEARCHURL", thissearchurl);
 		    //alert(thissearchurl);
 		    if (data['savedsearches']!='undefined'){
@@ -82,8 +81,7 @@ var SOLRURL2='http://localhost:8982/solr/';
 			// $('#get-data').hide(); currently usunsed
 		    }
 		});
-		 *
-		 */
+
 
 	    } // renderHeader
 	}));
@@ -99,7 +97,7 @@ var SOLRURL2='http://localhost:8982/solr/';
 	for (var i = 0, l = fields.length; i < l; i++) {
 	    field_map[facet_fields[i]] = field_names[i];
 
-	    Manager.addWidget(new AjaxSolr.TagcloudWidget({
+	    ObservationsManager.addWidget(new AjaxSolr.TagcloudWidget({
 		id: fields[i],
 		target: '#' + fields[i],
 		field: facet_fields[i]
@@ -113,20 +111,20 @@ var SOLRURL2='http://localhost:8982/solr/';
 	field_map['obsvtime_d'] = 'Observation Date'
 	field_map['exptime_f'] = 'Exposure Time'
 
-	Manager.addWidget(new AjaxSolr.CurrentSearchWidget({
+	ObservationsManager.addWidget(new AjaxSolr.CurrentSearchWidget({
             id: 'currentsearch',
             target: '#selection',
 	    fieldmap: field_map,
             allowmulti: facet_fields
 	}));
-	Manager.addWidget(new AjaxSolr.AutocompleteWidget({
+	ObservationsManager.addWidget(new AjaxSolr.AutocompleteWidget({
             id: 'text',
             target: '#search',
             field: 'text',
             fields: facet_fields, // not adding bibcode unlike publications
 	    fieldmap: field_map
 	}));
-	Manager.addWidget(new AjaxSolr.YearWidget({
+	ObservationsManager.addWidget(new AjaxSolr.YearWidget({
             id: 'pubyear',
             target: '#pubyear',
             field: 'pubyear_i',
@@ -141,7 +139,7 @@ var SOLRURL2='http://localhost:8982/solr/';
 	max_numericfields=[360.0, 90.0, 0.1, 100.0, 2000.0];
 	step_numericfields=[15.0, 10.0, 0.001, 1.0, 10.0];
 	for (var i = 0, l = numericfields.length; i < l; i++) {
-            Manager.addWidget(new AjaxSolr.DualSliderWidget({
+            ObservationsManager.addWidget(new AjaxSolr.DualSliderWidget({
 		id: numericfields[i],
 		target: '#'+numericfields[i],
 		field: facet_numericfields[i],
@@ -151,7 +149,7 @@ var SOLRURL2='http://localhost:8982/solr/';
             }));
 	}
 
-	Manager.addWidget(new AjaxSolr.DualSliderWidget({
+	ObservationsManager.addWidget(new AjaxSolr.DualSliderWidget({
             id: 'exptime',
             target: '#exptime',
             field: 'exptime_f',
@@ -163,7 +161,7 @@ var SOLRURL2='http://localhost:8982/solr/';
 	    fromFacet: function (val) { return val / 1000; }
 	}));
 
-	Manager.addWidget(new AjaxSolr.DateRangerWidget({
+	ObservationsManager.addWidget(new AjaxSolr.DateRangerWidget({
             id: 'obsvtime',
             target: '#obsvtime',
             field: 'obsvtime_d',
@@ -171,10 +169,10 @@ var SOLRURL2='http://localhost:8982/solr/';
             datastep: 10
 	}));
 
-	Manager.setStore(new AjaxSolr.AstroExplorerStore());
-	Manager.store.exposed = [ 'fq', 'q' ];
-	Manager.init();
-	Manager.store.addByValue('q', '*:*');
+	ObservationsManager.setStore(new AjaxSolr.AstroExplorerStore());
+	ObservationsManager.store.exposed = [ 'fq', 'q' ];
+	ObservationsManager.init();
+	ObservationsManager.store.addByValue('q', '*:*');
 	console.log("facet_fields:", facet_fields);
 	var params = {
 	    'facet': true,
@@ -191,9 +189,9 @@ var SOLRURL2='http://localhost:8982/solr/';
 
 	//BUG is obsvtime_d optimized for sorting? Probably not. Whats equiv of citation count?
 	for (var name in params) {
-	    Manager.store.addByValue(name, params[name]);
+	    ObservationsManager.store.addByValue(name, params[name]);
 	}
-	Manager.doRequest();
+	ObservationsManager.doRequest();
     
     });
 })(jQuery);

@@ -68,33 +68,35 @@ AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
       //alert(gaga.length+","+items.length);
       //alert(items);
       AjaxSolr.theme('list_items', '#links_' + encodeObsuri(doc.obsids_s), gaga, "| ");
-      docids.push(doc.obsids_s);
+      docids.push(encodeObsuri(doc.obsids_s));
     }
     console.log("DOCIDS", docids);
     // Find out which papers have been saved so that we can change the 
     // Saved text/icon to delete.
-    /*
-    $.getJSON(SITEPREFIX+'/savedpubs', function(data){
-        if (data['savedpubs']!='undefined'){
-            var savedpubarray=data['savedpubs'];
-            console.log("SAVEDPUBARRAY", savedpubarray);
+    
+    $.getJSON(SITEPREFIX+'/savedobsvs', function(data){
+        if (data['savedobsvs']!='undefined'){
+            var savedobsvarray=data['savedobsvs'];
+            console.log("SAVEDOBSVARRAY", savedobsvarray);
+            //alert(savedobsvarray);
             _.each(docids, function(ele){
-                if (_.indexOf(savedpubarray, ele)!=-1){
+                //alert(ele);
+                if (_.indexOf(savedobsvarray, ele)!=-1){
                     //console.log("ELE",ele);
-		    $('#savepub_'+ele).hide();
-		    $('#delpub_'+ele).show();
+		    $('#saveobsv_'+ele).hide();
+		    $('#delobsv_'+ele).show();
                 }
             });
         } else {
             _.each(docids, function(ele){
                 //console.log("ELE",ele);
-                $('#savepub_'+ele).hide();
-                $('#delpub_'+ele).hide(); // should already be hidden but just in case
+                $('#saveobsv_'+ele).hide();
+                $('#delobsv_'+ele).hide(); // should already be hidden but just in case
                 $('#data_'+ele).hide();
             });
         }
     });
-    */
+  
   },
   facetLinks: function (facet_field, facet_values) {
     var links = [];
@@ -138,9 +140,9 @@ AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
       var thedoc=doc;
       return function(){
 	  $.post(SITEPREFIX+'/saveobsv', JSON.stringify({
-		      'savedobsv':thedoc.obsids_s, 
-			  'target':thedoc.targets_s,
-			  'title':thedoc.obsv_title
+		      'savedobsv':encodeObsuri(thedoc.obsids_s), 
+			  'obsvtarget':thedoc.targets_s,
+			  'obsvtitle':thedoc.obsv_title
 			  }), function(data){
                 if (data['success']==='defined'){
                     $('#saveobsv_'+encodeObsuri(thedoc.obsids_s)).hide();
@@ -155,10 +157,10 @@ AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
       var thedoc=doc;
       return function(){
 	  $.post(SITEPREFIX+'/deleteobsv', JSON.stringify({
-		      'obsid':thedoc.obsids_s }), function(data){
+		      'obsid':encodeObsURI(thedoc.obsids_s) }), function(data){
                 if (data['success']==='defined'){
-                    $('#savepub_'+encodeObsuri(thedoc.obsids_s)).show();
-                    $('#delpub_'+encodeObsuri(thedoc.obsids_s)).hide();
+                    $('#saveobsv_'+encodeObsuri(thedoc.obsids_s)).show();
+                    $('#delobsv_'+encodeObsuri(thedoc.obsids_s)).hide();
                 }
             });
             return false;

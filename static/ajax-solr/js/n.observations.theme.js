@@ -13,9 +13,9 @@ function encodeObsuri(obsuri){
 	    .click(thedocthis.moreHandler(doc));
 	var $lessa = $('<a href="#" id="al_'+encodeObsuri(doc.obsids_s)+'" style="display:none">less</a>')
 	    .click(thedocthis.lessHandler(doc));
-	var $bookmark = $('<a href="#" class="save" id="savepub_'+encodeObsuri(doc.obsids_s)+'">save</a>')
+	var $bookmark = $('<a href="#" class="savelink" id="saveobsv_'+encodeObsuri(doc.obsids_s)+'">save</a>')
 	    .click(thedocthis.saveHandler(doc));
-	var $unbookmark = $('<a href="#" class="delete" id="delpub_'+encodeObsuri(doc.obsids_s)+'" style="display:none">delete</a>')
+	var $unbookmark = $('<a href="#" class="deletelink" id="delobsv_'+encodeObsuri(doc.obsids_s)+'" style="display:none">delete</a>')
 	    .click(thedocthis.deleteHandler(doc));
     console.log("SNIP1", snippet[1].text());
 	return $('<div class="publication"/>')

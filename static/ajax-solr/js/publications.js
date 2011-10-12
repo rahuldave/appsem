@@ -31,7 +31,7 @@ var PublicationsManager;
 		// FOR now remove get-data: append($('<a class="save" id="get-data" href="#">get data</a>'));
 		
 		$('#save-search').click(function(){
-		    $.post(SITEPREFIX+'/savesearch', JSON.stringify({'savedsearch':location.href.split("#")[1]}), function(data){
+		    $.post(SITEPREFIX+'/savesearch', JSON.stringify({'savedsearch':'publications#'+location.href.split("#")[1]}), function(data){
 			//should we decode uri component above? We do it on server so perhaps not.
 			if (data['success']==='defined'){
 			    $('#save-search').hide();
@@ -41,7 +41,7 @@ var PublicationsManager;
 		    return false;
 		});
 		$('#delete-search').click(function(){
-		    $.post(SITEPREFIX+'/deletesearch', JSON.stringify({'searchid':location.href.split("#")[1]}), function(data){
+		    $.post(SITEPREFIX+'/deletesearch', JSON.stringify({'searchid':'publications#'+location.href.split("#")[1]}), function(data){
 			//should we decode uri component above? We do it on server so perhaps not.
 			if (data['success']==='defined'){
 			    $('#delete-search').hide();
@@ -68,7 +68,7 @@ var PublicationsManager;
 		
 		//this gets called all the time. How to avoid this?
 		$.getJSON(SITEPREFIX+'/savedsearches', function(data){
-		    var thissearchurl=location.href.split("#")[1];
+		    var thissearchurl='publications#'+location.href.split("#")[1];
 		    console.log("THISSEARCHURL", thissearchurl);
 		    //alert(thissearchurl);
 		    if (data['savedsearches']!='undefined'){

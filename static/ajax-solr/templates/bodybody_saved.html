@@ -28,7 +28,7 @@
       <tr class="saveditem" id="search-{{searchctr}}">
 	<td><input type="checkbox" name="searchid" value="{{searchuri}}"></td>
 	<td class="savetime"><span value="{{searchtime}}">{{searchtimestr}}</span></td>
-	<td class="searchtitle"><a href="/semantic2/alpha/explorer/publications#{{searchuri}}">{{searchtext}}</a></td>
+	<td class="searchtitle"><a href="/semantic2/alpha/explorer/{{searchuri}}">{{searchtext}}</a></td>
       </tr>
       {{/savedsearches}}
     </tbody>
@@ -80,6 +80,42 @@
   <h1>No saved publications</h1>
   {{/haspubs}}
 </div>
+
+
+<div class="saved-items">
+  {{#hasobsvs}}
+  <h1>Saved Observations</h1>
+  <form id="saved-obsvs-form" action="#">
+<div class="formactions">  
+  <input type="button" value="Mark all" onClick="changeAllButtons(this.form, true)">
+  <input type="button" value="Clear all" onClick="changeAllButtons(this.form, false)">
+  <input type="submit" name="action" value="Delete marked">
+</div>
+<table class="tablesorter" id="saved-obsvs-table">
+  <thead>
+    <tr><th/><th>Date saved</th><th>Obsid</th><th>Target</th></th>
+    </thead>
+    <tbody>  
+      {{#savedobsvs}}
+      <tr class="saveditem" id="obsv-{{obsvctr}}">
+	<td><input type="checkbox" name="obsvid" value="{{{obsvid}}}"></td>
+	<!-- should not use non-standard value attribute here -->
+	<td class="savetime"><span value="{{obsvtime}}">{{obsvtimestr}}</span></td>
+	<td class="papertitle"><a href="/semantic2/alpha/explorer/observations#fq={{linkuri}}&q=*%3A*">{{{linktext}}}</a></td>
+	<td class="bibcode">{{{target}}}</td>
+      </tr>
+      {{/savedobsvs}}
+    </tbody>
+  </table>
+  </form>
+  {{/hasobsvs}}
+  {{^hasobsvs}}
+  <h1>No saved observations</h1>
+  {{/hasobsvs}}
+</div>
+
+
+
 </div>
     
 	<script type='text/javascript'>
@@ -91,5 +127,9 @@ setupSortedTable('#saved-searches-table');
 $('#saved-pubs-form').submit(submitDeleteAction('/deletepubs', 'pubid'));
  setupSortedTable('#saved-pubs-table');
 {{/haspubs}}
+{{#hasobsvs}}
+$('#saved-obsvs-form').submit(submitDeleteAction('/deleteobsvs', 'obsvid'));
+ setupSortedTable('#saved-obsvs-table');
+{{/hasobsvs}}
 	</script>
 </div>

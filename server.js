@@ -412,6 +412,40 @@ function savePub(jsonpayload, req, res, next) {
 
 } // savePub
 
+//(1) we are using targets as akin to bibcodes. BUG: there will be something to pay for this, surely
+//Also titles are not much used
+function saveObsv(jsonpayload, req, res, next) {
+    console.log("savedobsvcookies", req.cookies, jsonpayload);
+    var savetime = new Date().getTime();
+
+    ifLoggedIn(req, res, function (loginid) {
+	var jsonobj = JSON.parse(jsonpayload);
+	var savedobsv = jsonobj.savedobsv;
+	var target = jsonobj.obsvtarget;
+	var title = jsonobj.obsvtitle;
+
+	redis_client.get('email:' + loginid, function (err, email) {
+            console.log("REPLY", email);
+
+	    // Moved to a per-user database for titles and bibcodes so that we can delete
+	    // search information. Let's see how this goes compared to "global" values for the
+	    // bibcodes and titles hash arrays.
+	    //
+	    // Should worry about failures here, but not for now.
+	    //
+	    var margs = [["hset", 'savedtargets:' + email, savedobsv, target],
+			 ["hset", 'savedobsvtitles:' + email, savedobsv, title],
+			 ["zadd", 'savedobsv:' + email, savetime, savedobsv]
+			];
+	    redis_client.multi(margs).exec(function (err, reply) {
+		console.log("Saving observation: ", savedobsv);
+		successfulRequest(res);
+	    });
+	});
+    });
+
+} // saveObsv
+
 /*
  * get all the elements for the given key, stored
  * in a sorted list, and sent it to callback
@@ -494,6 +528,20 @@ function getSavedPubs(req, res, next) {
 
 }
 
+function getSavedObsvs(req, res, next) {
+    // console.log("::::::::::getSavedPubsCookies", req.cookies);
+
+    ifLoggedIn(req, res, function (loginid) {
+	redis_client.get('email:' + loginid, function (err, email) {
+	    getSortedElements(true, 'savedobsv:' + email, function (err, searches) {
+		console.log("GETSAVEDOBSVSREPLY", searches, err);
+		successfulRequest(res, { 'keyword': 'savedobsvs', 'message': searches } );
+            });
+	});
+    }, {'keyword': 'savedobsvs'});
+
+}
+
 function makeADSJSONPCall(req, res, next) {
     //Add logic if the appropriate cookie is not defined
     var jsonpcback = url.parse(req.url, true).query.callback;
@@ -568,6 +616,35 @@ function removeDocs(res, loginid, docids) {
 
 } // removeDocs
 
+
+//again tagets are not (and we dont want them to be unique). How does this affect things?
+function removeObsvs(res, loginid, docids) {
+    if (docids.length === 0) {
+	console.log("Error: removeObsvs called with empty docids list; loginid=" + loginid);
+	failedRequest(res);
+    } else {
+	redis_client.get('email:' + loginid, function (err, email) {
+	    var margs = [];
+	    var obsvkey = 'savedobsv:' + email;
+	    var titlekey = 'savedobsvtitles:' + email;
+	    var targetkey = 'savedtargets:' + email;
+	    var i;
+	    // In Redis 2.4 zrem and hdel can be sent multiple keys
+	    for (i in docids) {
+		var docid = docids[i];
+		margs.push(["zrem", obsvkey, docid]);
+		margs.push(["hdel", titlekey, docid]);
+		margs.push(["hdel", targetkey, docid]);
+	    }
+	    redis_client.multi(margs).exec(function (err, reply) {
+		console.log("Assumed we have removed " + docids.length + " observations from user's saved observations list");
+		successfulRequest(res);
+	    });
+	});
+    }
+
+} // removeObsvs
+
 // Create a function to delete a single search or publication
 //   funcname is used to create a console log message of 'In ' + funcname
 //     on entry to the function
@@ -631,9 +708,10 @@ function deleteItems(funcname, idname, delItems) {
 
 var deleteSearch   = deleteItem("deleteSearch", "searchid", removeSearches);
 var deletePub      = deleteItem("deletePub",    "pubid",    removeDocs);
-
+var deleteObsv      = deleteItem("deleteObsv",    "obsvid",    removeObsvs);
 var deleteSearches = deleteItems("deleteSearches", "searchid", removeSearches);
 var deletePubs     = deleteItems("deletePubs",     "pubid",    removeDocs);
+var deleteObsvs     = deleteItems("deleteObsvs",     "obsvid",    removeObsvs);
 
 
 function addToRedis(req, res, next) {
@@ -648,12 +726,21 @@ function saveSearchToRedis(req, res, next) {
 function savePubToRedis(req, res, next) {
     postHandler(req, res, savePub);
 }
+function saveObsvToRedis(req, res, next) {
+    postHandler(req, res, saveObsv);
+}
 
 function deletePubFromRedis(req, res, next) {
     postHandler(req, res, deletePub);
 }
 function deletePubsFromRedis(req, res, next) {
     postHandler(req, res, deletePubs);
+}
+function deleteObsvFromRedis(req, res, next) {
+    postHandler(req, res, deleteObsv);
+}
+function deleteObsvsFromRedis(req, res, next) {
+    postHandler(req, res, deleteObsvs);
 }
 function deleteSearchFromRedis(req, res, next) {
     postHandler(req, res, deleteSearch);
@@ -728,7 +815,9 @@ function doObservations(req, res, next) {
  */
 function searchToText(searchTerm) {
     // lazy way to remove the trailing search term
-    var s = "&" + searchTerm;
+    console.log("SEARCHTERM ", searchTerm);
+    var splits=searchTerm.split('#');
+    var s = "&" + splits[1];
     s = s.replace('&q=*%3A*', '');
 
     // only decode after the initial split to protect against the
@@ -739,10 +828,10 @@ function searchToText(searchTerm) {
     var out = "";
     var i;
     for (i = 1; i < terms.length; i++) {
-	var toks = decodeURIComponent(terms[i]).split(':', 2);
-	out += toks[0] + "=" + toks[1] + " ";
+        var toks = decodeURIComponent(terms[i]).split(':', 2);
+        out += toks[0] + "=" + toks[1] + " ";
     }
-
+    console.log("OUT", out);
     return out;
 }
 
@@ -843,6 +932,39 @@ function createSavedPubTemplates(view, nowDate, pubkeys, bibcodes, pubtitles, pu
 
 } // createSavedPubTemplates
 
+function createSavedObsvTemplates(view, nowDate, obsvkeys, targets, obsvtitles, obsvtimes) {
+    var nobsv =obsvkeys.length;
+    var i;
+
+    view.hasobsvs = nobsv > 0;
+    view.savedobsvs = [];
+    for (i = 0; i < nobsv; i++) {
+	var target = targets[i];
+	
+	// It seems that we have to protect the 
+	// text used to create the bibcode link, even though I thought
+	// Mustache handled this. Unfortunately titles can contain HTML
+	// formatting so need to be careful. This may be invalid since I
+	// had missed the handy {{{ }}} mustache functionality.
+	//
+	//var linkuri = "bibcode%3A" + bibcode.replace(/&/g, '%26');
+	var linkuri = "obsids_s%3A" + obsvkeys[i].replace(/&/g, '%26');    
+	view.savedobsvs[i] = {'obsvid': obsvkeys[i],
+			     'linktext': obsvkeys[i],
+			     'linkuri': linkuri,
+			     'obsvtime': obsvtimes[i],
+			     'obsvtimestr': timeToText(nowDate, obsvtimes[i]),
+			     'target': target,
+			     'obsvctr': i };
+				
+    }
+
+} // createSavedObsvTemplates
+
+//FUNCTION BELOW MUST INCLUDE OBSERVATIONS
+
+//BUG: I dislike the stairs in the async kind of programming
+//even if we do it there should be a better way to present it.
 function doSaved(req, res, next) {
     console.log("In do Saved");
     var logincookie = req.cookies.logincookie;
@@ -861,19 +983,33 @@ function doSaved(req, res, next) {
 	var nowDate = new Date().getTime();
 	redis_client.get('email:'+logincookie, function (err, email) {
 	    getSortedElementsAndScores(false, 'savedsearch:'+email, function (err, savedsearches) {
-		var searchkeys = savedsearches.elements;
-		var searchtimes = savedsearches.scores;
-		getSortedElementsAndScores(false, 'savedpub:'+email, function (err, savedpubs) {
-		    var pubkeys = savedpubs.elements;
-		    var pubtimes = savedpubs.scores;
-		    redis_client.hmget('savedtitles:'+email, pubkeys, function (err, pubtitles) {
-			redis_client.hmget('savedbibcodes:'+email, pubkeys, function (err, bibcodes) {
-			    createSavedSearchTemplates(view, nowDate, searchkeys, searchtimes);
-			    createSavedPubTemplates(view, nowDate, pubkeys, bibcodes, pubtitles, pubtimes);
-			    res.end(mustache.to_html(maint, view, lpartials));
-			});
+		    var searchkeys = savedsearches.elements;
+		    var searchtimes = savedsearches.scores;
+		    createSavedSearchTemplates(view, nowDate, searchkeys, searchtimes);
+		    getSortedElementsAndScores(false, 'savedpub:'+email, function (err, savedpubs) {
+		        var pubkeys = savedpubs.elements;
+		        var pubtimes = savedpubs.scores;
+
+		        redis_client.hmget('savedtitles:'+email, pubkeys, function (err, pubtitles) {
+			        redis_client.hmget('savedbibcodes:'+email, pubkeys, function (err, bibcodes) {
+			           
+			            createSavedPubTemplates(view, nowDate, pubkeys, bibcodes, pubtitles, pubtimes);
+			            getSortedElementsAndScores(false, 'savedobsv:'+email, function (err, savedobsvs) {
+		                    var obsvkeys = savedobsvs.elements;
+		                    var obsvtimes = savedobsvs.scores;
+		                    redis_client.hmget('savedobsvtitles:'+email, obsvkeys, function (err, obsvtitles) {
+			                    redis_client.hmget('savedtargets:'+email, obsvkeys, function (err, targets) {
+			                        createSavedObsvTemplates(view, nowDate, obsvkeys, targets, obsvtitles, obsvtimes);
+			            
+			                        res.end(mustache.to_html(maint, view, lpartials));
+			                    });
+		                     });
+		        
+		                });
+			        });
+		        });
+		        
 		    });
-		});
 	    });
 	});
 
@@ -882,6 +1018,7 @@ function doSaved(req, res, next) {
     }
     
 }
+
 
 // This is just temporary code:
 //   could add in a timeout and message
@@ -935,11 +1072,13 @@ server.use(SITEPREFIX+'/login', loginUser);
 server.use(SITEPREFIX+'/savesearch', saveSearchToRedis);
 server.use(SITEPREFIX+'/savedsearches', getSavedSearches);
 server.use(SITEPREFIX+'/savepub', savePubToRedis);
-
+server.use(SITEPREFIX+'/saveobsv', saveObsvToRedis);
 server.use(SITEPREFIX+'/deletesearch', deleteSearchFromRedis);
 server.use(SITEPREFIX+'/deletesearches', deleteSearchesFromRedis);
 server.use(SITEPREFIX+'/deletepub', deletePubFromRedis);
 server.use(SITEPREFIX+'/deletepubs', deletePubsFromRedis);
+server.use(SITEPREFIX+'/deleteobsv', deleteObsvFromRedis);
+server.use(SITEPREFIX+'/deleteobsvs', deleteObsvsFromRedis);
 
 // Used by the saved search page to provide functionality
 // to the saved publications list. This is a hack to work
@@ -948,6 +1087,7 @@ server.use(SITEPREFIX+'/deletepubs', deletePubsFromRedis);
 server.use(SITEPREFIX+'/adsproxy', doADSProxy);
 
 server.use(SITEPREFIX+'/savedpubs', getSavedPubs);
+server.use(SITEPREFIX+'/savedobsvs', getSavedObsvs);
 
 // not sure of the best way to do this, but want to privide access to
 // ajax-loader.gif and this way avoids hacking ResultWidget.2.0.js

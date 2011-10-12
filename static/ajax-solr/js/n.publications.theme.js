@@ -248,15 +248,14 @@
     //HANDLER: do later
     
     
-    AjaxSolr.theme.prototype.objectpreamble=function(doc, nobj){
-        var docid=doc.id;
+    AjaxSolr.theme.prototype.objectpreamble=function(nobj){
+        //alert(nobj);
         var $start=$('<div class="insideobjectarea"/>').append(pubLabel('Objects')).append('<p class="extrapara"/>').append(' ');
         if (nobj===0){
             $start.append('None');
             return $start.append($('<br/>'));
         }
         var $otable = $('<table class="tablesorter"/>')
-	        .attr('id', 'objs_' + docid)
 	        //.attr("class", "zebra-striped")
 	        .append($('<thead/>')
 		        .append('<tr><th>Name</th><th>Type</th></tr>'));
@@ -297,8 +296,8 @@
 	    else              { return 0; }
     } 
 
-    AjaxSolr.theme.prototype.datapreamble=function(doc, nobsv){
-        var docid=doc.id;
+    AjaxSolr.theme.prototype.datapreamble=function(nobsv){
+        //alert(nobsv);
         var $start=$('<div class="insidemissionarea"/>').append(pubLabel('Datasets')).append('<p class="extrapara"/>').append(' ');
         if (nobsv===0){
             $start.append('None');
@@ -307,7 +306,6 @@
         var colnames = ["Mission", "Observation", "Exposure time (s)",
 			    "Observation date", "Target name", "RA", "Dec"];
 	    var $mtable = $('<table class="tablesorter"/>')
-	        .attr('id', 'obsdata_' + docid)
 	        .append($('<thead/>')
 		        .append($('<tr/>')
 			        .append(colnames.map(function (c) { return "<th>" + c + "</th>"; }).join('')))

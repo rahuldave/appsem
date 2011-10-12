@@ -154,6 +154,7 @@ ObjectCollection=Backbone.Collection.extend({
         if (this.doc.objectnames_s !== undefined){
             this.nobj=this.doc.objectnames_s.length;
         }
+        //alert("Hello"+this.nobj);
     },
     populate: function(){
         var doc=this.doc;
@@ -184,7 +185,9 @@ ObjectCollectionView=Backbone.View.extend({
     className: "objectarea",
     initialize: function(){
         this.model.bind("add", this.addOne, this);
-        $(this.el).append(AjaxSolr.theme("objectpreamble", this.model.nobj));
+        //alert("AA"+this.model.nobj)
+        var nobj=this.model.nobj;
+        $(this.el).append(AjaxSolr.theme("objectpreamble", nobj));
     },
     addOne: function(objectmodel){
         var view=new ObjectView({model:objectmodel});

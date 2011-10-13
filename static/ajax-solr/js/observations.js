@@ -19,7 +19,7 @@ var SOLRURL2='http://localhost:8982/solr/';
 	}));
 	ObservationsManager.addWidget(new AjaxSolr.PagerWidget({
 	    id: 'pager',
-	    target: '#pager',
+	    target: $('#pager'),
 	    prevLabel: '&lt;',
 	    nextLabel: '&gt;',
 	    innerWindow: 1,

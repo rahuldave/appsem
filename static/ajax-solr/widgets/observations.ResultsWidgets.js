@@ -67,7 +67,7 @@ AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
       items.concat(gaga);
       //alert(gaga.length+","+items.length);
       //alert(items);
-      AjaxSolr.theme('list_items', '#links_' + encodeObsuri(doc.obsids_s), gaga, "| ");
+      AjaxSolr.theme('list_items', $('#links_' + encodeObsuri(doc.obsids_s)), gaga, "| ");
       docids.push(encodeObsuri(doc.obsids_s));
     }
     console.log("DOCIDS", docids);

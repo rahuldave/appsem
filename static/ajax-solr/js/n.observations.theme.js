@@ -22,13 +22,13 @@ function encodeObsuri(obsuri){
 	    .append($('<h5/>').append(doc.obsv_mission_s + ": ").append(thetitlelink).append(thepivot))
 	    //.append("<b>Target</b>: " + doc.targets_s).
 	    .append($('<div class="bookmarks"/>'))
-	    .append($('<p class="links"/>').attr('id', 'links_' + encodeObsuri(doc.obsids_s)))
+	    //.append($('<p class="links"/>').attr('id', 'links_' + encodeObsuri(doc.obsids_s)))
 	    .append('<p id="links_' + encodeObsuri(doc.obsids_s) + '" class="links"></p>')
 	    .append(snippet[0])
+	    .append($('<div class="lessmore"></div>').append($bookmark).append($unbookmark).append($morea).append($lessa))
 	    .append(snippet[1]
 		    .attr('class', 'extrapaperinfo')
-		    .attr('id', 'p_' + encodeObsuri(doc.obsids_s)))
-	    .append($('<div class="lessmore"></div>').append($bookmark).append($unbookmark).append($morea).append($lessa));
+		    .attr('id', 'p_' + encodeObsuri(doc.obsids_s)));
     }
 
 //Bottom should use obslink
@@ -46,6 +46,10 @@ AjaxSolr.theme.prototype.pivot = function (doc, handler){
     return $pivot;
 }
 
+AjaxSolr.theme.prototype.pivot_link = function (handler) {
+        return $('<a href="#"/>').text(' [P]').click(handler);
+    }
+    
     function getSimbadURI(ele) {
 	return 'http://simbad.u-strasbg.fr/simbad/sim-id?Ident='
 	    + encodeURIComponent(ele)
@@ -107,26 +111,73 @@ AjaxSolr.theme.prototype.pivot = function (doc, handler){
 	return $('<span class="pubitem"/>').text(label);
     }
 
-    function addObjectArea(parentarea, objnames) {
-	if (objnames === undefined) { return; }
+    function addObjectArea(parentarea, docid, objnames, objtypes) {
+	    if (objnames === undefined) { return; }
 
-	// We want a sorted list here. We could come up with a sort
-	// function to handle sorting "M80" and "M81" but for now
-	// live with the current system. It is not clear whether
-	// we need to copy the objnames array before sorting it but
-	// do so just to be safe.
-	//
-	objnames = objnames.slice(0).sort();
-	var $objarea = $('<div class="objectdataarea"></div>')
-	    .append(pubLabel("Objects:"))
-	    .append(' ');
-	for (var ele in objnames){
-	    $objarea.append(makeSimbadLink(objnames[ele]));
-	} 
-	parentarea.append($objarea);
-	parentarea.append($('<br/>'));
+	    // We want a sorted list here. We could come up with a sort
+	    // function to handle sorting "M80" and "M81" but for now
+	    // live with the current system.
+	    //
+	    var objinfo = [];
+	    var i, l;
+	    for (i = 0, l = objnames.length; i < l; i+= 1) {
+	        objinfo.push({"name": objnames[i], "objtype": objtypes[i]});
+	    }
+	    objinfo.sort(function(a,b) { return a.name.localeCompare(b.name); });
+
+	    var $otable = $('<table class="tablesorter"/>')
+	        .attr('id', 'objs_' + docid)
+	        .append($('<thead/>')
+		        .append('<tr><th>Name</th><th>Type</th></tr>'));
+
+	    var $obody = $('<tbody/>');
+	    for (i = 0, l = objinfo.length; i < l; i += 1) {
+	        var oname = objinfo[i].name;
+	        var otype = objinfo[i].objtype;
+	        $obody.append($('<tr/>')
+			      .append($('<td/>')
+				      .append(makeSimbadLink(oname))
+				      .append(makePivotLink('objectnames_s:' + AjaxSolr.Parameter.escapeValue(oname)))
+				  )
+			      .append($('<td/>')
+				      .text(otype)
+				      .append(makePivotLink('objecttypes_s:' + AjaxSolr.Parameter.escapeValue(otype)))
+				  )
+			);
+	    } 
+
+	    $otable.append($obody);
+	    parentarea.append($('<div class="objectdataarea"/>')
+			      .append(pubLabel("Objects:"))
+			      .append(' ')
+			      .append($otable));
+	    parentarea.append($('<br/>'));
+
+	    // as with the data area, this should only be needed when the table
+	    // is actually viewed.
+	    $otable.tablesorter();
     }
 
+function makePivotHandler(pivot) {
+	    return function () {
+	        // use global Manager which is not ideal
+	        ObservationsManager.store.remove('fq');
+	        ObservationsManager.store.addByValue('fq', pivot);
+	        ObservationsManager.doRequest(0);
+	        return false;
+	    };
+    }
+
+    function makePivotLink(pivot) {
+        return AjaxSolr.theme('pivot_link', makePivotHandler(pivot));
+    }
+    function makeFacetLink(value, pivot){
+        return AjaxSolr.theme('facet_link', value, makePivotHandler(pivot));
+    }
+    function makeFacetLink2(ftype, value){
+    //alert(AjaxSolr.Parameter.escapeValue(value));
+        return AjaxSolr.theme('facet_link', value, makePivotHandler(ftype+":"+AjaxSolr.Parameter.escapeValue(value)));
+    }
     // sort on exposure length, but we want largest first
     function compareObs(a, b) {
 	// return a.obsid.localeCompare(b.obsid);
@@ -136,137 +187,30 @@ AjaxSolr.theme.prototype.pivot = function (doc, handler){
 	else              { return 0; }
     } 
 
-    // Create the data area for this publication. Some code could probably be
-    // cleaned up by processing based on the name of the "mission parent" - e.g.
-    // we encode target names as 'MAST/foo' and 'CHANDRA/bar' and so we could
-    // use 'MAST' to possibly simplify some logic below
-    // 
-    function addDataArea(parentarea, docid, bibcode, obsids, exptimes, expdates, targets) {
-	if (obsids === undefined) { return; }
-
-	var $dataarea = $('<div class="missiondataarea"></div>')
-	    .append(pubLabel('Datasets:'))
-	    .append(' ');
-	
-	// Combine the data, as well as cleaning up the obsid value
-	var missionmap = {};
-	var nobs = obsids.length;
-	var mission;
-	for (var i = 0; i < nobs; i += 1) {
-	    var toks = obsids[i].split('/');
-	    mission = toks[0];
-	    var out = {"mission": mission,
-		       "obsid": toks[1],
-		       "exptime": exptimes[i],
-		       "obsdate": expdates[i],
-		       "target": targets[i].split('/', 2)[1]};
-	    if (missionmap[mission] === undefined) {
-		missionmap[mission] = [out];
-	    } else {
-		missionmap[mission].push(out);
-	    }
-	}
-
-	// Ensure the mission data is sorted; we want the data
-	// sorted by exposure time within each mission rather
-	// than an overall sort on exposure (as would be provided
-	// by tablesorter).
-	//
-	var missions = [];
-	var mastmissions = [];
-	for (mission in missionmap) {
-	    missionmap[mission].sort(compareObs);
-	    missions.push(mission);
-	    if (mission !== "CHANDRA") { mastmissions.push(mission); }
-	}
-	missions.sort();
-	mastmissions.sort();
-	var nmissions = missions.length;
-
-	// Display any 'download all data' links
-	//  - multiple chandra
-	//  - multiple MAST
-	//
-	// At present we only support "all MAST", not
-	// per mission within MAST.
-	//
-	var marray, nm;
-	if (missionmap["CHANDRA"] !== undefined) {
-	    marray = missionmap["CHANDRA"];
-	    nm = marray.length;
-
-	    if (nm > 1) {
-		var mobsids = marray.map(function(e) { return e.obsid; });
-		$dataarea.append(
-		    getChandraObsidlink('All CHANDRA (' + nm + ')',
-					mobsids.join(','))
-		);
-		$dataarea.append(' ');
-
-	    }
-	}
-
-	var nmast = mastmissions.length;
-	if (nmast > 1 || (nmast == 1 && missionmap[mastmissions[0]].length > 1)) {
-	    var label = 'All MAST ('
-		+ mastmissions.map(function (m) { return missionmap[m].length + ' ' + m; }).join(', ') 
-		+ ')';
-	    $dataarea.append(
-		$('<a class="iframe"/>')
-		    .text(label)
-		    .attr('href', 'http://archive.stsci.edu/mastbibref.php?bibcode='+encodeURIComponent(bibcode))
-		    .fancybox(fancyboxOpts)
-	    );
-	}
-
-	// Now the data table containing all the missions. We could split out into mission-specific
-	// tables but leave as a single one for now.
-	//
-	// Could add more rows and clean up or remove the # column
-	//
-	var $mtable = $('<table class="tablesorter"/>')
-	    .attr('id', 'obsdata_' + docid)
-	    .append($('<thead/>')
-		    .append('<tr><th>Mission</th><th>#</th><th>Observation</th><th>Exposure time (s)</th><th>Observation date</th><th>Target name</th></tr>'));
-
-	var $mbody = $('<tbody/>');
-
-	for (midx = 0; midx < nmissions; midx += 1) {
-	    mission = missions[midx];
-	    var mvalues = missionmap[mission];
-	    var mitems = mvalues.length;
-
-	    for (var idx = 0; idx < mitems; idx += 1) {
-		var ctr = idx + 1;
-		$mbody.append($('<tr/>')
-			      .append($('<td/>').text(mission.toUpperCase()))
-			      .append($('<td/>').text(ctr))
-			      .append($('<td/>').append(getObslink(mission, mvalues[idx].obsid)))
-			      .append($('<td/>').append(mvalues[idx].exptime))
-			      .append($('<td/>').append(mvalues[idx].obsdate))
-			      .append($('<td/>').append(mvalues[idx].target))
-			     );
-	    }
-	}
-
-	// Ensure we can sort the table; the tablesorter call *could* be made
-	// when the 'more' link is activated by the user (as an optimisation for the
-	// case when multiple tables are being created but none actually viewed
-	// by the user), but worry about that only if profiling shows it is an
-	// actual issue.
-	// 
-	$mtable.append($mbody);
-	$mtable.tablesorter();
-
-	//$dataarea.append($('<div class="missiondata"/>').append($mtable));
-	$dataarea.append($mtable);
-
-	parentarea.append($dataarea);
-	parentarea.append($('<br/>'));
-	    
-    } // addDataArea
+    function facetLinks (facet_field, facet_values) {
+    var links = [];
+    //alert(facet_values.length);
+    if (facet_values) {
+        for (var i = 0, l = facet_values.length; i < l; i++) {
+            links.push(makeFacetLink2(facet_field, facet_values[i]));
+        }
+    }
+    //alert(links);
+    return links;
+  }
+  
+    AjaxSolr.theme.prototype.listers=function(doc, ftype, fvalue, $jq){
+      var gaga=facetLinks(ftype, fvalue);
+      //items.concat(gaga);
+      //alert(gaga.length+","+items.length);
+      //alert(items);
+      //var $jq=$('#links_' +ftype+'_'+ encodeObsuri(doc.obsids_s));
+      return AjaxSolr.theme('list_items', $jq, gaga, "| ");
+    }
 
     AjaxSolr.theme.prototype.snippet = function (doc, obsvtime) {
+    //alert(doc.targets_s);
+    //alert('['+doc.instruments_s+']');
 	var $output1 = $('<p/>')
 	    //.append(pubLabel('Authors:'))
 	    // .append(' ' + doc.author.join(' ; '))
@@ -277,24 +221,34 @@ AjaxSolr.theme.prototype.pivot = function (doc, handler){
 	    .append(' ')
 	    .append(obsvtime)
 	    .append(' ')
-	    .append(pubLabel('Target:'))
-	    .append(' ' + doc.targets_s + ' ')
-	    .append(pubLabel('Instruments:'))
-	    .append(' ' + doc.instruments_s);
-
+	    .append(pubLabel('Target:')).append(' ')
+	    .append(makeFacetLink2('targets_s',doc.targets_s)).append(' ')
+	    .append(pubLabel('Instruments:')).append(' ')
+	    .append(makeFacetLink2('instruments_s',doc.instruments_s[0])).append(' ');
+    //INSTRUMENTS IS MULTIVALUED. NEEDS TO CHANGE. BUG
 	var $output2 = $('<div/>');
 
 	//var objectnames = doc.objectnames_s;
 	//var obsids = doc.obsids_s;
 
-	//addObjectArea($output2, doc.objectnames_s);
+	
 	//addDataArea($output2, doc.id, doc.bibcode, doc.obsids_s, doc.exptime_f, doc.obsvtime_d, doc.targets_s);
 
 	// do we need to HTML escape this text?
 	// 
 	var abtext = doc.telescopes_s;
-	var $abstract = $('<div class="abstracttext"><span class="pubitem">Meta:</span> '+abtext+'</div>');
+	var $abstract = $('<div class="abstracttext"/>');
+	$abstract.append(pubLabel('RA:')).append(' ').append(doc.ra_f).append('<br/>');
+	$abstract.append(pubLabel('DEC:')).append(' ').append(doc.dec_f).append('<br/>');
+	if (doc.bibcode.length >0){
+	    var $para=$('<p class="links"/>');
+	    //alert(doc.bibcode.length);
+	    $abstract.append(pubLabel('Papers:')).append(' ').append(AjaxSolr.theme("listers", doc, "bibcode", doc.bibcode, $para)).append('<br/>');
+	}
+	
 	$output2.append($abstract);
+	
+	addObjectArea($output2, encodeObsuri(doc.obsids_s), doc.objectnames_s, doc.objecttypes_s);
 	return [$output1, $output2];
 
     }; // Ajax.theme.prototype.snippet
@@ -317,11 +271,11 @@ AjaxSolr.theme.prototype.no_items_found = function () {
   return 'no items found in current selection';
 };
 
-AjaxSolr.theme.prototype.list_items = function (list, items, separator) {
+AjaxSolr.theme.prototype.list_items = function ($list, items, separator) {
   //var $list=$('#'+list);
   //console.log(list);
   //console.log($list);
-  var $list=$(list);
+  //var $list=$(list);
   $list.empty();
   //alert(items);
   for (var i = 0, l = items.length; i < l; i++) {
@@ -346,6 +300,7 @@ AjaxSolr.theme.prototype.list_items = function (list, items, separator) {
     $list.append(li);
   }
   //console.log("C"+$list);
+  return $list;
 };
 
 })(jQuery);

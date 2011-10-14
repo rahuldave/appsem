@@ -240,7 +240,7 @@ function makePivotHandler(pivot) {
 	var $abstract = $('<div class="abstracttext"/>');
 	$abstract.append(pubLabel('RA:')).append(' ').append(doc.ra_f).append('<br/>');
 	$abstract.append(pubLabel('DEC:')).append(' ').append(doc.dec_f).append('<br/>');
-	if (doc.bibcode.length >0){
+	if (doc.bibcode !== undefined && doc.bibcode.length >0){
 	    var $para=$('<p class="links"/>');
 	    //alert(doc.bibcode.length);
 	    $abstract.append(pubLabel('Papers:')).append(' ').append(AjaxSolr.theme("listers", doc, "bibcode", doc.bibcode, $para)).append('<br/>');

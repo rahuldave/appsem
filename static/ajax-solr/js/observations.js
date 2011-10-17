@@ -3,8 +3,8 @@
  */
 
 var Manager;
-var SOLRURL2='http://localhost:8982/solr/';
-
+//var SOLRURL2='http://localhost:8982/solr/';
+var SOLRURL2 = SITEPREFIX + '/solr2/';
 (function ($) {
     $(function () {
 	console.log("*** In semflow-observations");

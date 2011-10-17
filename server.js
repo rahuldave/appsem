@@ -6,12 +6,13 @@
 var SITEPREFIX = '';
 var SITEPREFIX = '/semantic2/alpha';
 var STATICPREFIX = '/static';
-var SOLRHOST = 'labs.adsabs.harvard.edu';
-var SOLRURL = '/semanticsolr2/solr';
+//var SOLRHOST = 'labs.adsabs.harvard.edu';
+//var SOLRURL = '/semanticsolr2/solr';
 var SOLRHOST = 'localhost';
 var SOLRURL = '/solr';
 // var SOLRPORT = 8983;
 var SOLRPORT = 8984;
+var SOLRPORT2= 8982;
 var ADSHOST = 'adsabs.harvard.edu';
 var ADSURL = '/cgi-bin/insert_login/credentials/';
 var TDIR = __dirname + '/static/ajax-solr/templates/';
@@ -200,6 +201,18 @@ var solrrouter = connect(
                 host: SOLRHOST,
                 path: SOLRURL + req.url,
                 port: SOLRPORT
+            };
+            doProxy(solroptions, req, res);
+	}); 
+    })
+);
+var solrrouter2 = connect(
+    connect.router(function (app) {
+	app.get('/select', function (req, res) {
+            var solroptions = {
+                host: SOLRHOST,
+                path: SOLRURL + req.url,
+                port: SOLRPORT2
             };
             doProxy(solroptions, req, res);
 	}); 
@@ -1062,6 +1075,7 @@ server.use(connect.cookieParser());
 //server.use(connect.session({ store: new RedisStore, secret: 'keyboard cat', cookie :{maxAge: 31536000000} }));
 server.use(SITEPREFIX+STATICPREFIX+'/', connect.static(__dirname + '/static/ajax-solr/'));
 server.use(SITEPREFIX+'/solr/', solrrouter);
+server.use(SITEPREFIX+'/solr2/', solrrouter2);
 server.use(SITEPREFIX+'/explorer/', explorouter);
 server.use(SITEPREFIX+'/adsjsonp', makeADSJSONPCall);
 //using get to put into redis:BAD but just for testing

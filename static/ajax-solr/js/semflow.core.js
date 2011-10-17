@@ -3,7 +3,7 @@
  */
 
 var SITEPREFIX = '/semantic2/alpha';
-var SOLRURL = SITEPREFIX + '/solr/';
+//var SOLRURL = SITEPREFIX + '/solr/';
 
 (function() {
     function nop() {}

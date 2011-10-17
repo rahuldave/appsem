@@ -2,6 +2,8 @@
  * Code for the publications page
  */
 
+var SOLRURL = SITEPREFIX + '/solr/';
+
 var PublicationsManager;
 
 (function ($) {

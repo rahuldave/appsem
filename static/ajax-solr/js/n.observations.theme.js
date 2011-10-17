@@ -32,15 +32,17 @@ function encodeObsuri(obsuri){
     }
 
 //Bottom should use obslink
+
 AjaxSolr.theme.prototype.title = function (doc) {
     var splitobsid=doc.obsv_mission_s.split('/')
     var missionname=splitobsid[splitobsid.length -1]
+    var obsidwithoutmission=doc.obsids_s.split('/')
     //return $('<a class="iframe"/>').text('(Link)')
 	//.attr('href', getObslink(missionname,doc.obsids_s))
 	//.fancybox(fancyboxOpts);
-	return getObslink(missionname,doc.obsids_s);
+	//alert(doc.obsids_s);
+	return getObslink(missionname,obsidwithoutmission[obsidwithoutmission.length -1]);
 }
-
 AjaxSolr.theme.prototype.pivot = function (doc, handler){
     var $pivot = $('<a href="#"/>').text(' [P]').click(handler);
     return $pivot;

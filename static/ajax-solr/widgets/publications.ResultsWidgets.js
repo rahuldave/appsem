@@ -64,7 +64,8 @@ ObservationCollection=Backbone.Collection.extend({
 	        } else {
 		        this.missionmap[mission].push(toks[1]);
 	        }
-	        this.add(out)
+	        //this.add(out, {silent:true});
+	        this.add(out);
 	        //currently use add, later use reset and build all views together to avoid firing so many events
 	    }
 	    var missions = [];
@@ -93,14 +94,19 @@ ObservationCollectionView=Backbone.View.extend({
     tagName: "div",
     className: "missiondataarea",
     initialize: function(){
-        this.viewdict={};
+        //this.viewdict={};
         this.model.bind("add", this.addOne, this);
+        //this.model.bind("populated", this.addAll, this);
         $(this.el).append(AjaxSolr.theme("datapreamble", this.model.nobs));
     },
     addOne: function(observationmodel){
         var view=new ObservationView({model:observationmodel});
-        this.viewdict[view.model.get('obsid_s')]=view;
+        //	this.viewdict[view.model.get('obsids_s')]=view;
+        //alert(view.model.get('obsids_s'));
         this.$('.datatbody').append(AjaxSolr.theme("dataline", view.model.toJSON()));
+    },
+    addAll: function(){
+        this.model.each(this.addOne);  
     },
     render: function(){
         //render additional stuff
@@ -315,6 +321,7 @@ PublicationView=Backbone.View.extend({
        var objcollectionview=new ObjectCollectionView({model:objcollection});
        //This will fire things and add things to view? What about ordering?
        obsvcollection.populate();
+       //obsvcollection.trigger("populated");
        objcollection.populate();
        var ajrtheme=AjaxSolr.theme('result',
             doc, 

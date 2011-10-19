@@ -179,6 +179,7 @@
         if (formatlink===undefined || formatlink===null){
             formatlink=getObslink(mission, labelisobsid);
         }
+        //alert("LIO: "+labelisobsid);
         return $('<a class="iframe"></a>')
 	        .text(labelisobsid)
 	        .attr('href', formatlink)
@@ -320,7 +321,15 @@
 	    return $start.append($('<br/>'));
     };
     
-    
+    function objToString (obj) {
+        var str = '';
+        for (var p in obj) {
+            if (obj.hasOwnProperty(p)) {
+                str += p + '::' + obj[p] + '\n';
+            }
+        }
+        return str;
+    }   
     
     AjaxSolr.theme.prototype.dataline=function(doc){
         // hacky; curently used to create the target-name pivot

@@ -3,7 +3,15 @@
  */
 
 (function ($) {
-
+    function objToString (obj) {
+        var str = '';
+        for (var p in obj) {
+            if (obj.hasOwnProperty(p)) {
+                str += p + '::' + obj[p] + '\n';
+            }
+        }
+        return str;
+    }   
     function compareObsv(a, b) {
  	    // return a.obsid.localeCompare(b.obsid);
  	    var va = a.exptime, vb = b.exptime;
@@ -29,8 +37,9 @@ ObjectView=Backbone.View.extend({
 //Later this can be used to get doc from server by overriding sync. Challenge is how to make it useful
 //for the general case, perhaps by making simple dictionary copies.
 ObservationCollection=Backbone.Collection.extend({
-    initialize: function(pubmodel){
-        this.pubmodel=pubmodel;
+    initialize: function(models, options){
+        this.pubmodel=options.pubmodel;
+        //alert("OCI: "+this.models.length);
         this.doc=this.pubmodel.toJSON();
         this.missionmap={};
         //if this array is not present, because a pub had nothing, we need to deal with that: BUG
@@ -44,30 +53,47 @@ ObservationCollection=Backbone.Collection.extend({
         var doc=this.doc;
         var docid=this.doc.id;
         var docbibcode=this.doc.bibcode;
-        var obsids=doc.obsids_s;
+        var theobsids=doc.obsids_s;
         var nobs=this.nobs;
+        //alert(nobs);
+        var damodels=[];
+        var datargets=[];
         for (var i = 0; i < nobs; i += 1) {
-	        var toks = obsids[i].split('/');
-	        mission = toks[0];
-	        var out = {"mission": mission,
-	               "docid": docid,
-	               "bibcode": docbibcode,    
-		           "obsids_s": toks[1],
-		           "exptime_f": doc.exptime_f[i],
-		           "obsvtime_d": doc.obsvtime_d[i],
-		           "targets_s": doc.targets_s[i].split('/', 2)[1],
-		           "ra_f": doc.ra_f[i],
-		           "dec_f": doc.dec_f[i]
+            //alert(obsids[i]);
+	        var toks = theobsids[i].split('/');
+	        var mission = toks[0];
+	        var obsid=toks[1];
+	        //console.log("LLLLLLL",mission);
+	        var out = {
+	               mission: mission,
+	               docid: docid,
+	               bibcode: docbibcode,    
+		           obsids_s: obsid,
+		           exptime_f: doc.exptime_f[i],
+		           obsvtime_d: doc.obsvtime_d[i],
+		           targets_s: doc.targets_s[i].split('/', 2)[1],
+		           ra_f: doc.ra_f[i],
+		           dec_f: doc.dec_f[i]
 		    };
+		    //this.add(out, {silent:true});
+		    damodels.push(out);
+		    datargets.push(out.obsids_s);
 	        if (this.missionmap[mission] === undefined) {
-		        this.missionmap[mission] = [toks[1]];
+		        this.missionmap[mission] = [obsid];
 	        } else {
-		        this.missionmap[mission].push(toks[1]);
+		        this.missionmap[mission].push(obsid);
 	        }
-	        //this.add(out, {silent:true});
-	        this.add(out);
+
+	        //this.add(out);
 	        //currently use add, later use reset and build all views together to avoid firing so many events
 	    }
+	    //alert(datargets.join("%%"));
+	    this.add(damodels, {silent:true});
+	    /*this.each(function(mod){
+	       alert(objToString(mod.attributes));
+	    });*/
+	    //alert(this.pluck('obsidss').join('::'));
+	    //alert(this.models.length);
 	    var missions = [];
 	    var mastmissions = [];
 	    for (mission in this.missionmap) {
@@ -79,6 +105,7 @@ ObservationCollection=Backbone.Collection.extend({
 	    mastmissions.sort();
 	    this.missions=missions;
 	    this.mastmissions=mastmissions;
+
     },
     comparator: function(observationmodel){
         //couldnt we just return the slashed obsid
@@ -94,19 +121,32 @@ ObservationCollectionView=Backbone.View.extend({
     tagName: "div",
     className: "missiondataarea",
     initialize: function(){
-        //this.viewdict={};
-        this.model.bind("add", this.addOne, this);
-        //this.model.bind("populated", this.addAll, this);
+        this.counter=0;
+        this.viewdict={};
+        this.collectionexpanded=false;
+        //this.model.bind("add", this.addOne, this);
+        this.model.bind("populated", this.addAll, this);
         $(this.el).append(AjaxSolr.theme("datapreamble", this.model.nobs));
     },
     addOne: function(observationmodel){
+        //alert("hi");
         var view=new ObservationView({model:observationmodel});
-        //	this.viewdict[view.model.get('obsids_s')]=view;
-        //alert(view.model.get('obsids_s'));
+        //this.counter=this.counter+1;
+        this.viewdict[view.model.get('obsids_s')]=view;
+        //alert(view.model.get('mission'));
+        //alert(objToString(view.model.toJSON()));
         this.$('.datatbody').append(AjaxSolr.theme("dataline", view.model.toJSON()));
     },
+    testAddOne: function(observationmodel){
+          var view=new ObservationView({model:observationmodel});
+          this.testlist.push(view.model.get('mission'));
+    },
     addAll: function(){
-        this.model.each(this.addOne);  
+        //alert("Hi");
+        //alert(this.testlist);
+        this.model.each(this.addOne, this);
+        this.collectionexpanded=true;
+        //alert(this.counter);
     },
     render: function(){
         //render additional stuff
@@ -150,8 +190,8 @@ ObservationCollectionView=Backbone.View.extend({
 });
 
 ObjectCollection=Backbone.Collection.extend({
-   initialize: function(pubmodel){
-        this.pubmodel=pubmodel;
+   initialize: function(models,options){
+        this.pubmodel=options.pubmodel;
         this.doc=this.pubmodel.toJSON();
 
         //if this array is not present, because a pub had nothing, we need to deal with that: BUG
@@ -176,7 +216,7 @@ ObjectCollection=Backbone.Collection.extend({
 		           "name": objectnames[i],
 		           "objtype": objecttypes[i],
 		    };
-	        this.add(out)
+	        this.add(out, {silent:true})
 	        //currently use add, later use reset and build all views together to avoid firing so many events
 	    }
 	   
@@ -190,14 +230,23 @@ ObjectCollectionView=Backbone.View.extend({
     tagName: "div",
     className: "objectarea",
     initialize: function(){
-        this.model.bind("add", this.addOne, this);
+        //this.model.bind("add", this.addOne, this);
+        this.model.bind("populated", this.addAll, this);
         //alert("AA"+this.model.nobj)
         var nobj=this.model.nobj;
+        this.collectionexpanded=false;
         $(this.el).append(AjaxSolr.theme("objectpreamble", nobj));
     },
     addOne: function(objectmodel){
         var view=new ObjectView({model:objectmodel});
         this.$('.objecttbody').append(AjaxSolr.theme("objectline", view.model.toJSON()));
+    },
+    addAll: function(){
+        //alert("Hi");
+        //alert(this.testlist);
+        this.model.each(this.addOne, this);
+        this.collectionexpanded=true;
+        //alert(this.counter);
     },
     render: function(){
         return this;
@@ -206,8 +255,8 @@ ObjectCollectionView=Backbone.View.extend({
 
 PublicationModel=Backbone.Model.extend({
     initialize: function(){
-        this.observationcollection=new ObservationCollection(this);
-        this.objectcollection=new ObjectCollection(this);
+        this.observationcollection=new ObservationCollection([],{pubmodel:this});
+        this.objectcollection=new ObjectCollection([],{pubmodel:this});
     }
 });
 PublicationView=Backbone.View.extend({
@@ -215,6 +264,8 @@ PublicationView=Backbone.View.extend({
    className: "publication",
    initialize: function (viewhash){
        this.widget=viewhash.widget;
+       this.objcollectionview=null;
+       this.obsvcollectionview=null;
    },
    facetishHandler: function(event){
        var $target=$(event.target);
@@ -274,6 +325,12 @@ PublicationView=Backbone.View.extend({
            this.$('.lessmore').attr('state', 'less');
        } else if (this.$('.lessmore').attr('state')==='less'){
            //alert("hi");
+           if (this.obsvcollectionview.collectionexpanded===false){
+               this.model.observationcollection.trigger('populated');
+           }
+           if (this.objcollectionview.collectionexpanded===false){
+                this.model.objectcollection.trigger('populated');
+           }
            this.$('.morelink').hide();
            this.$('.extrapaperinfo').show();		
            this.$('.lesslink').show();
@@ -317,12 +374,12 @@ PublicationView=Backbone.View.extend({
        var authors= this.facetLinks("author_s", doc.author_s);
        var obsvcollection=this.model.observationcollection;
        var objcollection=this.model.objectcollection;
-       var obsvcollectionview=new ObservationCollectionView({model:obsvcollection});
-       var objcollectionview=new ObjectCollectionView({model:objcollection});
+       this.obsvcollectionview=new ObservationCollectionView({model:obsvcollection});
+       this.objcollectionview=new ObjectCollectionView({model:objcollection});
        //This will fire things and add things to view? What about ordering?
        obsvcollection.populate();
-       //obsvcollection.trigger("populated");
        objcollection.populate();
+      
        var ajrtheme=AjaxSolr.theme('result',
             doc, 
             AjaxSolr.theme('title', doc),
@@ -332,18 +389,23 @@ PublicationView=Backbone.View.extend({
                 AjaxSolr.theme('list_items', AjaxSolr.theme('authors'), authors, "; "),
                 AjaxSolr.theme('facet_link', year, 'pubyear_i', '['+year+' TO ' + year +']')
             ),
-            AjaxSolr.theme('lessmore', doc, objcollectionview.render().el, obsvcollectionview.render().el),
+            AjaxSolr.theme('lessmore', doc, this.objcollectionview.render().el, this.obsvcollectionview.render().el),
             this.widget
       );
+      //obsvcollection.trigger("populated");
+      //objcollection.trigger("populated");
       $(this.el).html(ajrtheme);
+
       return this;
    },
 });
 
 PublicationCollection=Backbone.Collection.extend({
-    initialize: function(ajaxsolrmanager){
+    initialize: function(models, options){
         this.docids=[];
-        this.manager=ajaxsolrmanager;
+        this.manager=options.ajaxsolrmanager;
+        //alert("PCI: "+objToString(this.models[0].attributes));
+        //alert("PCI2: "+objToString(ajaxsolrmanager));
     },
     populate: function(){
         for (var i = 0, l = this.manager.response.response.docs.length; i < l; i++) {
@@ -356,8 +418,8 @@ PublicationCollection=Backbone.Collection.extend({
     }
 });
 PublicationCollectionView=Backbone.View.extend({
-    initialize: function(inihash){
-        this.widget=inihash.widget;
+    initialize: function(options){
+        this.widget=options.widget;
         this.viewdict={};
         this.model.bind("add", this.addOne, this);
     },
@@ -377,7 +439,7 @@ AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
     var docids=[];
     var viewhash={};
     
-    var page=new PublicationCollection(self.manager);
+    var page=new PublicationCollection([],{ajaxsolrmanager:self.manager});
     var pageview=new PublicationCollectionView({el:$target, widget:self, model:page});
     page.populate();
     docids=page.docids;

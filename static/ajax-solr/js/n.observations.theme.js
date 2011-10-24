@@ -7,6 +7,11 @@ function encodeObsuri(obsuri){
 
     var fancyboxOpts = { 'autoDimensions': false, 'width': 1024, 'height': 768 };
 
+    
+    AjaxSolr.theme.prototype.loader = function(){
+        return $('<img/>').attr('src', '/semantic2/alpha/static/images/ajax-loader.gif');
+    };
+    
     AjaxSolr.theme.prototype.result = function (doc, snippet, thetitlelink, thepivot, thedocthis) {
 
 	var $morea = $('<a href="#" class="less" id="am_'+encodeObsuri(doc.obsids_s)+'">more</a>')
@@ -31,8 +36,139 @@ function encodeObsuri(obsuri){
 		    .attr('id', 'p_' + encodeObsuri(doc.obsids_s)));
     }
 
-//Bottom should use obslink
+    AjaxSolr.theme.prototype.result2 = function (doc, $thetitlestuff, $keywordstuff, $additional, $lessmore, thedocthis) {
+	    var $morea = $('<a href="#" class="morelink" id="am_'+encodeObsuri(doc.obsids_s)+'">more</a>');
+	        //.click(thedocthis.moreHandler(doc));
+	    var $lessa = $('<a href="#" class="lesslink" id="al_'+encodeObsuri(doc.obsids_s)+'" style="display:none">less</a>');
+	        //.click(thedocthis.lessHandler(doc));
+	    var $bookmark = $('<a href="#" class="savelink" id="savepub_'+encodeObsuri(doc.obsids_s)+'">save</a>');
+	        //.click(thedocthis.saveHandler(doc));
+	    var $unbookmark = $('<a href="#" class="deletelink" id="delpub_'+encodeObsuri(doc.obsids_s)+'" style="display:none">delete</a>');
+	        //.click(thedocthis.deleteHandler(doc));
 
+	    return $("<div/>")
+	                .append($thetitlestuff)
+	                .append($keywordstuff)
+	                .append($additional)
+	                .append($('<div class="lessmore" state="less"></div>')
+	                    .append($bookmark)
+	                    .append($unbookmark)
+	                    .append($morea)
+	                    .append($lessa)
+	                )
+	                .append($lessmore
+		                .attr('class', 'extrapaperinfo')
+		                .attr('id', 'p_' + encodeObsuri(doc.obsids_s))
+		            );
+    }
+
+//Bottom should use obslink
+    AjaxSolr.theme.prototype.emdomains = function(){
+        return $('<p class="links"/>');
+    };
+    AjaxSolr.theme.prototype.additional = function(doc, year){
+	    var $output1 = $('<p class="links"/>')
+	        .append(pubLabel('Observed at:'))
+	        // .append(' ' + doc.pubyear_i + ' ')
+	        .append(' ')
+	        .append(year)
+	        .append('<br/>')
+	        .append(pubLabel('Target:'))
+	        .append(' ')
+	        .append(AjaxSolr.theme.prototype.facet_link2(doc.targets_s, 'targets_s',doc.targets_s))
+	        .append(' ')
+	        .append(pubLabel('Instruments:')).append(' ')
+	        .append(AjaxSolr.theme.prototype.facet_link2(doc.instruments_s[0], 'instruments_s',doc.instruments_s[0]))
+	        .append(' ');
+	        return $output1;
+	};
+	 AjaxSolr.theme.prototype.lessmore = function (doc, objcollectionview_el, pubcollectionview_el) {
+
+
+	    var $output2 = $('<div/>');
+        var abtext = doc.telescopes_s;
+	    var $abstract = $('<div class="abstracttext"/>');
+	    $abstract.append(pubLabel('RA:')).append(' ').append(doc.ra_f).append('<br/>');
+	    $abstract.append(pubLabel('DEC:')).append(' ').append(doc.dec_f).append('<br/>');
+	    $output2.append($abstract);
+
+	    //$output2.append(objcollectionview_el);
+
+		$output2.append(pubcollectionview_el);
+		$output2.append(objcollectionview_el);
+
+	    // 
+
+	    return $output2;
+
+    }; // Ajax.theme.prototype.snippet
+    
+    AjaxSolr.theme.prototype.publicationpreamble=function(npub){
+        //alert(nobj);
+        var $start=$('<div class="insideobjectarea"/>').append(pubLabel('Papers')).append('<p class="extrapara"/>').append(' ');
+        if (nobj===0){
+            $start.append('None');
+            return $start.append($('<br/>'));
+        }
+        var $otable = $('<table class="tablesorter"/>')
+	        //.attr("class", "zebra-striped")
+	        .append($('<thead/>')
+		        .append('<tr><th>Bibcode</th><th>Year</th></tr>'));
+		var $obody = $('<tbody class="objecttbody"/>');
+	    $otable.append($obody);
+	    $otable.tablesorter();
+
+	    //$dataarea.append($('<div class="missiondata"/>').append($mtable));
+	    $start.append($otable);
+	    return $start.append($('<br/>'));
+    };
+    AjaxSolr.theme.prototype.publicationline=function(doc){
+        var $obody=$("<tr/>");
+        var bcode=doc.bibcode;
+        var byear=doc.year;
+        $obody.append($('<td/>')
+				      .append(AjaxSolr.theme.prototype.facet_link2(bcode, 'bibcode', bcode))
+				  )
+			      .append($('<td/>')
+				      .append(AjaxSolr.theme.prototype.facet_link2(byear, 'pubyear_i', '['+byear+' TO ' + byear +']'))
+				  )
+		return $obody;
+      };
+
+    AjaxSolr.theme.prototype.objectpreamble=function(nobj){
+        //alert(nobj);
+        var $start=$('<div class="insideobjectarea"/>').append(pubLabel('Objects')).append('<p class="extrapara"/>').append(' ');
+        if (nobj===0){
+            $start.append('None');
+            return $start.append($('<br/>'));
+        }
+        var $otable = $('<table class="tablesorter"/>')
+	        //.attr("class", "zebra-striped")
+	        .append($('<thead/>')
+		        .append('<tr><th>Name</th><th>Type</th></tr>'));
+		var $obody = $('<tbody class="objecttbody"/>');
+	    $otable.append($obody);
+	    $otable.tablesorter();
+
+	    //$dataarea.append($('<div class="missiondata"/>').append($mtable));
+	    $start.append($otable);
+	    return $start.append($('<br/>'));
+     };
+    
+     AjaxSolr.theme.prototype.objectline=function(doc){
+        var $obody=$("<tr/>");
+        var oname=doc.name;
+        var otype=doc.objtype;
+        $obody.append($('<td/>')
+				      .append(AjaxSolr.theme.prototype.simbad_link(oname))
+				      .append(AjaxSolr.theme.prototype.facet_link('[P]', 'objectnames_s', oname))
+				  )
+			      .append($('<td/>')
+				      .text(otype)
+				      .append(AjaxSolr.theme.prototype.facet_link('[P]', 'objecttypes_s', otype))
+				  )
+		return $obody;
+      };     
 AjaxSolr.theme.prototype.title = function (doc) {
     var splitobsid=doc.obsv_mission_s.split('/')
     var missionname=splitobsid[splitobsid.length -1]
@@ -43,6 +179,31 @@ AjaxSolr.theme.prototype.title = function (doc) {
 	//alert(doc.obsids_s);
 	return getObslink(missionname,obsidwithoutmission[obsidwithoutmission.length -1]);
 }
+
+AjaxSolr.theme.prototype.title2 = function (doc) {
+    var splitobsid=doc.obsv_mission_s.split('/');
+    var missionname=splitobsid[splitobsid.length -1];
+    var obsidwithoutmission=doc.obsids_s.split('/');
+	var $thetitlelink=getObslink(missionname,obsidwithoutmission[obsidwithoutmission.length -1]);
+   
+    var $titlepivot=AjaxSolr.theme.prototype.pivot2('obsids_s');
+    return $('<h5/>').append(doc.obsv_mission_s + ": ")
+                         .append($titlelink)
+                         .append($titlepivot);
+}
+
+    AjaxSolr.theme.prototype.pivot2 = function (pivotclass){
+        return $('<a facet_field="'+pivotclass+'" class="pivotlink '+pivotclass+'" href="#"/>').text(' [P]');
+    }
+
+    AjaxSolr.theme.prototype.facet_link2 = function (value, pivotclass, valuestring) {
+        if (valuestring===undefined){
+            valuestring=value;
+        }
+        return $('<a facet_field="'+pivotclass+'" facet_value="'+valuestring+'" class="facetlink '+pivotclass+'" href="#"/>').text(value);
+    };
+    
+    
 AjaxSolr.theme.prototype.pivot = function (doc, handler){
     var $pivot = $('<a href="#"/>').text(' [P]').click(handler);
     return $pivot;

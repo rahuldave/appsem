@@ -47,5 +47,20 @@
 	    }
     }
     
-    
+    function objToString (obj) {
+        var str = '';
+        for (var p in obj) {
+            if (obj.hasOwnProperty(p)) {
+                str += p + '::' + obj[p] + '\n';
+            }
+        }
+        return str;
+    }   
+    function compareObsv(a, b) {
+ 	    // return a.obsid.localeCompare(b.obsid);
+ 	    var va = a.exptime, vb = b.exptime;
+ 	    if (va > vb)      { return -1; }
+ 	    else if (va < vb) { return 1; }
+ 	    else              { return 0; }
+     }    
     

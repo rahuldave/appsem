@@ -282,7 +282,7 @@ AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
     var docids=[];
     var viewhash={};
     
-    var page=new PublicationCollection([],{ajaxsolrmanager:self.manager});
+    var page=new PublicationCollection([],{ajaxsolrmanager:self.manager, from_publications:true});
     var pageview=new PublicationCollectionView({el:$target, widget:self, model:page});
     page.populate();
     docids=page.docids;

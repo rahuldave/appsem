@@ -1,7 +1,29 @@
 (function ($) {
 
+    FROMS={
+      from_publications:false,
+      from_observations:false,
+      from_objects:false  
+    };
+    
     ObservationModel=Backbone.Model.extend({
     //We'll just initialize with an attribute dict passed into constructor by Collection.
+        initialize: function(models, options){
+            this.froms=FROMS;
+            if (options && options.from_publications && options.from_publications===true){
+                this.froms.from_publications=true;
+                this.initializeFromPublications(models, options);
+            } else {
+                this.froms.from_observations=true;
+                this.initializeFromObservations(models, options);
+            }
+        },
+        initializeFromPublications: function(models, options){
+            
+        },
+        initializeFromObservations: function(models, options){
+            
+        }
     });
 
     ObjectModel=Backbone.Model.extend({
@@ -14,6 +36,19 @@
 //for the general case, perhaps by making simple dictionary copies.
     ObservationCollection=Backbone.Collection.extend({
         initialize: function(models, options){
+            this.froms=FROMS;
+            if (options && options.from_publications && options.from_publications===true){
+                this.froms.from_publications=true;
+                this.initializeFromPublications(models, options);
+            } else {
+                this.froms.from_observations=true;
+                this.initializeFromObservations(models, options);
+            }
+        },
+        initializeFromObservations: function(models, options){
+            
+        },
+        initializeFromPublications: function(models, options){
             this.pubmodel=options.pubmodel;
             //alert("OCI: "+this.models.length);
             this.doc=this.pubmodel.toJSON();
@@ -64,7 +99,7 @@
 	            //currently use add, later use reset and build all views together to avoid firing so many events
 	        }
 	        //alert(datargets.join("%%"));
-	        this.add(damodels, {silent:true});
+	        this.add(damodels, {silent:true, from_publications:this.froms.from_publications});
 	        /*this.each(function(mod){
 	           alert(objToString(mod.attributes));
 	        });*/
@@ -129,13 +164,40 @@
     });
 
     PublicationModel=Backbone.Model.extend({
-        initialize: function(){
-            this.observationcollection=new ObservationCollection([],{pubmodel:this});
-            this.objectcollection=new ObjectCollection([],{pubmodel:this});
+        initialize: function(models, options){
+            this.froms=FROMS;
+            if (options && options.from_observations && options.from_observations==true){
+                this.froms.from_observations=true;
+                this.initializeFromObservations(models, options);
+            } else {
+                this.froms.from_publications=true;
+                this.initializeFromPublications(models, options);
+            }
+        },
+        initializeFromObservations: function(models, options){
+            
+        },
+        initializeFromPublications: function(models, options){
+            options.pubmodel=this
+            this.observationcollection=new ObservationCollection([],options);
+            this.objectcollection=new ObjectCollection([],options);
         }
     });
     PublicationCollection=Backbone.Collection.extend({
         initialize: function(models, options){
+            this.froms=FROMS;
+            if (options && options.from_observations && options.from_observations==true){
+                this.froms.from_observations=true;
+                this.initializeFromObservations(models, options);
+            } else {
+                this.froms.from_publications=true;
+                this.initializeFromPublications(models, options);
+            }
+        },
+        initializeFromObservations: function(models, options){
+            
+        },
+        initializeFromPublications: function(models, options){
             this.docids=[];
             this.manager=options.ajaxsolrmanager;
             //alert("PCI: "+objToString(this.models[0].attributes));
@@ -145,8 +207,9 @@
             for (var i = 0, l = this.manager.response.response.docs.length; i < l; i++) {
               var doc = this.manager.response.response.docs[i];
 
-              var result=new PublicationModel(doc);
+              var result=new PublicationModel(doc, {from_publications:this.froms.from_publications});
               this.add(result)
+              //this.add(doc, {from_publications:this.froms.from_publications})
               this.docids.push(doc.id);
             }
         }

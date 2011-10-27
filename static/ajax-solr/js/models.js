@@ -12,16 +12,16 @@
             this.froms=FROMS;
             if (options && options.from_publications && options.from_publications===true){
                 this.froms.from_publications=true;
-                this.initializeFromPublications(models, options);
+                this.initializeFromPublication(models, options);
             } else {
                 this.froms.from_observations=true;
-                this.initializeFromObservations(models, options);
+                this.initializeFromObservation(models, options);
             }
         },
-        initializeFromPublications: function(models, options){
+        initializeFromPublication: function(models, options){
             
         },
-        initializeFromObservations: function(models, options){
+        initializeFromObservation: function(models, options){
             
         }
     });
@@ -37,9 +37,11 @@
     ObservationCollection=Backbone.Collection.extend({
         initialize: function(models, options){
             this.froms=FROMS;
+            this.passed_options={};
+            _.extend(this.passed_options, options);
             if (options && options.from_publications && options.from_publications===true){
                 this.froms.from_publications=true;
-                this.initializeFromPublications(models, options);
+                this.initializeFromPublication(models, options);
             } else {
                 this.froms.from_observations=true;
                 this.initializeFromObservations(models, options);
@@ -48,7 +50,7 @@
         initializeFromObservations: function(models, options){
             
         },
-        initializeFromPublications: function(models, options){
+        initializeFromPublication: function(models, options){
             this.pubmodel=options.pubmodel;
             //alert("OCI: "+this.models.length);
             this.doc=this.pubmodel.toJSON();
@@ -61,6 +63,16 @@
             }
         },
         populate: function(){
+            if (this.froms.from_publications===true){
+                this.populateFromPublication();
+            } else {
+                this.populateFromObservations();
+            }
+        },
+        populateFromObservations: function(){
+            
+        },
+        populateFromPublication: function(){
             var doc=this.doc;
             var docid=this.doc.id;
             var docbibcode=this.doc.bibcode;
@@ -99,7 +111,8 @@
 	            //currently use add, later use reset and build all views together to avoid firing so many events
 	        }
 	        //alert(datargets.join("%%"));
-	        this.add(damodels, {silent:true, from_publications:this.froms.from_publications});
+	        this.passed_options.silent=true;
+	        this.add(damodels, this.passed_options);
 	        /*this.each(function(mod){
 	           alert(objToString(mod.attributes));
 	        });*/
@@ -166,18 +179,18 @@
     PublicationModel=Backbone.Model.extend({
         initialize: function(models, options){
             this.froms=FROMS;
-            if (options && options.from_observations && options.from_observations==true){
+            if (options && options.from_observations && options.from_observations===true){
                 this.froms.from_observations=true;
-                this.initializeFromObservations(models, options);
+                this.initializeFromObservation(models, options);
             } else {
                 this.froms.from_publications=true;
-                this.initializeFromPublications(models, options);
+                this.initializeFromPublication(models, options);
             }
         },
-        initializeFromObservations: function(models, options){
+        initializeFromObservation: function(models, options){
             
         },
-        initializeFromPublications: function(models, options){
+        initializeFromPublication: function(models, options){
             options.pubmodel=this
             this.observationcollection=new ObservationCollection([],options);
             this.objectcollection=new ObjectCollection([],options);
@@ -186,15 +199,18 @@
     PublicationCollection=Backbone.Collection.extend({
         initialize: function(models, options){
             this.froms=FROMS;
-            if (options && options.from_observations && options.from_observations==true){
+            //this.passed_options=options;
+            this.passed_options={};
+            _.extend(this.passed_options, options);
+            if (options && options.from_observations && options.from_observations===true){
                 this.froms.from_observations=true;
-                this.initializeFromObservations(models, options);
+                this.initializeFromObservation(models, options);
             } else {
                 this.froms.from_publications=true;
                 this.initializeFromPublications(models, options);
             }
         },
-        initializeFromObservations: function(models, options){
+        initializeFromObservation: function(models, options){
             
         },
         initializeFromPublications: function(models, options){
@@ -203,11 +219,21 @@
             //alert("PCI: "+objToString(this.models[0].attributes));
             //alert("PCI2: "+objToString(ajaxsolrmanager));
         },
-        populate: function(){
+        populate:function(){
+          if (this.froms.from_observations===true){
+              this.populateFromObservation();
+          } else {
+              this.populateFromPublications();
+          }
+        },
+        populateFromObservation: function(){
+            
+        },
+        populateFromPublications: function(){
             for (var i = 0, l = this.manager.response.response.docs.length; i < l; i++) {
               var doc = this.manager.response.response.docs[i];
 
-              var result=new PublicationModel(doc, {from_publications:this.froms.from_publications});
+              var result=new PublicationModel(doc, this.passed_options);
               this.add(result)
               //this.add(doc, {from_publications:this.froms.from_publications})
               this.docids.push(doc.id);

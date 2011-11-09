@@ -66,16 +66,21 @@ var setupSortedTable;
     submitDeleteAction = function (path, idname) {
 	return function () {
 	    var data = [];
+	    var mylocation=window.location;
 	    $(this).find('input[type=checkbox][checked|=true]').each(function() {
 		data.push(this.value);
 	    });
 	    if (data.length == 0) { return false; }
 	    var map = { action: "delete" };
 	    map[idname] = data;
+	    //alert(data);
+	    console.log(map, SITEPREFIX, path);
 	    $.post(SITEPREFIX+path, JSON.stringify(map), function (resp) {
 		// reload on success or error
-		window.location.reload();
+		    window.location.reload();
+		    //return false;
 	    });
+	    return false;
 	};
     };
 

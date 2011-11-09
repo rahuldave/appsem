@@ -12,9 +12,13 @@ function encodeObsuri(obsuri){
     PublicationView=Backbone.View.extend({
         //We'll just initialize with an attribute dict passed into constructor by Collection.
     });
+    
+    ObjectView=Backbone.View.extend({
+    //We'll just initialize with an attribute dict passed into constructor by Collection.
+    });
     PublicationCollectionView=Backbone.View.extend({
         tagName: "div",
-        className: "objectarea",
+        className: "publicationarea",
         initialize: function(){
             //this.model.bind("add", this.addOne, this);
             this.model.bind("populated", this.addAll, this);
@@ -25,13 +29,14 @@ function encodeObsuri(obsuri){
         },
         addOne: function(publicationmodel){
             var view=new PublicationView({model:publicationmodel});
-            this.$('.objecttbody').append(AjaxSolr.theme("publicationline", view.model.toJSON()));
+            this.$('.publicationtbody').append(AjaxSolr.theme("publicationline", view.model.toJSON()));
         },
         addAll: function(){
             //alert("Hi");
             //alert(this.testlist);
             this.model.each(this.addOne, this);
             this.collectionexpanded=true;
+            this.$('.tablesorter').tablesorter();
             //alert(this.counter);
         },
         render: function(){
@@ -51,6 +56,7 @@ function encodeObsuri(obsuri){
             $(this.el).append(AjaxSolr.theme("objectpreamble", nobj));
         },
         addOne: function(objectmodel){
+            //console.log("is this called");
             var view=new ObjectView({model:objectmodel});
             this.$('.objecttbody').append(AjaxSolr.theme("objectline", view.model.toJSON()));
         },
@@ -59,6 +65,7 @@ function encodeObsuri(obsuri){
             //alert(this.testlist);
             this.model.each(this.addOne, this);
             this.collectionexpanded=true;
+            this.$('.tablesorter').tablesorter();
             //alert(this.counter);
         },
         render: function(){
@@ -147,8 +154,9 @@ function encodeObsuri(obsuri){
        saveIfNotHandler: function(){
            var thedoc=this.model.toJSON();
            var that=this;
+           //console.log("SAVEIT:", encodeObsuri(thedoc.obsids_s));
            $.post(SITEPREFIX+'/saveobsv', JSON.stringify({
-                    'savedobsv':encodeObsuri(thedoc.obsids_s), 
+                    'savedobsv':thedoc.obsids_s, 
 			        'obsvtarget':thedoc.targets_s,
 			        'obsvtitle':thedoc.obsv_title
             }), function(data){
@@ -162,8 +170,9 @@ function encodeObsuri(obsuri){
        deleteIfSavedHandler: function(){
            var thedoc=this.model.toJSON();
            var that=this;
+           console.log("SAVEIT:", thedoc.obsids_s);
            $.post(SITEPREFIX+'/deleteobsv', JSON.stringify({
-                'obsid':encodeObsURI(thedoc.obsids_s) 
+                'obsvid':thedoc.obsids_s 
            }), function(data){
                     if (data['success']==='defined'){
                         that.$('.savelink').show();
@@ -175,6 +184,7 @@ function encodeObsuri(obsuri){
        render: function() {
            //alert(this.el);
            var doc=this.model.toJSON();
+           console.log("OBSIDS_S", doc.obsids_s);
            var obsvtime_d=doc.obsvtime_d;
            var emdomains = this.facetLinks("emdomains_s", doc.emdomains_s);
 
@@ -184,7 +194,7 @@ function encodeObsuri(obsuri){
            this.objcollectionview=new ObjectCollectionView({model:objcollection});
            //This will fire things and add things to view? What about ordering?
            pubcollection.populate();
-           //objcollection.populate();
+           objcollection.populate();
           
            var ajrtheme=AjaxSolr.theme('result2',
                 doc, 
@@ -214,7 +224,7 @@ function encodeObsuri(obsuri){
         },
         addOne: function(observationmodel){
             var view=new ObservationView({model:observationmodel, widget:this.widget});
-            this.viewdict[view.model.get('id')]=view;
+            this.viewdict[view.model.get('obsids_s')]=view;
             this.el.append(view.render().el);
         }
     });
@@ -260,7 +270,8 @@ AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
     var page=new ObservationCollection([],{ajaxsolrmanager:self.manager, from_observations:true});
     var pageview=new ObservationCollectionView({el:$target, widget:self, model:page});
     page.populate();
-    docids=[];
+    docids=page.docids;
+    viewhash=pageview.viewdict;
     /*
     for (var i = 0, l = this.manager.response.response.docs.length; i < l; i++) {
       var doc = this.manager.response.response.docs[i];
@@ -291,128 +302,29 @@ AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
     $.getJSON(SITEPREFIX+'/savedobsvs', function(data){
         if (data['savedobsvs']!='undefined'){
             var savedobsvarray=data['savedobsvs'];
-            console.log("SAVEDOBSVARRAY", savedobsvarray);
-            //alert(savedobsvarray);
+
             _.each(docids, function(ele){
-                //alert(ele);
                 if (_.indexOf(savedobsvarray, ele)!=-1){
-                    //console.log("ELE",ele);
-		    $('#saveobsv_'+ele).hide();
-		    $('#delobsv_'+ele).show();
+		            //$('#saveobsv_'+ele).hide();
+		            //$('#delobsv_'+ele).show();
+		            viewhash[ele].$('.savelink').hide();
+                    viewhash[ele].$('.deletelink').show();
                 }
             });
         } else {
             _.each(docids, function(ele){
                 //console.log("ELE",ele);
-                $('#saveobsv_'+ele).hide();
-                $('#delobsv_'+ele).hide(); // should already be hidden but just in case
-                $('#data_'+ele).hide();
+                //$('#saveobsv_'+ele).hide();
+                //$('#delobsv_'+ele).hide(); // should already be hidden but just in case
+                //$('#data_'+ele).hide();
+                viewhash[ele].$('.savelink').hide();
+                viewhash[ele].$('.deletelink').hide(); // should already be hidden but just in case
             });
         }
     });
   
   },
-  facetLinks: function (facet_field, facet_values) {
-    var links = [];
-    //alert(facet_values.length);
-    if (facet_values) {
-        for (var i = 0, l = facet_values.length; i < l; i++) {
-            links.push(AjaxSolr.theme('facet_link',
-				      /*  Doug thinks the quotes are visually distracting
-					 '"'+facet_values[i]+'"', 
-				      */
-				      facet_values[i],
-				      this.facetHandler(facet_field, '"'+facet_values[i]+'"')));
-        }
-    }
-    //alert(links);
-    return links;
-  },
-  moreHandler: function(doc){
-	var self = this;
-	var thedoc=doc;
-	return function() {
-	    console.log("imh", thedoc.obsids_s, $('#p_'+encodeObsuri(thedoc.obsids_s)).text() );
-		$('#am_'+encodeObsuri(thedoc.obsids_s)).hide();
-		$('#p_'+encodeObsuri(thedoc.obsids_s)).show();		
-		$('#al_'+encodeObsuri(thedoc.obsids_s)).show();
-		return false;
-	};
-  },
-  lessHandler: function(doc){ 
-	var self = this;
-	var thedoc=doc;
-	return function() {
-		$('#am_'+encodeObsuri(thedoc.obsids_s)).show();
-		$('#p_'+encodeObsuri(thedoc.obsids_s)).hide();
-		$('#al_'+encodeObsuri(thedoc.obsids_s)).hide();
-		return false;
-	};
-  },
-  // Save a publication
-  saveHandler: function(doc){
-      var thedoc=doc;
-      return function(){
-	  $.post(SITEPREFIX+'/saveobsv', JSON.stringify({
-		      'savedobsv':encodeObsuri(thedoc.obsids_s), 
-			  'obsvtarget':thedoc.targets_s,
-			  'obsvtitle':thedoc.obsv_title
-			  }), function(data){
-                if (data['success']==='defined'){
-                    $('#saveobsv_'+encodeObsuri(thedoc.obsids_s)).hide();
-                    $('#delobsv_'+encodeObsuri(thedoc.obsids_s)).show();
-                }
-            });
-            return false;
-      }
-  },
-  // Delete a saved publication
-  deleteHandler: function(doc){
-      var thedoc=doc;
-      return function(){
-	  $.post(SITEPREFIX+'/deleteobsv', JSON.stringify({
-		      'obsid':encodeObsURI(thedoc.obsids_s) }), function(data){
-                if (data['success']==='defined'){
-                    $('#saveobsv_'+encodeObsuri(thedoc.obsids_s)).show();
-                    $('#delobsv_'+encodeObsuri(thedoc.obsids_s)).hide();
-                }
-            });
-            return false;
-      }
-  },
-    /* have removed this for now
-  dataHandler: function(doc){
-      return function(){
-          alert("not yet implemented");
-          return false;
-      }
-  },
-    */
-  facetHandler: function (facet_field, facet_value) {
-    var self = this;
-    return function () {
-	// console.log("For facet "+facet_field+" Trying value "+facet_value);
-        self.manager.store.remove('fq');
-        self.manager.store.addByValue('fq', facet_field + ':' + facet_value);
-        self.manager.doRequest(0);
-        return false;
-    };
-  },
-
-  init: function () {
-	//$('a.more').click(alert("Hi"));
-    /*$('a.more').live(function () {
-        $(this).toggle(function () {
-            $(this).parent().find('span.abstract').show();
-            $(this).text('less');
-            return false;
-        }, function () {
-            $(this).parent().find('span.abstract').hide();
-            $(this).text('more');
-            return false;
-        });
-    });*/
-  },
+  
   beforeRequest: function () {
     $(this.target).html(AjaxSolr.theme('loader'));
   }

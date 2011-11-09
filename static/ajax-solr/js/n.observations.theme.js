@@ -82,7 +82,7 @@ function encodeObsuri(obsuri){
     
     AjaxSolr.theme.prototype.publicationpreamble=function(npub){
         //alert(nobj);
-        var $start=$('<div class="insideobjectarea"/>').append(pubLabel('Papers')).append('<p class="extrapara"/>').append(' ');
+        var $start=$('<div class="insidepublicationarea"/>').append(pubLabel('Papers')).append('<p class="extrapara"/>').append(' ');
         if (npub===0){
             $start.append('None');
             return $start.append($('<br/>'));
@@ -91,9 +91,9 @@ function encodeObsuri(obsuri){
 	        //.attr("class", "zebra-striped")
 	        .append($('<thead/>')
 		        .append('<tr><th>Bibcode</th><th>Year</th></tr>'));
-		var $obody = $('<tbody class="objecttbody"/>');
+		var $obody = $('<tbody class="publicationtbody"/>');
 	    $otable.append($obody);
-	    $otable.tablesorter();
+	    //$otable.tablesorter();
 
 	    //$dataarea.append($('<div class="missiondata"/>').append($mtable));
 	    $start.append($otable);
@@ -113,7 +113,7 @@ function encodeObsuri(obsuri){
       };
 
     AjaxSolr.theme.prototype.objectpreamble=function(nobj){
-        //alert(nobj);
+        console.log("World"+nobj);
         var $start=$('<div class="insideobjectarea"/>').append(pubLabel('Objects')).append('<p class="extrapara"/>').append(' ');
         if (nobj===0){
             $start.append('None');
@@ -125,7 +125,7 @@ function encodeObsuri(obsuri){
 		        .append('<tr><th>Name</th><th>Type</th></tr>'));
 		var $obody = $('<tbody class="objecttbody"/>');
 	    $otable.append($obody);
-	    $otable.tablesorter();
+	    //$otable.tablesorter();
 
 	    //$dataarea.append($('<div class="missiondata"/>').append($mtable));
 	    $start.append($otable);
@@ -148,6 +148,7 @@ function encodeObsuri(obsuri){
  	        .fancybox(fancyboxOpts);
      }
      AjaxSolr.theme.prototype.objectline=function(doc){
+        //console.log("here");
         var $obody=$("<tr/>");
         var oname=doc.name;
         var otype=doc.objtype;
@@ -167,10 +168,15 @@ AjaxSolr.theme.prototype.title2 = function (doc) {
     var splitobsid=doc.obsv_mission_s.split('/');
     var missionname=splitobsid[splitobsid.length -1];
     var obsidwithoutmission=doc.obsids_s.split('/');
-	var $titlelink=getObslink(missionname,obsidwithoutmission[obsidwithoutmission.length -1]);
+    console.log(splitobsid, missionname, obsidwithoutmission);
+    var titlehref=getObslink(missionname,obsidwithoutmission[obsidwithoutmission.length -1]);
+    var $titlelink=$('<a class="iframe"/>').text('(Link)')
+            .attr('href', titlehref)
+            .fancybox(fancyboxOpts);
+
    
     var $titlepivot=AjaxSolr.theme.prototype.pivot2('obsids_s');
-    return $('<h5/>').append(doc.obsv_mission_s + ": ")
+    return $('<h5/>').append(doc.obsv_mission_s + ": "+obsidwithoutmission[obsidwithoutmission.length -1])
                          .append($titlelink)
                          .append($titlepivot);
 }

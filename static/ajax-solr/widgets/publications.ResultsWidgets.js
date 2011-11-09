@@ -47,6 +47,7 @@ ObservationCollectionView=Backbone.View.extend({
         //alert(this.testlist);
         this.model.each(this.addOne, this);
         this.collectionexpanded=true;
+        this.$('.tablesorter').tablesorter();
         //alert(this.counter);
     },
     render: function(){
@@ -111,6 +112,7 @@ ObjectCollectionView=Backbone.View.extend({
         //alert(this.testlist);
         this.model.each(this.addOne, this);
         this.collectionexpanded=true;
+        this.$('.tablesorter').tablesorter();
         //alert(this.counter);
     },
     render: function(){

@@ -243,7 +243,7 @@
 
 	    // as with the data area, this should only be needed when the table
 	    // is actually viewed.
-	    $otable.tablesorter();
+	    //$otable.tablesorter();
 	    return $objectarea.append($otable).append($('<br/>'));
     }
     //HANDLER: do later
@@ -262,7 +262,7 @@
 		        .append('<tr><th>Name</th><th>Type</th></tr>'));
 		var $obody = $('<tbody class="objecttbody"/>');
 	    $otable.append($obody);
-	    $otable.tablesorter();
+	    //$otable.tablesorter();
 
 	    //$dataarea.append($('<div class="missiondata"/>').append($mtable));
 	    $start.append($otable);
@@ -314,7 +314,7 @@
 
 	    var $mbody = $('<tbody class="datatbody"/>');
 	    $mtable.append($mbody);
-	    $mtable.tablesorter();
+	    //$mtable.tablesorter();
 
 	    //$dataarea.append($('<div class="missiondata"/>').append($mtable));
 	    $start.append($mtable);

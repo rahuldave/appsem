@@ -80,7 +80,7 @@
               var result=new ObservationModel(doc, this.passed_options);
               this.add(result)
               //this.add(doc, {from_publications:this.froms.from_publications})
-              this.docids.push(doc.obsids_s);
+              this.docids.push(doc.obsids_s);//should this be escaped?
             }
         },
         populateFromPublication: function(){

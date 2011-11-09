@@ -645,6 +645,7 @@ function removeObsvs(res, loginid, docids) {
 	    // In Redis 2.4 zrem and hdel can be sent multiple keys
 	    for (i in docids) {
 		var docid = docids[i];
+		console.log("removing "+docid);
 		margs.push(["zrem", obsvkey, docid]);
 		margs.push(["hdel", titlekey, docid]);
 		margs.push(["hdel", targetkey, docid]);

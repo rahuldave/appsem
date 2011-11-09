@@ -4,7 +4,7 @@
 
 var SITEPREFIX = '/semantic2/alpha';
 //var SOLRURL = SITEPREFIX + '/solr/';
-
+/*
 (function() {
     function nop() {}
     if (! ("console" in window) || !("firebug" in console)) {
@@ -17,7 +17,7 @@ var SITEPREFIX = '/semantic2/alpha';
 	}
     }
 })();
-
+*/
 (function ($) {
     $(function () {
 

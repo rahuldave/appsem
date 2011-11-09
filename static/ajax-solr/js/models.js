@@ -9,7 +9,7 @@
     ObservationModel=Backbone.Model.extend({
     //We'll just initialize with an attribute dict passed into constructor by Collection.
         initialize: function(models, options){
-            this.froms=FROMS;
+            this.froms=_.clone(FROMS);
             if (options && options.from_publications && options.from_publications===true){
                 this.froms.from_publications=true;
                 this.initializeFromPublication(models, options);
@@ -22,7 +22,9 @@
             
         },
         initializeFromObservation: function(models, options){
-            
+            options.obsvmodel=this
+            this.publicationcollection=new PublicationCollection([],options);
+            this.objectcollection=new ObjectCollection([],options);
         }
     });
 
@@ -36,7 +38,9 @@
 //for the general case, perhaps by making simple dictionary copies.
     ObservationCollection=Backbone.Collection.extend({
         initialize: function(models, options){
-            this.froms=FROMS;
+            this.froms=_.clone(FROMS);
+            this.docids=[];
+            this.manager=options.ajaxsolrmanager;
             this.passed_options={};
             _.extend(this.passed_options, options);
             if (options && options.from_publications && options.from_publications===true){
@@ -48,12 +52,12 @@
             }
         },
         initializeFromObservations: function(models, options){
-            
+
         },
         initializeFromPublication: function(models, options){
-            this.pubmodel=options.pubmodel;
+            this.sourcemodel=options.pubmodel;
             //alert("OCI: "+this.models.length);
-            this.doc=this.pubmodel.toJSON();
+            this.doc=this.sourcemodel.toJSON();
             this.missionmap={};
             //if this array is not present, because a pub had nothing, we need to deal with that: BUG
             //BUG2: we have lost pagination
@@ -70,7 +74,14 @@
             }
         },
         populateFromObservations: function(){
-            
+            for (var i = 0, l = this.manager.response.response.docs.length; i < l; i++) {
+              var doc = this.manager.response.response.docs[i];
+
+              var result=new ObservationModel(doc, this.passed_options);
+              this.add(result)
+              //this.add(doc, {from_publications:this.froms.from_publications})
+              this.docids.push(doc.obsids_s);
+            }
         },
         populateFromPublication: function(){
             var doc=this.doc;
@@ -140,9 +151,9 @@
     });
     
     ObjectCollection=Backbone.Collection.extend({
-       initialize: function(models,options){
-            this.pubmodel=options.pubmodel;
-            this.doc=this.pubmodel.toJSON();
+       initializeFromPublication: function(models,options){
+            this.sourcemodel=options.pubmodel;
+            this.doc=this.sourcemodel.toJSON();
 
             //if this array is not present, because a pub had nothing, we need to deal with that: BUG
             //BUG2: we have lost pagination
@@ -152,7 +163,39 @@
             }
             //alert("Hello"+this.nobj);
         },
+        initializeFromObservation: function(models,options){
+            this.sourcemodel=options.obsvmodel;
+            this.doc=this.sourcemodel.toJSON();
+
+            //if this array is not present, because a pub had nothing, we need to deal with that: BUG
+            //BUG2: we have lost pagination
+            this.nobj=0;
+            if (this.doc.objectnames_s !== undefined){
+                this.nobj=this.doc.objectnames_s.length;
+            }
+            console.log("Hello"+this.nobj);
+        },
+        initialize: function(models, options){
+            this.froms=_.clone(FROMS);
+            //this.passed_options=options;
+            this.passed_options={};
+            _.extend(this.passed_options, options);
+            if (options && options.from_observations && options.from_observations===true){
+                this.froms.from_observations=true;
+                this.initializeFromObservation(models, options);
+            } else if (options && options.from_publications && options.from_publications===true) {
+                this.froms.from_publications=true;
+                this.initializeFromPublication(models, options);
+            }
+        },
         populate: function(){
+            if (this.froms.from_observations===true){
+                this.populateFromObservation();
+            } else if (this.froms.from_publications===true) {
+                this.populateFromPublication();
+            }
+        },
+        populateFromPublication: function(){
             var doc=this.doc;
             var docid=this.doc.id;
             var docbibcode=this.doc.bibcode;
@@ -171,6 +214,25 @@
 	        }
 	       
         },
+        populateFromObservation: function(){
+            var doc=this.doc;
+            var docid=this.doc.obsids_s;
+            var docobsid=this.doc.obsids_s;
+            var objectnames=doc.objectnames_s;
+            var objecttypes=doc.objecttypes_s;
+            var nobj=this.nobj;
+            for (var i = 0; i < nobj; i += 1) {
+	            var out = {
+	                   "docid": docid,
+	                   "docobsid": docobsid,    
+		               "name": objectnames[i],
+		               "objtype": objecttypes[i],
+		        };
+	            this.add(out, {silent:true})
+	            //currently use add, later use reset and build all views together to avoid firing so many events
+	        }
+	       
+        },
         comparator: function(objectmodel){
             return objectmodel.get('name');
         }
@@ -178,7 +240,7 @@
 
     PublicationModel=Backbone.Model.extend({
         initialize: function(models, options){
-            this.froms=FROMS;
+            this.froms=_.clone(FROMS);
             if (options && options.from_observations && options.from_observations===true){
                 this.froms.from_observations=true;
                 this.initializeFromObservation(models, options);
@@ -198,7 +260,9 @@
     });
     PublicationCollection=Backbone.Collection.extend({
         initialize: function(models, options){
-            this.froms=FROMS;
+            this.froms=_.clone(FROMS);
+            this.docids=[];
+            this.manager=options.ajaxsolrmanager;
             //this.passed_options=options;
             this.passed_options={};
             _.extend(this.passed_options, options);
@@ -211,11 +275,18 @@
             }
         },
         initializeFromObservation: function(models, options){
-            
+            this.sourcemodel=options.obsvmodel;
+            //alert("OCI: "+this.models.length);
+            this.doc=this.sourcemodel.toJSON();
+            this.missionmap={};
+            //if this array is not present, because a pub had nothing, we need to deal with that: BUG
+            //BUG2: we have lost pagination
+            this.npub=0;
+            if (this.doc.bibcode !== undefined){
+                this.npub=this.doc.bibcode.length;
+            }
         },
         initializeFromPublications: function(models, options){
-            this.docids=[];
-            this.manager=options.ajaxsolrmanager;
             //alert("PCI: "+objToString(this.models[0].attributes));
             //alert("PCI2: "+objToString(ajaxsolrmanager));
         },
@@ -227,7 +298,25 @@
           }
         },
         populateFromObservation: function(){
-            
+            var doc=this.doc;
+            var docid=this.doc.obsids_s;
+            var thebibs=doc.bibcode;
+            var npub=this.npub;
+            var damodels=[];
+            for (var i = 0; i < npub; i += 1) {
+	            //console.log("LLLLLLL",mission);
+	            var out = {
+	                   docid: docid,
+	                   bibcode: thebibs[i],
+	                   year: doc.pubyear_i[i]
+		        };
+		        //this.add(out, {silent:true});
+		        damodels.push(out);
+	        }
+	        //alert(datargets.join("%%"));
+	        this.passed_options.silent=true;
+	        this.add(damodels, this.passed_options);
+          
         },
         populateFromPublications: function(){
             for (var i = 0, l = this.manager.response.response.docs.length; i < l; i++) {

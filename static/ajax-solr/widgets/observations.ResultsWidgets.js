@@ -97,7 +97,7 @@ function encodeObsuri(obsuri){
            var links = [];
            if (facet_values) {
                for (var i = 0, l = facet_values.length; i < l; i++) {
-                   links.push(AjaxSolr.theme('facet_link',
+                   links.push(AjaxSolr.theme('facet_link2',
                             facet_values[i],
                             facet_field));
                             //doing it like below overrides event bubbling.
@@ -186,13 +186,13 @@ function encodeObsuri(obsuri){
            pubcollection.populate();
            //objcollection.populate();
           
-           var ajrtheme=AjaxSolr.theme('result',
+           var ajrtheme=AjaxSolr.theme('result2',
                 doc, 
-                AjaxSolr.theme('title', doc),
+                AjaxSolr.theme('title2', doc),
                 AjaxSolr.theme('list_items', AjaxSolr.theme('emdomains'), emdomains, "| "),
                 AjaxSolr.theme('additional', 
                     doc,
-                    AjaxSolr.theme('facet_link', obsvtime_d, 'obsvtime_d', '['+obsvtime_d+' TO ' + obsvtime_d +']')
+                    AjaxSolr.theme('facet_link2', obsvtime_d, 'obsvtime_d', '['+obsvtime_d+' TO ' + obsvtime_d +']')
                 ),
                 AjaxSolr.theme('lessmore', doc, this.objcollectionview.render().el, this.pubcollectionview.render().el),
                 this.widget
@@ -212,7 +212,7 @@ function encodeObsuri(obsuri){
             this.viewdict={};
             this.model.bind("add", this.addOne, this);
         },
-        addOne: function(onservationmodel){
+        addOne: function(observationmodel){
             var view=new ObservationView({model:observationmodel, widget:this.widget});
             this.viewdict[view.model.get('id')]=view;
             this.el.append(view.render().el);
@@ -254,10 +254,14 @@ function encodeObsuri(obsuri){
 	
 AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
   afterRequest: function () {
-    var self=this;  
-    $(this.target).empty();
-    
+    var self=this; 
+    var $target=$(this.target); 
+    $target.empty();
+    var page=new ObservationCollection([],{ajaxsolrmanager:self.manager, from_observations:true});
+    var pageview=new ObservationCollectionView({el:$target, widget:self, model:page});
+    page.populate();
     docids=[];
+    /*
     for (var i = 0, l = this.manager.response.response.docs.length; i < l; i++) {
       var doc = this.manager.response.response.docs[i];
       $(this.target).append(AjaxSolr.theme('result', doc, 
@@ -279,6 +283,7 @@ AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
       AjaxSolr.theme('list_items', $('#links_' + encodeObsuri(doc.obsids_s)), gaga, "| ");
       docids.push(encodeObsuri(doc.obsids_s));
     }
+    */
     console.log("DOCIDS", docids);
     // Find out which papers have been saved so that we can change the 
     // Saved text/icon to delete.
@@ -409,7 +414,7 @@ AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
     });*/
   },
   beforeRequest: function () {
-    $(this.target).html($('<img/>').attr('src', '/semantic2/alpha/static/images/ajax-loader.gif'));
+    $(this.target).html(AjaxSolr.theme('loader'));
   }
 });
 

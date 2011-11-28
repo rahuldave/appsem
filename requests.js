@@ -7,6 +7,7 @@
   var completeRequest, failedRequest, ifLoggedIn, postHandler, successfulRequest;
   completeRequest = function(res, options, defoptions) {
     var defval, key, omsg, opts, out;
+    console.log("In completeRequest", options);
     opts = {};
     for (key in defoptions) {
       defval = defoptions[key];

@@ -194,7 +194,7 @@ createSavedObsvTemplates = (nowDate, obsvkeys, targets, obsvtitles, obsvtimes) -
 
     makeTemplate = (ctr) ->
       target = targets[ctr]
-      linkuri = "bibcode%3A#{ bibcode.replace(/&/g, '%26') }"
+      #linkuri = "bibcode%3A#{ bibcode.replace(/&/g, '%26') }"
       linkuri=obsvkeys[ctr]
       out =
         obsvid: obsvkeys[ctr]

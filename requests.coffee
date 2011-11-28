@@ -13,6 +13,7 @@ a grab bag of functionality.
 # to the message value.
 
 completeRequest = (res, options, defoptions) ->
+  console.log "In completeRequest", options
   opts = {}
   for key, defval of defoptions
     opts[key] = if key of options then options[key] else defval

@@ -18,6 +18,9 @@ var SITEPREFIX = '/semantic2/alpha';
     }
 })();
 */
+(function(){
+   if (typeof console == "undefined" || typeof console.log == "undefined") var console = { log: function() {} };   
+})();
 (function ($) {
     $(function () {
 

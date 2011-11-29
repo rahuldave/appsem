@@ -15,16 +15,23 @@ changeAllButtons = (newstate) ->
 
 # Create the form actions for the saved-item form.
 
-AjaxSolr.theme.prototype.saved_formactions = (bibtexHandler, myADSHandler) ->
-  $('<div class="formactions"/>')
+AjaxSolr.theme.prototype.saved_formactions = (bibtexHandler=null, myADSHandler=null) ->
+  unless bibtexHandler is null and myADSHandler is null
+      return $('<div class="formactions"/>')
+        .append($('<input type="button" value="Mark all"/>').click(changeAllButtons true))
+        .append($('<input type="button" value="Clear all"/>').click(changeAllButtons false))
+        .append($('<input type="submit" value="Delete marked" name="action"/>'))
+        .append($('<input type="button" value="Get as BibTex"/>').click(bibtexHandler))
+        .append($('<button type="button" name="myads" value="Send to myADS"/>')
+          .click(myADSHandler)
+          .append($('<img alt="[myADS logo]"/>')
+            .attr('src', "#{SITEPREFIX}/static/images/ADSlabs-button.png")))
+  return $('<div class="formactions"/>')
     .append($('<input type="button" value="Mark all"/>').click(changeAllButtons true))
     .append($('<input type="button" value="Clear all"/>').click(changeAllButtons false))
     .append($('<input type="submit" value="Delete marked" name="action"/>'))
-    .append($('<input type="button" value="Get as BibTex"/>').click(bibtexHandler))
-    .append($('<button type="button" name="myads" value="Send to myADS"/>')
-      .click(myADSHandler)
-      .append($('<img alt="[myADS logo]"/>')
-        .attr('src', "#{SITEPREFIX}/static/images/ADSlabs-button.png")))
+
+        
 
 # Create the THEAD block for the saved-item table.
 #

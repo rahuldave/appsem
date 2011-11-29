@@ -11,16 +11,17 @@
     fieldmap: {},
     allowmulti: [],
     splitConstraint: function(constraint) {
-      var field, i, label;
+      var field, i, label, spobject;
       i = constraint.indexOf(':');
       field = constraint.substr(0, i);
       label = cleanFacetValue(constraint.substr(i + 1));
-      return {
+      spobject = {
         constraint: constraint,
         field: field,
         display: cleanFacetName(field, this.fieldmap),
         label: label
       };
+      return spobject;
     },
     pivotHandler: function(constraint) {
       var self;
@@ -87,7 +88,7 @@
             return false;
           }));
         }
-        AjaxSolr.theme('list_items', self.target, list);
+        AjaxSolr.theme('list_items', $(self.target), list);
       }
       return true;
     },

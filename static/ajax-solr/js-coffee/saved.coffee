@@ -157,9 +157,14 @@ makeSearchText = (urifrag) ->
   return $search
 
 makeSearchRow = (s) ->
+  scpts=searchToText s.searchuri, fieldname_map
+  console.log s.searchtext, s.searchuri, scpts
   [$('<input type="checkbox" name="searchid"/>').attr('value', s.searchuri),
    $('<span/>').attr('value', s.searchtime).text(s.searchtimestr),
-   makeSearchText s.searchuri]
+   $('<a/>').attr('href', "#{SITEPREFIX}/explorer/#{s.searchuri}")
+     .text(scpts.join " ")]
+
+#makeSearchText s.searchuri]
 
 createSavedSearchSection = (searches) ->
   nsearch = searches.length
@@ -239,7 +244,7 @@ createSavedObservationSection = (obsvs) ->
   $div = $('div#saved-obsvs')
   $div.append AjaxSolr.theme('saved_title', 'Saved Observations')
   $div.append AjaxSolr.theme('saved_items', 'obsvs',
-    ['Date Observed', 'Title', 'Target'], rows,
+    ['Date Observed', 'Obsid', 'Target'], rows,
     null,
     null)
 

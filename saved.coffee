@@ -90,6 +90,28 @@ saveObsv = (payload, req, res, next) ->
                ['zadd', "savedobsv:#{email}", saveTime, savedObsv]]
       redis_client.multi(margs).exec (err2, reply) -> successfulRequest res
       
+      
+      
+searchToText = (searchTerm) ->
+    # lazy way to remove the trailing search term
+
+    splits=searchTerm.split '#'
+    s = "&#{splits[1]}"
+    s = s.replace '&q=*%3A*', ''
+
+    # only decode after the initial split to protect against the
+    # unlikely event that &fq= appears as part of a search term.
+    terms = s.split /&fq=/
+    terms.shift()
+    # ignore the first entry as '' by construction
+    out = ''
+    for term in terms 
+        [name, value] = decodeURIComponent(term).split ':', 2
+        out += "#{name}=#{value} "
+    
+
+    return out
+
 # Returns a string representation of timeString, which
 # should be a string containing the time in milliseconds,
 # nowDate is the "current" date in milliseconds.
@@ -144,6 +166,7 @@ createSavedSearchTemplates = (nowDate, searchkeys, searchtimes) ->
       time = searchtimes[ctr]
       out =
         searchuri: key
+        searchtext: searchToText key
         searchtime: time
         searchtimestr: timeToText nowDate, time
         searchctr: ctr
@@ -198,7 +221,7 @@ createSavedObsvTemplates = (nowDate, obsvkeys, targets, obsvtitles, obsvtimes) -
       linkuri=obsvkeys[ctr]
       out =
         obsvid: obsvkeys[ctr]
-        linktext: obsvtitles[ctr]
+        linktext: obsvkeys[ctr]
         linkuri: linkuri
         obsvtime: obsvtimes[ctr]
         obsvtimestr: timeToText nowDate, obsvtimes[ctr]

@@ -74,14 +74,15 @@ root.cleanFacetValue = (label) ->
     idx = label.indexOf ' TO '
     if idx isnt -1
       label = label.substr 1, l-2
-      l = label.substr 0, idx-1
-      r = label.substr idx+3
-      if l == r
-        return l
-      else
-        return label
+      return label
+      #l = label.substr 0, idx-1
+      #r = label.substr idx+3
+      #if l == r
+      #  return l
+      #else
+      #  return label
 
-  label
+  return label
 
 # Given a saved search, which looks something like
 # "fq=keywords_s%3A%22stars%20luminosity%20function%3Bmass%20function%22&fq=author_s%3A%22Stahl%2C%20O%22&fq=instruments_s%3AMAST%2FIUE%2FLWR&q=*%3A*"
@@ -103,7 +104,8 @@ root.searchToText = (searchTerm, namemap) ->
 
   # only decode after the initial split to protect against the
   # unlikely event that &fq= appears as part of a search term.
-  terms = s.split /&fq=/
+  terms = s.split /fq=/
+  console.log 'TERMS', terms
   terms.shift() # ignore the first entry as '' by construction
   out = {}
   for term in terms
@@ -115,6 +117,7 @@ root.searchToText = (searchTerm, namemap) ->
       out[name] = [value]
 
   ("#{cleanFacetName n, namemap}=#{v.join ','}" for n,v of out)
+
 
 # Mapping between field name as used by Solr and the text we
 # use to display to the user.

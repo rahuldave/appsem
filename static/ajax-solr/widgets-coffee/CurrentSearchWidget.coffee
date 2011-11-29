@@ -45,11 +45,12 @@ AjaxSolr.CurrentSearchWidget = AjaxSolr.AbstractWidget.extend
     i = constraint.indexOf ':'
     field = constraint.substr 0, i
     label = cleanFacetValue constraint.substr(i+1)
-
-    constraint: constraint
-    field: field
-    display: cleanFacetName(field, this.fieldmap)
-    label: label
+    spobject = 
+        constraint: constraint
+        field: field
+        display: cleanFacetName(field, this.fieldmap)
+        label: label
+    return spobject
 
   pivotHandler: (constraint) ->
     self = this
@@ -111,7 +112,7 @@ AjaxSolr.CurrentSearchWidget = AjaxSolr.AbstractWidget.extend
           self.manager.doRequest 0
           return false)
 
-      AjaxSolr.theme 'list_items', self.target, list
+      AjaxSolr.theme 'list_items', $(self.target), list
 
     return true
 

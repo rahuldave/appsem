@@ -55,7 +55,7 @@
     return (_ref = namemap[name]) != null ? _ref : name;
   };
   root.cleanFacetValue = function(label) {
-    var firstChar, idx, l, lastChar, r;
+    var firstChar, idx, l, lastChar;
     if (label === "") {
       return label;
     }
@@ -68,13 +68,7 @@
       idx = label.indexOf(' TO ');
       if (idx !== -1) {
         label = label.substr(1, l - 2);
-        l = label.substr(0, idx - 1);
-        r = label.substr(idx + 3);
-        if (l === r) {
-          return l;
-        } else {
-          return label;
-        }
+        return label;
       }
     }
     return label;
@@ -82,7 +76,8 @@
   root.searchToText = function(searchTerm, namemap) {
     var n, name, out, s, term, terms, v, value, _i, _len, _ref, _results;
     s = ("&" + searchTerm).replace('&q=*%3A*', '');
-    terms = s.split(/&fq=/);
+    terms = s.split(/fq=/);
+    console.log('TERMS', terms);
     terms.shift();
     out = {};
     for (_i = 0, _len = terms.length; _i < _len; _i++) {

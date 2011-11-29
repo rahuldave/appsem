@@ -50,7 +50,7 @@
       jsdir: 'coffee'
     },
     bodyhead: {
-      isitchosenpublications: 'chosen',
+      isitchosenpublications: 'active',
       siteprefix: SITEPREFIX,
       staticprefix: STATICPREFIX
     },
@@ -71,7 +71,7 @@
       jsdir: 'js'
     },
     bodyhead: {
-      isitchosenobservations: 'chosen',
+      isitchosenobservations: 'active',
       siteprefix: SITEPREFIX,
       staticprefix: STATICPREFIX
     },
@@ -92,7 +92,7 @@
       jsdir: 'coffee'
     },
     bodyhead: {
-      isitchosensaved: 'chosen',
+      isitchosensaved: 'active',
       siteprefix: SITEPREFIX,
       staticprefix: STATICPREFIX
     },

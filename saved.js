@@ -3,7 +3,7 @@
   Handles saved items - e.g. searches and publications - that involves
   accessing information from Redis.
   */
-  var createSavedObsvTemplates, createSavedPubTemplates, createSavedSearchTemplates, deleteItem, deleteItems, failedRequest, getSavedObsvs, getSavedObsvs2, getSavedPubs, getSavedPubs2, getSavedSearches, getSavedSearches2, getSortedElements, getSortedElementsAndScores, ifLoggedIn, isArray, redis_client, removeDocs, removeObsvs, removeSearches, requests, saveObsv, savePub, saveSearch, successfulRequest, timeToText;
+  var createSavedObsvTemplates, createSavedPubTemplates, createSavedSearchTemplates, deleteItem, deleteItems, failedRequest, getSavedObsvs, getSavedObsvs2, getSavedPubs, getSavedPubs2, getSavedSearches, getSavedSearches2, getSortedElements, getSortedElementsAndScores, ifLoggedIn, isArray, redis_client, removeDocs, removeObsvs, removeSearches, requests, saveObsv, savePub, saveSearch, searchToText, successfulRequest, timeToText;
   redis_client = require("redis").createClient();
   requests = require("./requests");
   failedRequest = requests.failedRequest;
@@ -64,6 +64,21 @@
       });
     });
   };
+  searchToText = function(searchTerm) {
+    var name, out, s, splits, term, terms, value, _i, _len, _ref;
+    splits = searchTerm.split('#');
+    s = "&" + splits[1];
+    s = s.replace('&q=*%3A*', '');
+    terms = s.split(/&fq=/);
+    terms.shift();
+    out = '';
+    for (_i = 0, _len = terms.length; _i < _len; _i++) {
+      term = terms[_i];
+      _ref = decodeURIComponent(term).split(':', 2), name = _ref[0], value = _ref[1];
+      out += "" + name + "=" + value + " ";
+    }
+    return out;
+  };
   timeToText = function(nowDate, timeString) {
     var d, delta, h, m, out, s, t;
     t = parseInt(timeString, 10);
@@ -108,6 +123,7 @@
         time = searchtimes[ctr];
         out = {
           searchuri: key,
+          searchtext: searchToText(key),
           searchtime: time,
           searchtimestr: timeToText(nowDate, time),
           searchctr: ctr
@@ -175,7 +191,7 @@
         linkuri = obsvkeys[ctr];
         out = {
           obsvid: obsvkeys[ctr],
-          linktext: obsvtitles[ctr],
+          linktext: obsvkeys[ctr],
           linkuri: linkuri,
           obsvtime: obsvtimes[ctr],
           obsvtimestr: timeToText(nowDate, obsvtimes[ctr]),

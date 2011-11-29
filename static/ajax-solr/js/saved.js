@@ -186,7 +186,10 @@
     return $search;
   };
   makeSearchRow = function(s) {
-    return [$('<input type="checkbox" name="searchid"/>').attr('value', s.searchuri), $('<span/>').attr('value', s.searchtime).text(s.searchtimestr), makeSearchText(s.searchuri)];
+    var scpts;
+    scpts = searchToText(s.searchuri, fieldname_map);
+    console.log(s.searchtext, s.searchuri, scpts);
+    return [$('<input type="checkbox" name="searchid"/>').attr('value', s.searchuri), $('<span/>').attr('value', s.searchtime).text(s.searchtimestr), $('<a/>').attr('href', "" + SITEPREFIX + "/explorer/" + s.searchuri).text(scpts.join(" "))];
   };
   createSavedSearchSection = function(searches) {
     var $div, nsearch, rows, s;
@@ -268,7 +271,7 @@
     })();
     $div = $('div#saved-obsvs');
     $div.append(AjaxSolr.theme('saved_title', 'Saved Observations'));
-    $div.append(AjaxSolr.theme('saved_items', 'obsvs', ['Date Observed', 'Title', 'Target'], rows, null, null));
+    $div.append(AjaxSolr.theme('saved_items', 'obsvs', ['Date Observed', 'Obsid', 'Target'], rows, null, null));
     $('#saved-obsvs-form').submit(submitDeleteAction('/deleteobsvs', 'obsvid', createSavedObservations));
     return $('#saved-obsvs-table').tablesorter(tsortopts);
   };

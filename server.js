@@ -912,7 +912,9 @@ function createSavedSearchTemplates(view, nowDate, searchkeys, searchtimes) {
 				  'searchtext': searchToText(skey),
 				  'searchtime': stime,
 				  'searchtimestr': timeToText(nowDate, stime),
-				  'searchctr': i };
+				  'searchctr': i,,
+			     'siteprefix':views.bodybody.siteprefix,
+			     'staticprefix':views.bodybody.staticprefix };
     }
 
 } // createSavedSearchTemplates
@@ -940,7 +942,9 @@ function createSavedPubTemplates(view, nowDate, pubkeys, bibcodes, pubtitles, pu
 			     'pubtime': pubtimes[i],
 			     'pubtimestr': timeToText(nowDate, pubtimes[i]),
 			     'bibcode': bibcode,
-			     'pubctr': i };
+			     'pubctr': i,
+			     'siteprefix':views.bodybody.siteprefix,
+			     'staticprefix':views.bodybody.staticprefix };
 				
     }
 
@@ -969,7 +973,9 @@ function createSavedObsvTemplates(view, nowDate, obsvkeys, targets, obsvtitles, 
 			     'obsvtime': obsvtimes[i],
 			     'obsvtimestr': timeToText(nowDate, obsvtimes[i]),
 			     'target': target,
-			     'obsvctr': i };
+			     'obsvctr': i,
+			     'siteprefix':views.bodybody.siteprefix,
+			     'staticprefix':views.bodybody.staticprefix };
 				
     }
 
@@ -1014,7 +1020,7 @@ function doSaved(req, res, next) {
 		                    redis_client.hmget('savedobsvtitles:'+email, obsvkeys, function (err, obsvtitles) {
 			                    redis_client.hmget('savedtargets:'+email, obsvkeys, function (err, targets) {
 			                        createSavedObsvTemplates(view, nowDate, obsvkeys, targets, obsvtitles, obsvtimes);
-			            
+			                        console.log(view);
 			                        res.end(mustache.to_html(maint, view, lpartials));
 			                    });
 		                     });

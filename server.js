@@ -913,8 +913,8 @@ function createSavedSearchTemplates(view, nowDate, searchkeys, searchtimes) {
 				  'searchtime': stime,
 				  'searchtimestr': timeToText(nowDate, stime),
 				  'searchctr': i,
-			     'siteprefix':views.bodybody.siteprefix,
-			     'staticprefix':views.bodybody.staticprefix };
+			      'siteprefix':view.bodybody.siteprefix,
+			      'staticprefix':view.bodybody.staticprefix };
     }
 
 } // createSavedSearchTemplates
@@ -943,8 +943,8 @@ function createSavedPubTemplates(view, nowDate, pubkeys, bibcodes, pubtitles, pu
 			     'pubtimestr': timeToText(nowDate, pubtimes[i]),
 			     'bibcode': bibcode,
 			     'pubctr': i,
-			     'siteprefix':views.bodybody.siteprefix,
-			     'staticprefix':views.bodybody.staticprefix };
+			     'siteprefix':view.bodybody.siteprefix,
+			     'staticprefix':view.bodybody.staticprefix };
 				
     }
 
@@ -974,8 +974,8 @@ function createSavedObsvTemplates(view, nowDate, obsvkeys, targets, obsvtitles, 
 			     'obsvtimestr': timeToText(nowDate, obsvtimes[i]),
 			     'target': target,
 			     'obsvctr': i,
-			     'siteprefix':views.bodybody.siteprefix,
-			     'staticprefix':views.bodybody.staticprefix };
+			     'siteprefix':view.bodybody.siteprefix,
+			     'staticprefix':view.bodybody.staticprefix };
 				
     }
 

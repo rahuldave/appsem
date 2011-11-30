@@ -912,7 +912,7 @@ function createSavedSearchTemplates(view, nowDate, searchkeys, searchtimes) {
 				  'searchtext': searchToText(skey),
 				  'searchtime': stime,
 				  'searchtimestr': timeToText(nowDate, stime),
-				  'searchctr': i,,
+				  'searchctr': i,
 			     'siteprefix':views.bodybody.siteprefix,
 			     'staticprefix':views.bodybody.staticprefix };
     }

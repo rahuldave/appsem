@@ -9,7 +9,7 @@ function encodeObsuri(obsuri){
 
     
     AjaxSolr.theme.prototype.loader = function(){
-        return $('<img/>').attr('src', '/semantic2/alpha/static/images/ajax-loader.gif');
+        return $('<img/>').attr('src', SITEPREFIX+'/static/images/ajax-loader.gif');
     };
 
 

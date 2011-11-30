@@ -6,7 +6,7 @@
     var fancyboxOpts = { 'autoDimensions': false, 'width': 1024, 'height': 768 };
     
     AjaxSolr.theme.prototype.loader = function(){
-        return $('<img/>').attr('src', '/semantic2/alpha/static/images/ajax-loader.gif');
+        return $('<img/>').attr('src', SITEPREFIX+'/static/images/ajax-loader.gif');
     };
     //HANDLER
     AjaxSolr.theme.prototype.result = function (doc, $thetitlestuff, $keywordstuff, $additional, $lessmore, thedocthis) {

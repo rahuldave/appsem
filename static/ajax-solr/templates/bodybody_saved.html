@@ -16,7 +16,7 @@
   <input type="button" value="Get as BibTex" onClick="getSearchAsBibTex(this.form)">
   <button type="button" name="myads" value="Send to myADS"
   onClick="saveSearchToMyADS(this.form)">
-  <img src="/semantic2/alpha/static/images/ADSlabs-button.png" alt="[myADS logo]">
+  <img src="{{staticprefix}}/images/ADSlabs-button.png" alt="[myADS logo]">
   </button>
 </div>
 <table class="tablesorter" id="saved-searches-table">
@@ -28,7 +28,7 @@
       <tr class="saveditem" id="search-{{searchctr}}">
 	<td><input type="checkbox" name="searchid" value="{{searchuri}}"></td>
 	<td class="savetime"><span value="{{searchtime}}">{{searchtimestr}}</span></td>
-	<td class="searchtitle"><a href="/semantic2/alpha/explorer/{{searchuri}}">{{searchtext}}</a></td>
+	<td class="searchtitle"><a href="{{siteprefix}}/explorer/{{searchuri}}">{{searchtext}}</a></td>
       </tr>
       {{/savedsearches}}
     </tbody>
@@ -55,7 +55,7 @@
   <input type="button" value="Get as BibTex" onClick="getAsBibTex(this.form)">
   <button type="button" name="myads" value="Send to myADS"
   onClick="saveToMyADS(this.form)">
-  <img src="/semantic2/alpha/static/images/ADSlabs-button.png" alt="[myADS logo]">
+  <img src="{{staticprefix}}/images/ADSlabs-button.png" alt="[myADS logo]">
   </button>
 </div>
 <table class="tablesorter" id="saved-pubs-table">
@@ -68,7 +68,7 @@
 	<td><input type="checkbox" name="pubid" value="{{{pubid}}}"></td>
 	<!-- should not use non-standard value attribute here -->
 	<td class="savetime"><span value="{{pubtime}}">{{pubtimestr}}</span></td>
-	<td class="papertitle"><a href="/semantic2/alpha/explorer/publications#fq={{linkuri}}&q=*%3A*">{{{linktext}}}</a></td>
+	<td class="papertitle"><a href="{{siteprefix}}/explorer/publications#fq={{linkuri}}&q=*%3A*">{{{linktext}}}</a></td>
 	<td class="bibcode">{{{bibcode}}}</td>
       </tr>
       {{/savedpubs}}
@@ -101,7 +101,7 @@
 	<td><input type="checkbox" name="obsvid" value="{{{obsvid}}}"></td>
 	<!-- should not use non-standard value attribute here -->
 	<td class="savetime"><span value="{{obsvtime}}">{{obsvtimestr}}</span></td>
-	<td class="papertitle"><a href="/semantic2/alpha/explorer/observations#fq={{linkuri}}&q=*%3A*">{{{linktext}}}</a></td>
+	<td class="papertitle"><a href="{{siteprefix}}/explorer/observations#fq={{linkuri}}&q=*%3A*">{{{linktext}}}</a></td>
 	<td class="bibcode">{{{target}}}</td>
       </tr>
       {{/savedobsvs}}

@@ -174,8 +174,10 @@ createSavedSearchSection = (searches) ->
   $div.append AjaxSolr.theme('saved_title', 'Saved Searches')
   $div.append AjaxSolr.theme('saved_items', 'searches',
     ['Date saved', 'Search terms'], rows,
-    handleSearches(getBibTexFromADS),
-    handleSearches(saveToMyADS))
+    null,
+    null)
+    #handleSearches(getBibTexFromADS),
+    #handleSearches(saveToMyADS))
 
   $('#saved-searches-form').submit submitDeleteAction('/deletesearches', 'searchid', createSavedSearches)
   $('#saved-searches-table').tablesorter tsortopts

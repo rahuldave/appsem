@@ -152,6 +152,7 @@ timeToText = (nowDate, timeString) ->
 #
 createSavedSearchTemplates = (nowDate, searchkeys, searchtimes) ->
   view = {}
+  console.log "VIEW", view
   nsearch = searchkeys.length
 
   if nsearch is 0

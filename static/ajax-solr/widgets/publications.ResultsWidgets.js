@@ -65,13 +65,13 @@ ObservationCollectionView=Backbone.View.extend({
 	    var missions=this.model.missions;
 	    var mastmissions=this.model.mastmissions;
 	    var nmissions = missions.length;
-        
+        //alert("missionmap"+missionmap);
 	    if (missionmap["CHANDRA"] !== undefined) {
 	        marray = missionmap["CHANDRA"];
 	        nm = marray.length;
-
+            //console.log("MARRAY", marray);
 	        if (nm > 1) {
-		        var mobsids = marray.map(function(e) { return e.obsid; });
+		        var mobsids = marray.map(function(e) { return e; });
 		        this.$('.extrapara').append(AjaxSolr.theme.prototype.mission_link('', 'All CHANDRA (' + nm + ')',
 		            getChandraObsidlink('',mobsids.join(',')))
 		        ).append(' ');

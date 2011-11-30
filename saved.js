@@ -111,6 +111,7 @@
   createSavedSearchTemplates = function(nowDate, searchkeys, searchtimes) {
     var i, makeTemplate, nsearch, view;
     view = {};
+    console.log("VIEW", view);
     nsearch = searchkeys.length;
     if (nsearch === 0) {
       view.hassearches = false;

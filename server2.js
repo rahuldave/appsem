@@ -3,7 +3,7 @@
   A NodeJS server that statically serves javascript out, proxies solr requests,
   and handles authentication through the ADS
   */
-  var SITEPREFIX, STATICPREFIX, addToRedis, completeRequest, config, connect, connectutils, deleteObsvFromRedis, deleteObsvsFromRedis, deletePubFromRedis, deletePubsFromRedis, deleteSearchFromRedis, deleteSearchesFromRedis, doADSProxy, doADSProxyHandler, doPost, explorouter, failedRequest, fs, getUser, http, ifLoggedIn, loginUser, logoutUser, makeADSJSONPCall, migration, mustache, postHandler, proxy, quickRedirect, redis_client, requests, runServer, saveObsvToRedis, savePubToRedis, saveSearchToRedis, saved, server, solrrouter, solrrouter2, successfulRequest, url, user, views;
+  var SITEPREFIX, STATICPREFIX, addUser, completeRequest, config, connect, connectutils, doADSProxy, doADSProxyHandler, doPost, explorouter, failedRequest, fs, getUser, http, ifLoggedIn, loginUser, logoutUser, makeADSJSONPCall, migration, mustache, postHandler, proxy, quickRedirect, redis_client, requests, runServer, saved, server, solrrouter, solrrouter2, successfulRequest, url, user, views;
   connect = require('connect');
   connectutils = connect.utils;
   http = require('http');
@@ -52,7 +52,7 @@
   }));
   makeADSJSONPCall = function(req, res, next) {
     var adsoptions, jsonpcback;
-    jsonpcback = url.parse(req.url, true).query.callback;
+    jsonpcback = req.query.callback;
     console.log("makeADSJSONPCCall: " + jsonpcback);
     adsoptions = {
       host: config.ADSHOST,
@@ -65,7 +65,7 @@
       return "" + jsonpcback + "(" + val + ")";
     });
   };
-  addToRedis = function(req, res, next) {
+  addUser = function(req, res, next) {
     console.log("::addToRedis cookies=" + (JSON.stringify(req.cookies)));
     return postHandler(req, res, user.insertUser);
   };
@@ -74,15 +74,6 @@
       return postHandler(req, res, func);
     };
   };
-  saveSearchToRedis = doPost(saved.saveSearch);
-  savePubToRedis = doPost(saved.savePub);
-  saveObsvToRedis = doPost(saved.saveObsv);
-  deletePubFromRedis = doPost(saved.deletePub);
-  deletePubsFromRedis = doPost(saved.deletePubs);
-  deleteObsvFromRedis = doPost(saved.deleteObsv);
-  deleteObsvsFromRedis = doPost(saved.deleteObsvs);
-  deleteSearchFromRedis = doPost(saved.deleteSearch);
-  deleteSearchesFromRedis = doPost(saved.deleteSearches);
   doADSProxyHandler = function(payload, req, res, next) {
     console.log('>> In doADSProxyHandler');
     console.log(">>    cookies=" + (JSON.stringify(req.cookies)));
@@ -123,31 +114,35 @@
   }));
   server = connect.createServer();
   server.use(connect.cookieParser());
+  server.use(connect.query());
   server.use(STATICPREFIX + '/', connect.static(__dirname + '/static/ajax-solr/'));
   server.use(SITEPREFIX + '/solr/', solrrouter);
   server.use(SITEPREFIX + '/solr2/', solrrouter2);
   server.use(SITEPREFIX + '/explorer/', explorouter);
   server.use(SITEPREFIX + '/adsjsonp', makeADSJSONPCall);
-  server.use(SITEPREFIX + '/addtoredis', addToRedis);
+  server.use(SITEPREFIX + '/addtoredis', addUser);
   server.use(SITEPREFIX + '/getuser', getUser);
   server.use(SITEPREFIX + '/logout', logoutUser);
   server.use(SITEPREFIX + '/login', loginUser);
-  server.use(SITEPREFIX + '/savesearch', saveSearchToRedis);
+  server.use(SITEPREFIX + '/savesearch', doPost(saved.saveSearch));
+  server.use(SITEPREFIX + '/savepub', doPost(saved.savePub));
+  server.use(SITEPREFIX + '/saveobsv', doPost(saved.saveObsv));
+  server.use(SITEPREFIX + '/deletesearch', doPost(saved.deleteSearch));
+  server.use(SITEPREFIX + '/deletesearches', doPost(saved.deleteSearches));
+  server.use(SITEPREFIX + '/deletepub', doPost(saved.deletePub));
+  server.use(SITEPREFIX + '/deletepubs', doPost(saved.deletePubs));
+  server.use(SITEPREFIX + '/deleteobsv', doPost(saved.deleteObsv));
+  server.use(SITEPREFIX + '/deleteobsvs', doPost(saved.deleteObsvs));
+  server.use(SITEPREFIX + '/adsproxy', doADSProxy);
   server.use(SITEPREFIX + '/savedsearches', saved.getSavedSearches);
   server.use(SITEPREFIX + '/savedsearches2', saved.getSavedSearches2);
-  server.use(SITEPREFIX + '/savepub', savePubToRedis);
-  server.use(SITEPREFIX + '/saveobsv', saveObsvToRedis);
-  server.use(SITEPREFIX + '/deletesearch', deleteSearchFromRedis);
-  server.use(SITEPREFIX + '/deletesearches', deleteSearchesFromRedis);
-  server.use(SITEPREFIX + '/deletepub', deletePubFromRedis);
-  server.use(SITEPREFIX + '/deletepubs', deletePubsFromRedis);
-  server.use(SITEPREFIX + '/deleteobsv', deleteObsvFromRedis);
-  server.use(SITEPREFIX + '/deleteobsvs', deleteObsvsFromRedis);
-  server.use(SITEPREFIX + '/adsproxy', doADSProxy);
+  server.use(SITEPREFIX + '/savedsearchesforgroup2', saved.getSavedSearchesForGroup2);
   server.use(SITEPREFIX + '/savedpubs', saved.getSavedPubs);
   server.use(SITEPREFIX + '/savedpubs2', saved.getSavedPubs2);
+  server.use(SITEPREFIX + '/savedpubsforgroup2', saved.getSavedPubsForGroup2);
   server.use(SITEPREFIX + '/savedobsvs', saved.getSavedObsvs);
   server.use(SITEPREFIX + '/savedobsvs2', saved.getSavedObsvs2);
+  server.use(SITEPREFIX + '/savedobsvsforgroup2', saved.getSavedObsvsForGroup2);
   server.use('/images', connect.static(__dirname + '/static/ajax-solr/images/'));
   server.use('/bootstrap', connect.static(__dirname + '/static/ajax-solr/images/'));
   server.use('/backbone', connect.static(__dirname + '/static/ajax-solr/images/'));

@@ -17,7 +17,7 @@ doADSProxy = (urlpath, callback) ->
 # section containing the table (including support for
 # displaying 'no saved ...').
 
-submitDeleteAction = (path, idname, recreate) ->
+submitDeleteAction = (path, idname, recreate, groupName='default') ->
   return () ->
     data = (item.value for item in $(this).find('input[type=checkbox][checked|=true]'))
     if data.length is 0
@@ -25,6 +25,7 @@ submitDeleteAction = (path, idname, recreate) ->
       return false
 
     map = action: "delete"
+    map.group=groupName
     map[idname] = data
     $.post SITEPREFIX+path, JSON.stringify(map), (resp) ->
       recreate()

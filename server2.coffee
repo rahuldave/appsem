@@ -54,8 +54,11 @@ solrrouter2 = connect(
         port: config.SOLRPORT2
       proxy.doProxy solroptions, req, res
 )
+
+##Only run on the cookiestealer. Then TODO:test
 makeADSJSONPCall = (req, res, next) ->
-  jsonpcback = url.parse(req.url, true).query.callback
+  #jsonpcback = url.parse(req.url, true).query.callback
+  jsonpcback = req.query.callback
   console.log "makeADSJSONPCCall: #{jsonpcback}"
 
   adsoptions =
@@ -67,44 +70,13 @@ makeADSJSONPCall = (req, res, next) ->
   proxy.doTransformedProxy adsoptions, req, res, (val) ->
     "#{jsonpcback}(#{val})"
 
-addToRedis = (req, res, next) ->
+addUser = (req, res, next) ->
   console.log "::addToRedis cookies=#{JSON.stringify req.cookies}"
   postHandler req, res, user.insertUser
-
-# Should probably just make anonymous functions
-# at the call site rather than explicitly name them
-#
-#saveSearchToRedis = (req, res, next) ->
-#  postHandler req, res, saved.saveSearch
-
-#savePubToRedis = (req, res, next) ->
-#  postHandler req, res, saved.savePub
-
-#deletePubFromRedis = (req, res, next) ->
-#  postHandler req, res, saved.deletePub
-
-#function deletePubsFromRedis(req, res, next) {
-#    postHandler(req, res, saved.deletePubs);
-#}
-#function deleteSearchFromRedis(req, res, next) {
-#    postHandler(req, res, saved.deleteSearch);
-#}
-#function deleteSearchesFromRedis(req, res, next) {
-#    postHandler(req, res, saved.deleteSearches);
-#}
 
 doPost = (func) ->
   (req, res, next) -> postHandler req, res, func
 
-saveSearchToRedis = doPost saved.saveSearch
-savePubToRedis = doPost saved.savePub
-saveObsvToRedis = doPost saved.saveObsv
-deletePubFromRedis = doPost saved.deletePub
-deletePubsFromRedis = doPost saved.deletePubs
-deleteObsvFromRedis = doPost saved.deleteObsv
-deleteObsvsFromRedis = doPost saved.deleteObsvs
-deleteSearchFromRedis = doPost saved.deleteSearch
-deleteSearchesFromRedis = doPost saved.deleteSearches
 
 # Proxy the call to ADS, setting up the NASA_ADS_ID cookie
 
@@ -147,6 +119,7 @@ explorouter = connect(connect.router (app) ->
 
 server = connect.createServer()
 server.use connect.cookieParser()
+server.use connect.query()
 
 # Not sure we need to use session middleware, more like login moddleware cookies.
 # Especially since we dont seem to know how not to reextend the time for session cookies.
@@ -161,32 +134,35 @@ server.use SITEPREFIX+'/adsjsonp', makeADSJSONPCall
 
 # Using get to put into redis:BAD but just for testing
 # QUS: Is this comment still accurate?
-server.use SITEPREFIX+'/addtoredis', addToRedis
+server.use SITEPREFIX+'/addtoredis', addUser
 server.use SITEPREFIX+'/getuser', getUser
 server.use SITEPREFIX+'/logout', logoutUser
 server.use SITEPREFIX+'/login', loginUser
-server.use SITEPREFIX+'/savesearch', saveSearchToRedis
-server.use SITEPREFIX+'/savedsearches', saved.getSavedSearches
-server.use SITEPREFIX+'/savedsearches2', saved.getSavedSearches2
-server.use SITEPREFIX+'/savepub', savePubToRedis
-server.use SITEPREFIX+'/saveobsv', saveObsvToRedis
-server.use SITEPREFIX+'/deletesearch', deleteSearchFromRedis
-server.use SITEPREFIX+'/deletesearches', deleteSearchesFromRedis
-server.use SITEPREFIX+'/deletepub', deletePubFromRedis
-server.use SITEPREFIX+'/deletepubs', deletePubsFromRedis
-server.use SITEPREFIX+'/deleteobsv', deleteObsvFromRedis
-server.use SITEPREFIX+'/deleteobsvs', deleteObsvsFromRedis
+
+server.use SITEPREFIX+'/savesearch', doPost saved.saveSearch
+server.use SITEPREFIX+'/savepub', doPost saved.savePub
+server.use SITEPREFIX+'/saveobsv', doPost saved.saveObsv
+server.use SITEPREFIX+'/deletesearch', doPost saved.deleteSearch
+server.use SITEPREFIX+'/deletesearches', doPost saved.deleteSearches
+server.use SITEPREFIX+'/deletepub', doPost saved.deletePub
+server.use SITEPREFIX+'/deletepubs', doPost saved.deletePubs
+server.use SITEPREFIX+'/deleteobsv', doPost saved.deleteObsv
+server.use SITEPREFIX+'/deleteobsvs', doPost saved.deleteObsvs
 # Used by the saved search page to provide functionality
 # to the saved publications list. This is a hack to work
 # around the same-origin policy.
 
 server.use SITEPREFIX+'/adsproxy', doADSProxy
 
+server.use SITEPREFIX+'/savedsearches', saved.getSavedSearches
+server.use SITEPREFIX+'/savedsearches2', saved.getSavedSearches2
+server.use SITEPREFIX+'/savedsearchesforgroup2', saved.getSavedSearchesForGroup2
 server.use SITEPREFIX+'/savedpubs', saved.getSavedPubs
 server.use SITEPREFIX+'/savedpubs2', saved.getSavedPubs2
+server.use SITEPREFIX+'/savedpubsforgroup2', saved.getSavedPubsForGroup2
 server.use SITEPREFIX+'/savedobsvs', saved.getSavedObsvs
 server.use SITEPREFIX+'/savedobsvs2', saved.getSavedObsvs2
-
+server.use SITEPREFIX+'/savedobsvsforgroup2', saved.getSavedObsvsForGroup2
 # not sure of the best way to do this, but want to privide access to
 # ajax-loader.gif and this way avoids hacking ResultWidget.2.0.js
 

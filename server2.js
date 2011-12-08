@@ -3,7 +3,7 @@
   A NodeJS server that statically serves javascript out, proxies solr requests,
   and handles authentication through the ADS
   */
-  var SITEPREFIX, STATICPREFIX, addUser, completeRequest, config, connect, connectutils, doADSProxy, doADSProxyHandler, doPost, explorouter, failedRequest, fs, getUser, http, ifLoggedIn, loginUser, logoutUser, makeADSJSONPCall, migration, mustache, postHandler, proxy, quickRedirect, redis_client, requests, runServer, saved, server, solrrouter, solrrouter2, successfulRequest, url, user, views;
+  var SITEPREFIX, STATICPREFIX, addUser, completeRequest, config, connect, connectutils, doADSProxy, doADSProxyHandler, doPost, explorouter, failedRequest, fs, getUser, groups, http, ifLoggedIn, loginUser, logoutUser, makeADSJSONPCall, migration, mustache, postHandler, proxy, quickRedirect, redis_client, requests, runServer, saved, server, solrrouter, solrrouter2, successfulRequest, url, user, views;
   connect = require('connect');
   connectutils = connect.utils;
   http = require('http');
@@ -24,6 +24,7 @@
   getUser = user.getUser;
   views = require("./views");
   saved = require("./saved");
+  groups = require("./groups");
   migration = require('./migration2');
   config = require("./config").config;
   SITEPREFIX = config.SITEPREFIX;
@@ -127,12 +128,18 @@
   server.use(SITEPREFIX + '/savesearch', doPost(saved.saveSearch));
   server.use(SITEPREFIX + '/savepub', doPost(saved.savePub));
   server.use(SITEPREFIX + '/saveobsv', doPost(saved.saveObsv));
+  server.use(SITEPREFIX + '/savesearchestogroup', doPost(saved.saveSearchesToGroup));
+  server.use(SITEPREFIX + '/savepubstogroup', doPost(saved.savePubsToGroup));
+  server.use(SITEPREFIX + '/saveobsvstogroup', doPost(saved.saveObsvsToGroup));
   server.use(SITEPREFIX + '/deletesearch', doPost(saved.deleteSearch));
   server.use(SITEPREFIX + '/deletesearches', doPost(saved.deleteSearches));
   server.use(SITEPREFIX + '/deletepub', doPost(saved.deletePub));
   server.use(SITEPREFIX + '/deletepubs', doPost(saved.deletePubs));
   server.use(SITEPREFIX + '/deleteobsv', doPost(saved.deleteObsv));
   server.use(SITEPREFIX + '/deleteobsvs', doPost(saved.deleteObsvs));
+  server.use(SITEPREFIX + '/deletesearchesfromgroup', doPost(saved.deleteSearchesFromGroup));
+  server.use(SITEPREFIX + '/deletepubsfromgroup', doPost(saved.deletePubsFromGroup));
+  server.use(SITEPREFIX + '/deleteobsvsfromgroup', doPost(saved.deleteObsvsFromGroup));
   server.use(SITEPREFIX + '/adsproxy', doADSProxy);
   server.use(SITEPREFIX + '/savedsearches', saved.getSavedSearches);
   server.use(SITEPREFIX + '/savedsearches2', saved.getSavedSearches2);
@@ -143,6 +150,14 @@
   server.use(SITEPREFIX + '/savedobsvs', saved.getSavedObsvs);
   server.use(SITEPREFIX + '/savedobsvs2', saved.getSavedObsvs2);
   server.use(SITEPREFIX + '/savedobsvsforgroup2', saved.getSavedObsvsForGroup2);
+  server.use(SITEPREFIX + '/creategroup', doPost(groups.createGroup));
+  server.use(SITEPREFIX + '/addusertogroup', doPost(groups.addUserToGroup));
+  server.use(SITEPREFIX + '/acceptinvitationtogroup', doPost(groups.acceptInvitationToGroup));
+  server.use(SITEPREFIX + '/removeuserfromgroup', doPost(groups.removeUserFromGroup));
+  server.use(SITEPREFIX + '/changeownershipofgroup', doPost(groups.changeOwnershipOfGroup));
+  server.use(SITEPREFIX + '/removeoneselffromgroup', doPost(groups.removeOneselfFromGroup));
+  server.use(SITEPREFIX + '/deletegroup', doPost(groups.deleteGroup));
+  server.use(SITEPREFIX + '/saveobsv', groups.getMembersOfGroup);
   server.use('/images', connect.static(__dirname + '/static/ajax-solr/images/'));
   server.use('/bootstrap', connect.static(__dirname + '/static/ajax-solr/images/'));
   server.use('/backbone', connect.static(__dirname + '/static/ajax-solr/images/'));

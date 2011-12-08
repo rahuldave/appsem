@@ -6,6 +6,7 @@ connectutils = require('connect').utils
 url = require 'url'
 redis_client = require("redis").createClient()
 
+
 makeLoginCookie = (cookiename,  cookievalue, days) ->
   secs = days * 24 * 60 * 60
   milisecs = secs * 1000
@@ -133,6 +134,8 @@ getUser = (req, res, next) ->
       console.log "getUser: reply #{stashMail}"
       res.end stashMail
 
+
+            
 exports.loginUser = loginUser
 exports.logoutUser = logoutUser
 exports.insertUser = insertUser

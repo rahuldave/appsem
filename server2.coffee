@@ -29,6 +29,7 @@ getUser = user.getUser
 views = require "./views"
 
 saved = require "./saved"
+groups = require "./groups"
 migration = require('./migration2')
 
 config = require("./config").config
@@ -139,15 +140,27 @@ server.use SITEPREFIX+'/getuser', getUser
 server.use SITEPREFIX+'/logout', logoutUser
 server.use SITEPREFIX+'/login', loginUser
 
+
 server.use SITEPREFIX+'/savesearch', doPost saved.saveSearch
 server.use SITEPREFIX+'/savepub', doPost saved.savePub
 server.use SITEPREFIX+'/saveobsv', doPost saved.saveObsv
+
+server.use SITEPREFIX+'/savesearchestogroup', doPost saved.saveSearchesToGroup
+server.use SITEPREFIX+'/savepubstogroup', doPost saved.savePubsToGroup
+server.use SITEPREFIX+'/saveobsvstogroup', doPost saved.saveObsvsToGroup
+
+
 server.use SITEPREFIX+'/deletesearch', doPost saved.deleteSearch
 server.use SITEPREFIX+'/deletesearches', doPost saved.deleteSearches
 server.use SITEPREFIX+'/deletepub', doPost saved.deletePub
 server.use SITEPREFIX+'/deletepubs', doPost saved.deletePubs
 server.use SITEPREFIX+'/deleteobsv', doPost saved.deleteObsv
 server.use SITEPREFIX+'/deleteobsvs', doPost saved.deleteObsvs
+
+
+server.use SITEPREFIX+'/deletesearchesfromgroup', doPost saved.deleteSearchesFromGroup
+server.use SITEPREFIX+'/deletepubsfromgroup', doPost saved.deletePubsFromGroup
+server.use SITEPREFIX+'/deleteobsvsfromgroup', doPost saved.deleteObsvsFromGroup
 # Used by the saved search page to provide functionality
 # to the saved publications list. This is a hack to work
 # around the same-origin policy.
@@ -163,6 +176,18 @@ server.use SITEPREFIX+'/savedpubsforgroup2', saved.getSavedPubsForGroup2
 server.use SITEPREFIX+'/savedobsvs', saved.getSavedObsvs
 server.use SITEPREFIX+'/savedobsvs2', saved.getSavedObsvs2
 server.use SITEPREFIX+'/savedobsvsforgroup2', saved.getSavedObsvsForGroup2
+
+#Groupfunctions
+server.use SITEPREFIX+'/creategroup', doPost groups.createGroup
+server.use SITEPREFIX+'/addusertogroup', doPost groups.addUserToGroup
+server.use SITEPREFIX+'/acceptinvitationtogroup', doPost groups.acceptInvitationToGroup
+server.use SITEPREFIX+'/removeuserfromgroup', doPost groups.removeUserFromGroup
+server.use SITEPREFIX+'/changeownershipofgroup', doPost groups.changeOwnershipOfGroup
+server.use SITEPREFIX+'/removeoneselffromgroup', doPost groups.removeOneselfFromGroup
+server.use SITEPREFIX+'/deletegroup', doPost groups.deleteGroup
+
+#and the gets   
+server.use SITEPREFIX+'/saveobsv', groups.getMembersOfGroup
 # not sure of the best way to do this, but want to privide access to
 # ajax-loader.gif and this way avoids hacking ResultWidget.2.0.js
 

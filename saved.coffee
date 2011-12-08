@@ -45,22 +45,38 @@ saveSearch = (payload, req, res, next) ->
       margs = [['zadd', "savedsearch:#{email}", saveTime, savedSearch]]
       redis_client.multi(margs).exec (err2, reply) -> successfulRequest res
 
-saveSearchToGroup = (payload, req, res, next) ->
+_doSaveSearchToGroup = (savedBy, savedhashlist, searchtype, res) ->
+    savedtype="saved#{searchtype}" 
+    margs=(['hexists', "savedby:#{savedhash.savedgroup}", savedhash.savedsearch] for savedhash in savedhashlist)
+    redis_client.multi(margs).exec (err, replies) ->
+        for idx in [0...replies.length] when replies[idx] isnt 1
+            savedSearch=savedhashlist[idx][savedtype]
+            savedGroup=savedhashlist[idx].savedgroup
+            redis_client.hget "savedInGroups:#{searchtype}", savedSearch, (err2, reply) ->
+                if reply is 'nil'
+                    groupJson=[savedGroup]
+                else
+                    groupJson = JSON.parse reply
+                    groupJson.push(savedGroup) #we dont check for uniqueness
+                margs = [
+                  ['zadd', "saved#{searchtype}:#{savedBy}:#{savedGroup}", saveTime, savedSearch],
+                  ['zadd', "saved#{searchtype}:#{savedGroup}", saveTime, savedSearch],
+                  ['hset', "savedby:#{savedGroup}", savedSearch, savedBy],
+                  ['hset', "savedInGroups:#{searchtype}", savedSearch, JSON.stringify groupJson]
+                ]
+                redis_client.multi(margs).exec (err2, reply) -> 
+                    successfulRequest res
+              
+saveSearchesToGroup = (payload, req, res, next) ->
   console.log "In saveSearchtoGroup: cookies=#{req.cookies} payload=#{payload}"
   saveTime = new Date().getTime()
 
   ifLoggedIn req, res, (loginid) ->
-    jsonObj = JSON.parse payload
-    savedSearch = jsonObj.savedsearch
-    savedGroup = jsonObj.savedgroup
+    savedhashlist = JSON.parse payload
     redis_client.get "email:#{loginid}", (err, savedBy) ->
       # keep as a multi even though now a single addition
-      savejson = 
-        savedBy : savedBy
-        savedSearch: savedSearch
-        
-      margs = [['zadd', "savedsearch:#{savedGroup}", saveTime, JSON.stringify savejson]]
-      redis_client.multi(margs).exec (err2, reply) -> successfulRequest res
+      _doSaveSearchToGroup(savedBy, savedhashlist, 'search',  res)
+
       
 savePub = (payload, req, res, next) ->
   console.log "In savePub: cookies=#{req.cookies} payload=#{payload}"
@@ -84,26 +100,15 @@ savePub = (payload, req, res, next) ->
                ['zadd', "savedpub:#{email}", saveTime, savedPub]]
       redis_client.multi(margs).exec (err2, reply) -> successfulRequest res
 
-savePubToGroup = (payload, req, res, next) ->
+savePubsToGroup = (payload, req, res, next) ->
   console.log "In savePubToGroup: cookies=#{req.cookies} payload=#{payload}"
   saveTime = new Date().getTime()
 
   ifLoggedIn req, res, (loginid) ->
-    jsonObj = JSON.parse payload
-    savedPub = jsonObj.savedpub
-    savedGroup = jsonObj.savedgroup
+    savedhashlist = JSON.parse payload
 
     redis_client.get "email:#{loginid}", (err, savedBy) ->
-      savejson = 
-          savedBy : savedBy
-          savedPub: savedPub
-      # Moved to a per-user database for titles and bibcodes so that
-      # we can delete this information. I am thinking that this could
-      # just be asked via AJAX requests of Solr by the client in the
-      # pubsub branch so could be removed.
-      #
-      margs = [['zadd', "savedpub:#{savedGroup}", saveTime, JSON.stringify savejson]]
-      redis_client.multi(margs).exec (err2, reply) -> successfulRequest res
+     _doSaveSearchToGroup(savedBy, savedhashlist, 'pub', res)
       
 saveObsv = (payload, req, res, next) ->
   console.log "In saveObsv: cookies=#{req.cookies} payload=#{payload}"
@@ -128,26 +133,15 @@ saveObsv = (payload, req, res, next) ->
       redis_client.multi(margs).exec (err2, reply) -> successfulRequest res
       
       
-saveObsvToGroup = (payload, req, res, next) ->
+saveObsvsToGroup = (payload, req, res, next) ->
   console.log "In saveObsvToGroup: cookies=#{req.cookies} payload=#{payload}"
   saveTime = new Date().getTime()
 
   ifLoggedIn req, res, (loginid) ->
-    jsonObj = JSON.parse payload
-    savedObsv = jsonObj.savedobsv
-    savedGroup = jsonObj.savedgroup
+    savedhashlist = JSON.parse payload
 
     redis_client.get "email:#{loginid}", (err, savedBy) ->
-      savejson = 
-          savedBy : savedBy
-          savedObsv: savedObsv
-      # Moved to a per-user database for titles and bibcodes so that
-      # we can delete this information. I am thinking that this could
-      # just be asked via AJAX requests of Solr by the client in the
-      # pubsub branch so could be removed.
-      #
-      margs = [['zadd', "savedobsv:#{savedGroup}", saveTime, JSON.stringify savejson]]
-      redis_client.multi(margs).exec (err2, reply) -> successfulRequest res
+      _doSaveSearchToGroup(savedBy, savedhashlist, 'obsv', res)
             
 searchToText = (searchTerm) ->
     # lazy way to remove the trailing search term
@@ -207,7 +201,7 @@ timeToText = (nowDate, timeString) ->
 # views - hence the terminology - but the data is now passed
 # back to the client as JSON.
 #
-createSavedSearchTemplates = (nowDate, searchkeys, searchtimes, searchbys) ->
+createSavedSearchTemplates = (nowDate, searchkeys, searchtimes, searchbys, groupsin) ->
   view = {}
   console.log "VIEW", view
   nsearch = searchkeys.length
@@ -225,6 +219,7 @@ createSavedSearchTemplates = (nowDate, searchkeys, searchtimes, searchbys) ->
       out =
         searchuri: key
         searchby: searchbys[ctr]
+        groupsin: groupsin[ctr]
         searchtext: searchToText key
         searchtime: time
         searchtimestr: timeToText nowDate, time
@@ -235,7 +230,7 @@ createSavedSearchTemplates = (nowDate, searchkeys, searchtimes, searchbys) ->
 
   return view
 
-createSavedPubTemplates = (nowDate, pubkeys, bibcodes, pubtitles, pubtimes, searchbys) ->
+createSavedPubTemplates = (nowDate, pubkeys, pubtimes, bibcodes, pubtitles, searchbys, groupsin) ->
   view = {}
   npub = pubkeys.length
 
@@ -252,6 +247,7 @@ createSavedPubTemplates = (nowDate, pubkeys, bibcodes, pubtitles, pubtimes, sear
       out =
         pubid: pubkeys[ctr]
         searchby: searchbys[ctr]
+        groupsin: groupsin[ctr]
         linktext: pubtitles[ctr]
         linkuri: linkuri
         pubtime: pubtimes[ctr]
@@ -264,7 +260,7 @@ createSavedPubTemplates = (nowDate, pubkeys, bibcodes, pubtitles, pubtimes, sear
 
   return view
 
-createSavedObsvTemplates = (nowDate, obsvkeys, targets, obsvtitles, obsvtimes, searchbys) ->
+createSavedObsvTemplates = (nowDate, obsvkeys, obsvtimes, targets, obsvtitles, searchbys, groupsin) ->
   view = {}
   nobsv = obsvkeys.length
 
@@ -282,6 +278,7 @@ createSavedObsvTemplates = (nowDate, obsvkeys, targets, obsvtitles, obsvtimes, s
       out =
         obsvid: obsvkeys[ctr]
         searchby: searchbys[ctr]
+        groupsin: groupsin[ctr]
         linktext: obsvkeys[ctr]
         linkuri: linkuri
         obsvtime: obsvtimes[ctr]
@@ -362,39 +359,56 @@ getSavedSearches2 = (req, res, next) ->
           failedRequest res, keyword: kword
         else
           nowDate = new Date().getTime()
-          view = createSavedSearchTemplates nowDate, searches.elements, searches.scores, (email for ele in searches.elements)
+          view = createSavedSearchTemplates nowDate, searches.elements, searches.scores, (email for ele in searches.elements), (['default'] for ele in searches.elements)
           successfulRequest res,
             keyword: kword
             message: view
 
   ifLoggedIn req, res, doIt, keyword: kword
-  
-  
+
+      
+_doSearchForGroup = (email, wantedGroup, searchtype, templateCreatorFunc, res, kword, augmenthash=null) ->
+    redis_client.sismember wantedGroup, email, (errm, saved_p)->
+            #should it be an error is user is not member of group? (thats what it is now)
+            if saved_p
+              getSortedElementsAndScores false, "saved#{searchtype}:#{wantedGroup}", (err2, searches) ->
+                if err2?
+                  console.log "*** getSaved#{searchtype}ForGroup2: failed for email=#{email} err=#{err2}"
+                  failedRequest res, keyword: kword
+                else
+                  #searchesjson=(JSON.parse sjson for sjson in searches.elements)
+                  #searchelements=(jsonObj.savedSearch for jsonObj in searchesjson)
+
+                  margs=(['hget', "savedby:#{wantedGroup}", ele] for ele in searches.elements)
+                  redis_client.multi(margs).exec (err, replies) ->
+                    searchbys=(reply for reply in replies)
+                    nowDate = new Date().getTime()
+                    margs2=(['hget', "savedinGroup:#{searchtype}", ele] for ele in searches.elements)
+                    redis_client.multi(margs2).exec (err, replies) ->
+                        savedingroups = (JSON.parse ele for ele in replies)
+                        if augmenthash is null
+                            view = templatecreatorFunc nowDate, searches.elements, searches.scores, searchbys, savedingroups
+                            successfulRequest res,
+                                keyword: kword
+                                message: view
+                        else
+                            redis_client.hmget "saved#{augmenthash.titlefield}", searches.elements, (err2, titles) ->
+                                redis_client.hmget "saved#{augmenthash.namefield}", searches.elements, (err3, names) ->
+                                        view = templatecreatorFunc nowDate, searches.elements, searches.scores, names, titles, searchbys, savedingroups
+                                        successfulRequest res,
+                                            keyword: kword
+                                            message: view
+            else
+              console.log "*** getSaved#{searchtype}ForGroup2: membership failed for email=#{email} err=#{errm}"
+              failedRequest res, keyword: kword
+      
 getSavedSearchesForGroup2 = (req, res, next) ->
   kword = 'savedsearchesforgroup'
   doIt = (loginid) ->
     wantedGroup = req.query.wantedgroup
     redis_client.get "email:#{loginid}", (err, email) ->
-        redis_client.sismember wantedGroup, email, (errm, saved_p)->
-            #should it be an error is user is not member of group? (thats what it is now)
-            if saved_p
-              getSortedElementsAndScores false, "savedsearch:#{wantedGroup}", (err2, searches) ->
-                if err2?
-                  console.log "*** getSavedSearchesForGroup2: failed for loginid=#{loginid} email=#{email} err=#{err2}"
-                  failedRequest res, keyword: kword
-                else
-                  searchesjson=(JSON.parse sjson for sjson in searches.elements)
-                  searchelements=(jsonObj.savedSearch for jsonObj in searchesjson)
-                  searchbys=(jsonObj.savedBy for jsonObj in searchesjson)
-                  nowDate = new Date().getTime()
-                  view = createSavedSearchTemplates nowDate, searchelements, searches.scores, searchbys
-                  successfulRequest res,
-                    keyword: kword
-                    message: view
-            else
-              console.log "*** getSavedSearchesForGroup2: membership failed for loginid=#{loginid} email=#{email} err=#{errm}"
-              failedRequest res, keyword: kword
-
+        _doSearchForGroup(email, wantedGroup, 'search', createSavedSearchTemplates, res, kword)
+        
   ifLoggedIn req, res, doIt, keyword: kword
   
   
@@ -432,7 +446,7 @@ getSavedPubs2 = (req, res, next) ->
           redis_client.hmget "savedtitles", pubkeys, (err2, pubtitles) ->
             redis_client.hmget "savedbibcodes", pubkeys, (err3, bibcodes) ->
               nowDate = new Date().getTime()
-              view = createSavedPubTemplates nowDate, pubkeys, bibcodes, pubtitles, pubtimes, (email for ele in savedpubs.elements)
+              view = createSavedPubTemplates nowDate, pubkeys, pubtimes, bibcodes, pubtitles,  (email for ele in savedpubs.elements), (['default'] for ele in savedpubs.elements)
               successfulRequest res,
                 keyword: kword
                 message: view
@@ -444,30 +458,8 @@ getSavedPubsForGroup2 = (req, res, next) ->
   doIt = (loginid) ->
     wantedGroup = req.query.wantedgroup
     redis_client.get "email:#{loginid}", (err, email) ->
-        redis_client.sismember wantedGroup, email, (errm, saved_p)->
-            #should it be an error is user is not member of group? (thats what it is now)
-            if saved_p
-              getSortedElementsAndScores false, "savedpub:#{wantedGroup}", (err2, savedpubs) ->
-                if err2?
-                  console.log "*** getSavedPubsForGroup2: failed for loginid=#{loginid} email=#{email} err=#{err2}"
-                  failedRequest res, keyword: kword
+        _doSearchForGroup(email, wantedGroup, 'pub', createSavedPubTemplates, res, kword, {titlefield:'titles', namefield:'bibcodes'})
 
-                else
-                  searchesjson=(JSON.parse sjson for sjson in savedpubs.elements)
-                  pubkeys=(jsonObj.savedPub for jsonObj in searchesjson)
-                  searchbys=(jsonObj.savedBy for jsonObj in searchesjson)
-                  #pubkeys = savedpubs.elements
-                  pubtimes = savedpubs.scores
-                  redis_client.hmget "savedtitles", pubkeys, (err2, pubtitles) ->
-                    redis_client.hmget "savedbibcodes", pubkeys, (err3, bibcodes) ->
-                      nowDate = new Date().getTime()
-                      view = createSavedPubTemplates nowDate, pubkeys, bibcodes, pubtitles, pubtimes, searchbys
-                      successfulRequest res,
-                        keyword: kword
-                        message: view
-            else
-              console.log "*** getSavedPubsForGroup2: membership failed for loginid=#{loginid} email=#{email} err=#{errm}"
-              failedRequest res, keyword: kword
 
   ifLoggedIn req, res, doIt, keyword: kword
 
@@ -504,7 +496,7 @@ getSavedObsvs2 = (req, res, next) ->
           redis_client.hmget "savedobsvtitles", obsvkeys, (err2, obsvtitles) ->
             redis_client.hmget "savedtargets", obsvkeys, (err3, targets) ->
               nowDate = new Date().getTime()
-              view = createSavedObsvTemplates nowDate, obsvkeys, targets, obsvtitles, obsvtimes, (email for ele in savedobsvs.elements)
+              view = createSavedObsvTemplates nowDate, obsvkeys, obsvtimes, targets, obsvtitles,  (email for ele in savedobsvs.elements), (['default'] for ele in savedobsvs.elements)
               successfulRequest res,
                 keyword: kword
                 message: view
@@ -517,30 +509,7 @@ getSavedObsvsForGroup2 = (req, res, next) ->
   doIt = (loginid) ->
     wantedGroup = req.query.wantedgroup
     redis_client.get "email:#{loginid}", (err, email) ->
-      redis_client.sismember wantedGroup, email, (errm, saved_p)->
-            #should it be an error is user is not member of group? (thats what it is now)
-            if saved_p
-              getSortedElementsAndScores false, "savedobsv:#{wantedGroup}", (err2, savedobsvs) ->
-                if err2?
-                  console.log "*** getSavedObsvsForGroup2: failed for loginid=#{loginid} email=#{email} err=#{err2}"
-                  failedRequest res, keyword: kword
-
-                else
-                  searchesjson=(JSON.parse sjson for sjson in savedobsvs.elements)
-                  obsvkeys=(jsonObj.savedObsv for jsonObj in searchesjson)
-                  searchbys=(jsonObj.savedBy for jsonObj in searchesjson)
-                  #obsvkeys = savedobsvs.elements
-                  obsvtimes = savedobsvs.scores
-                  redis_client.hmget "savedobsvtitles", obsvkeys, (err2, obsvtitles) ->
-                    redis_client.hmget "savedtargets", obsvkeys, (err3, targets) ->
-                      nowDate = new Date().getTime()
-                      view = createSavedObsvTemplates nowDate, obsvkeys, targets, obsvtitles, obsvtimes, searchbys
-                      successfulRequest res,
-                        keyword: kword
-                        message: view
-            else
-              console.log "*** getSavedObsvsForGroup2: membership failed for loginid=#{loginid} email=#{email} err=#{errm}"
-              failedRequest res, keyword: kword
+        _doSearchForGroup(email, wantedGroup, 'obsv', createSavedObsvTemplates, res, kword, {titlefield:'obsvtitles', namefield:'targets'})
 
   ifLoggedIn req, res, doIt, keyword: kword
 # Remove the list of searchids, associated with the given
@@ -564,6 +533,34 @@ removeSearches = (res, loginid, group, searchids) ->
       console.log "Removed #{searchids.length} searches"
       successfulRequest res
 
+_doRemoveSearchesFromGroup = (email, group, searchtype, searchids, res) ->
+    keyemail = "saved#{searchtype}:#{email}"
+    keygroup = "saved#{searchtype}:#{group}"
+    keyemailgroup = "saved#{searchtype}:#{email}:#{group}"
+    key4savedbyhash = "savedby:#{group}"
+
+    margs=(['zrank', keyemailgroup, sid] for sid in searchids)
+
+    # What about the nested multis..how does this affect atomicity?
+    hashkeystodelete=[]
+
+    redis_client.multi(margs).exec (err, replies) ->
+        #Get those added by user to group from the given sids
+        ranks=(rank for rank in replies when rank isnt 'nil')
+        sididxs=(sididx for sididx in [0...replies.length] when replies[sididx] isnt 'nil')
+        mysidstodelete=(searchids[idx] for idx in sididxs)
+        margsgroup = (['zremrangebyrank', keygroup, rid, rid] for rid in ranks)
+        margsemailgroup = (['zremrangebyrank', keyemailgroup, rid, rid] for rid in ranks)
+        margs2=margsgroup.concat margsemailgroup
+        redis_client.multi(margs2).exec (err2, reply) ->
+            console.log "Removed #{ranks.length} #{searchtype}s from group #{group}"
+            #following dosent need to be here. but having it here: does it guarantee atomicity.
+            #it would seem it dosent per se, except if upper delete errors, this wont be run
+            hashkeystodelete = (['hdel', keys4savedbyhash, ele] for ele in mysidstodelete)
+            redis_client.multi(hashkeystodelete).exec (err3, reply) ->
+                console.log "Hash has been cleaned for #{searchtype}"
+                successfulRequest res
+                    
 removeSearchesFromGroup = (res, loginid, group, searchids) ->
   if searchids.length is 0
     console.log "ERROR: removeSearches called with empty searchids list; loginid=#{loginid}"
@@ -571,22 +568,10 @@ removeSearchesFromGroup = (res, loginid, group, searchids) ->
     return
   
   redis_client.get "email:#{loginid}", (err, email) ->
+    _doRemoveSearchesFromGroup(email, group, 'search', searchids, res)
     #if savedBy is you, you must be a menber of the group so dont test membership of group
     #shortcircuit by getting those searchids which the user herself has saved
-    key = "savedsearch:#{email}"
-    key2 = "savedsearch:#{group}"
-    margs1=(['zrank', key, sid] for sid in searchids)
-    margs2=(['zrank', key2, sid] for sid in searchids)
-    margs=margs1.concat margs2
-    redis_client.multi(margs).exec (err, replies) ->
-        uniq={}
-        uniq[rank]?=0 for rank in replies when rank isnt 'nil'
-        uniq[rank]++ for rank in replies when rank isnt 'nil'
-        ranks=(key for own key of uniq when uniq[key] is 2)
-        margs3 = (['zremrangebyrank', key2, rid, rid] for rid in ranks)
-        redis_client.multi(margs3).exec (err2, reply) ->
-              console.log "Removed #{ranks.length} searches from group #{group}"
-              successfulRequest res
+    
 # Similar to removeSearches but removes publications.
 
 removePubs = (res, loginid, group, docids) ->
@@ -619,23 +604,7 @@ removePubsFromGroup = (res, loginid, group, docids) ->
 
   redis_client.get "email:#{loginid}", (err, email) ->
     console.log ">> removePubsFromGroup docids=#{docids}"
-    key = "savedpub:#{email}"
-    key2 = "savedpub:#{group}"
-    margs1=(['zrank', key, docid] for docid in docids)
-    margs2=(['zrank', key2, docid] for docid in docids)
-    margs=margs1.concat margs2
-    #titlekey = "savedtitles:#{email}"
-    #bibkey = "savedbibcodes:#{email}"
-
-    redis_client.multi(margs).exec (err, replies) ->
-        uniq={}
-        uniq[rank]?=0 for rank in replies when rank isnt 'nil'
-        uniq[rank]++ for rank in replies when rank isnt 'nil'
-        ranks=(key for own key of uniq when uniq[key] is 2)
-        margs3 = (['zremrangebyrank', key2, rid, rid] for rid in ranks)
-        redis_client.multi(margs3).exec (err2, reply) ->
-              console.log "Removed #{ranks.length} pubs from group #{group}"
-              successfulRequest res
+    _doRemoveSearchesFromGroup(email, group, 'pub', docids, res)
 
 
 removeObsvs = (res, loginid, group, docids) ->
@@ -647,13 +616,8 @@ removeObsvs = (res, loginid, group, docids) ->
   redis_client.get "email:#{loginid}", (err, email) ->
     console.log ">> removeObsvs docids=#{docids}"
     obsvkey = "savedobsv:#{email}"
-    #titlekey = "savedobsvtitles:#{email}"
-    #targetkey = "savedtargets:#{email}"
-    # In Redis 2.4 zrem and hdel can be sent multiple keys
+    # In Redis 2.4 zrem and hdel can be sent multiple keys: fix sometime
     margs1 = (['zrem', obsvkey, docid] for docid in docids)
-    #margs2 = (['hdel', titlekey, docid] for docid in docids)
-    #margs3 = (['hdel', targetkey, docid] for docid in docids)
-    #margs = margs1.concat margs2, margs3
     margs=margs1
     redis_client.multi(margs).exec (err2, reply) ->
       console.log "Removed #{docids.length} obsvs"
@@ -666,24 +630,7 @@ removeObsvsFromGroup = (res, loginid, group, docids) ->
     return
 
   redis_client.get "email:#{loginid}", (err, email) ->
-    console.log ">> removePubsFromGroup docids=#{docids}"
-    key = "savedobsv:#{email}"
-    key2 = "savedobsv:#{group}"
-    margs1=(['zrank', key, docid] for docid in docids)
-    margs2=(['zrank', key2, docid] for docid in docids)
-    margs=margs1.concat margs2
-    #titlekey = "savedtitles:#{email}"
-    #bibkey = "savedbibcodes:#{email}"
-
-    redis_client.multi(margs).exec (err, replies) ->
-        uniq={}
-        uniq[rank]?=0 for rank in replies when rank isnt 'nil'
-        uniq[rank]++ for rank in replies when rank isnt 'nil'
-        ranks=(key for own key of uniq when uniq[key] is 2)
-        margs3 = (['zremrangebyrank', key2, rid, rid] for rid in ranks)
-        redis_client.multi(margs3).exec (err2, reply) ->
-              console.log "Removed #{ranks.length} obsvs from group #{group}"
-              successfulRequest res
+   _doRemoveSearchesFromGroup(email, group, 'obsv', docids, res)
 # Create a function to delete a single search or publication
 #   funcname is used to create a console log message of 'In ' + funcname
 #     on entry to the function
@@ -755,9 +702,9 @@ exports.saveSearch = saveSearch
 exports.savePub = savePub
 exports.saveObsv = saveObsv
 
-exports.saveSearchToGroup = saveSearchToGroup
-exports.savePubToGroup = savePubToGroup
-exports.saveObsvToGroup = saveObsvToGroup
+exports.saveSearchesToGroup = saveSearchesToGroup
+exports.savePubsToGroup = savePubsToGroup
+exports.saveObsvsToGroup = saveObsvsToGroup
 
 exports.getSavedSearches = getSavedSearches
 exports.getSavedSearches2 = getSavedSearches2

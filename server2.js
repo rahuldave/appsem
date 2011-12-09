@@ -3,7 +3,7 @@
   A NodeJS server that statically serves javascript out, proxies solr requests,
   and handles authentication through the ADS
   */
-  var SITEPREFIX, STATICPREFIX, addUser, completeRequest, config, connect, connectutils, doADSProxy, doADSProxyHandler, doPost, explorouter, failedRequest, fs, getUser, groups, http, ifLoggedIn, loginUser, logoutUser, makeADSJSONPCall, migration, mustache, postHandler, proxy, quickRedirect, redis_client, requests, runServer, saved, server, solrrouter, solrrouter2, successfulRequest, url, user, views;
+  var SITEPREFIX, STATICPREFIX, addUser, completeRequest, config, connect, connectutils, doADSProxy, doADSProxyHandler, doPost, doPostWithJSON, explorouter, failedRequest, fs, getUser, groups, http, ifLoggedIn, loginUser, logoutUser, makeADSJSONPCall, migration, mustache, postHandler, postHandlerWithJSON, proxy, quickRedirect, redis_client, requests, runServer, saved, server, solrrouter, solrrouter2, successfulRequest, url, user, views;
   connect = require('connect');
   connectutils = connect.utils;
   http = require('http');
@@ -17,6 +17,7 @@
   successfulRequest = requests.successfulRequest;
   ifLoggedIn = requests.ifLoggedIn;
   postHandler = requests.postHandler;
+  postHandlerWithJSON = requests.postHandlerWithJSON;
   proxy = require("./proxy");
   user = require("./user");
   loginUser = user.loginUser;
@@ -73,6 +74,11 @@
   doPost = function(func) {
     return function(req, res, next) {
       return postHandler(req, res, func);
+    };
+  };
+  doPostWithJSON = function(func) {
+    return function(req, res, next) {
+      return postHandlerWithJSON(req, res, func);
     };
   };
   doADSProxyHandler = function(payload, req, res, next) {
@@ -150,14 +156,17 @@
   server.use(SITEPREFIX + '/savedobsvs', saved.getSavedObsvs);
   server.use(SITEPREFIX + '/savedobsvs2', saved.getSavedObsvs2);
   server.use(SITEPREFIX + '/savedobsvsforgroup2', saved.getSavedObsvsForGroup2);
-  server.use(SITEPREFIX + '/creategroup', doPost(groups.createGroup));
-  server.use(SITEPREFIX + '/addusertogroup', doPost(groups.addUserToGroup));
-  server.use(SITEPREFIX + '/acceptinvitationtogroup', doPost(groups.acceptInvitationToGroup));
-  server.use(SITEPREFIX + '/removeuserfromgroup', doPost(groups.removeUserFromGroup));
-  server.use(SITEPREFIX + '/changeownershipofgroup', doPost(groups.changeOwnershipOfGroup));
-  server.use(SITEPREFIX + '/removeoneselffromgroup', doPost(groups.removeOneselfFromGroup));
-  server.use(SITEPREFIX + '/deletegroup', doPost(groups.deleteGroup));
-  server.use(SITEPREFIX + '/saveobsv', groups.getMembersOfGroup);
+  server.use(SITEPREFIX + '/creategroup', doPostWithJSON(groups.createGroup));
+  server.use(SITEPREFIX + '/addinvitationtogroup', doPostWithJSON(groups.addInvitationToGroup));
+  server.use(SITEPREFIX + '/removeinvitationfromgroup', doPostWithJSON(groups.removeInvitationFromGroup));
+  server.use(SITEPREFIX + '/acceptinvitationtogroup', doPostWithJSON(groups.acceptInvitationToGroup));
+  server.use(SITEPREFIX + '/removeuserfromgroup', doPostWithJSON(groups.removeUserFromGroup));
+  server.use(SITEPREFIX + '/changeownershipofgroup', doPostWithJSON(groups.changeOwnershipOfGroup));
+  server.use(SITEPREFIX + '/removeoneselffromgroup', doPostWithJSON(groups.removeOneselfFromGroup));
+  server.use(SITEPREFIX + '/deletegroup', doPostWithJSON(groups.deleteGroup));
+  server.use(SITEPREFIX + '/getmembersofgroup', groups.getMembersOfGroup);
+  server.use(SITEPREFIX + '/memberofgroups', groups.memberOfGroups);
+  server.use(SITEPREFIX + '/pendinginvitationtogroups', groups.pendingInvitationToGroups);
   server.use('/images', connect.static(__dirname + '/static/ajax-solr/images/'));
   server.use('/bootstrap', connect.static(__dirname + '/static/ajax-solr/images/'));
   server.use('/backbone', connect.static(__dirname + '/static/ajax-solr/images/'));

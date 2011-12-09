@@ -60,6 +60,31 @@ ifLoggedIn = (req, res, cb, failopts = {}) ->
   else
     failedRequest res, failopts
 
+#Use this if you are logged in and we found an email for you
+    
+
+            
+  
+httpcallbackmaker = (req, res, next)->
+    return (err, reply)->
+        if err
+            failedRequest res, err
+        else
+            if reply
+                successfulRequest res, keyword: 'SUCCESS', message: reply
+            else
+                failedRequest res, keyword: 'FAILURE', message: 'undefined'
+            
+consolecallbackmaker = () ->
+    return (err, reply) ->
+        if err
+            console.log 'ERROR', err
+        else
+            if reply
+                console.log 'SUCCESS', reply
+            else
+                console.log 'FAILURE', reply
+        
 # Handle a POST request by collecting all the
 # data and then sending it to the callback
 # as  cb(buffer, req, res)
@@ -67,7 +92,6 @@ ifLoggedIn = (req, res, cb, failopts = {}) ->
 postHandler = (req, res, cb) ->
   if req.method isnt 'POST'
     return false
-
   buffer = ''
   req.addListener 'data', (chunk) ->
     buffer += chunk
@@ -75,9 +99,27 @@ postHandler = (req, res, cb) ->
     cb buffer, req, res
 
   return true
+  
+postHandlerWithJSON = (req, res, cb) ->
+  console.log "oooooooooooooooooooooooooooooooooo"
+  if req.method isnt 'POST'
+    return false
+
+  buffer = ''
+  req.addListener 'data', (chunk) ->
+    buffer += chunk
+  req.addListener 'end', () ->
+    console.log "cookies=#{req.cookies} payload=#{buffer}"
+    cb JSON.parse(buffer), req, res
+
+  return true
 
 exports.completeRequest = completeRequest
 exports.failedRequest = failedRequest
 exports.successfulRequest = successfulRequest
 exports.ifLoggedIn = ifLoggedIn
+
 exports.postHandler = postHandler
+exports.postHandlerWithJSON = postHandlerWithJSON
+exports.consolecallbackmaker=consolecallbackmaker
+exports.httpcallbackmaker=httpcallbackmaker

@@ -121,6 +121,7 @@ explorouter = connect(connect.router (app) ->
   )
 
 server = connect.createServer()
+#server.use connect.logger()
 server.use connect.cookieParser()
 server.use connect.query()
 

@@ -40,146 +40,154 @@ createGroup = ({rawGroupName}, req, res, next) ->
 #add another users comma seperated emails to the invitation set param=emails
 #TODO: no retraction of invitation as yet
 
-addInvitationToGroup = (payload, req, res, next) ->
-  console.log "In addUserToGroup: cookies=#{req.cookies} payload=#{payload}"
-  changeTime = new Date().getTime()
+add_invitation_to_group = (email, fqGroupName, userNames, callback)->
+    changeTime = new Date().getTime()
+    redis_client.hget "group:#{fqGroupName}", 'owner', (err, reply) -> 
+        console.log ":::::::::::", err, reply, fqGroupName
+        if err
+            return callback err, reply
+        if reply is email
+            margs1=( ['sadd', "invitations:#{fqGroupName}", user] for user in userNames)
+            #bit loose and fast here as users may not exist
+            margs2=(['sadd', "invitationsto:#{user}", fqGroupName] for user in userNames)
+            margs=margs1.concat margs2
+            redis_client.multi(margs).exec callback
+        else
+            return callback err, reply
+            
+addInvitationToGroup = ({fqGroupName, userNames}, req, res, next) ->
+    console.log "In addInvitationToGroup"
+    ifHaveEmail req, res, (email) ->
+        add_invitation_to_group email, fqGroupName, userNames, httpcallbackmaker(req, res, next)
 
-  ifLoggedIn req, res, (loginid) ->
-    jsonObj = JSON.parse payload
-    fqGroupName=jsonObj.fqgroupname
-    userNames=jsonObj.usernames
-    redis_client.get "email:#{loginid}", (err, email) ->
-        redis_client.hget fqGroupName, 'owner', (err2, owner) -> 
-            if owner is email
-                margs1=[
-                    ['sadd', "invitations:#{fqGroupName}", userNames...]
-                ]
-                #bit loose and fast here as users may not exist
-                margs2=(['sadd', "invitationsto:#{user}", fqGroupName] for user in userNames)
-                margs=margs1.concat margs2
-                redis_client.multi(margs).exec (err3, reply) ->
-                    successfulRequest res
+remove_invitation_from_group = (email, fqGroupName, userNames, callback) ->
+    changeTime = new Date().getTime()
+    redis_client.hget "group:#{fqGroupName}", 'owner', (err, reply) -> 
+        console.log ":::::::::::", err, reply, fqGroupName
+        if err
+            return callback err, reply
+        if reply is email
+            margs1=( ['srem', "invitations:#{fqGroupName}", user] for user in userNames)
+            #bit loose and fast here as users may not exist
+            margs2=(['srem', "invitationsto:#{user}", fqGroupName] for user in userNames)
+            margs=margs1.concat margs2
+            redis_client.multi(margs).exec callback
+        else
+            return callback err, reply
+        
+removeInvitationFromGroup = ({fqGroupName, userNames}, req, res, next) ->
+    console.log "In removeUserFromGroup"
+    ifHaveEmail req, res, (email) ->
+        remove_invitation_from_group email, fqGroupName, userNames, httpcallbackmaker(req, res, next)
+        
 
-removeInvitationFromGroup = (payload, req, res, next) ->
-  console.log "In removeUserFromGroup: cookies=#{req.cookies} payload=#{payload}"
-  changeTime = new Date().getTime()
-
-  ifLoggedIn req, res, (loginid) ->
-    jsonObj = JSON.parse payload
-    fqGroupName=jsonObj.fqgroupname
-    userNames=jsonObj.usernames
-    redis_client.get "email:#{loginid}", (err, email) ->
-        redis_client.hget fqGroupName, 'owner', (err2, owner) -> 
-            if owner is email
-                margs1 = [
-                    ['srem', "invitations:#{fqGroupName}", userNames...]
-                ]
-                margs2=(['srem', "invitationto:#{user}", fqGroupName] for user in userNames)
-                margs=margs1.concat margs2
-                redis_client.multi(margs).exec (err3, reply) ->
-                    successfulRequest res
-                                
+accept_invitation_to_group = (email, fqGroupName, callback) ->
+    changeTime = new Date().getTime()
+    redis_client.sismember "invitations:#{fqGroupName}", email, (err, reply)->
+        if err
+            return callback err, reply
+        if reply
+            margs = [
+                ['sadd', "members:#{fqGroupName}", email],
+                ['srem', "invitations:#{fqGroupName}", email],
+                ['sadd', "memberof:#{email}", fqGroupName],
+                ['srem', "invitationsto:#{email}", fqGroupName]
+            ]
+            redis_client.multi(margs).exec callback
+        else
+            return callback err, reply
 #move the currently logged in user from invitations set to groups set. param=group    
-acceptInvitationToGroup = (payload, req, res, next) -> 
-  console.log "In acceptInvitationToGroup: cookies=#{req.cookies} payload=#{payload}"
-  changeTime = new Date().getTime()
+acceptInvitationToGroup = ({fqGroupName}, req, res, next) -> 
+    console.log "In acceptInvitationToGroup"
+    ifHaveEmail req, res, (email) -> 
+        accept_invitation_to_group email, fqGroupName, httpcallbackmaker(req, res, next)
 
-  ifLoggedIn req, res, (loginid) ->
-    jsonObj = JSON.parse payload
-    fqGroupName=jsonObj.fqgroupname
-    redis_client.get "email:#{loginid}", (err, email) ->
-        #fqGroupName="#{email}/#{rawGroupName}"
-        redis.client.sismember "invitations:#{fqGroupName}", email, (err2, member_p)->
-            if member_p
-                margs = [
-                    ['sadd', "members:#{fqGroupName}", email],
-                    ['srem', "invitations:#{fqGroupName}", email],
-                    ['sadd', "memberof:#{email}", fqGroupName],
-                    ['srem', "invitationsto:#{email}", fqGroupName]
-                ]
-                redis_client.multi(margs).exec (err3, reply) ->
-                    successfulRequest res
-
+#GET
 pendingInvitationToGroups = (req, res, next) -> 
-  console.log "In acceptInvitationToGroup: cookies=#{req.cookies} payload=#{payload}"
+  console.log "In pendingInvitationToGroups"
   changeTime = new Date().getTime()
   
-  ifLoggedIn req, res, (loginid) ->
-    redis_client.get "email:#{loginid}", (err, email) ->
-        #fqGroupName="#{email}/#{rawGroupName}"
-        redis_client.smembers "invitationto:#{email}",  (err3, reply) ->
-                    successfulRequest res, message:reply
-                    
+  ifHaveEmail req, res, (email) ->
+    redis_client.smembers "invitationsto:#{email}", httpcallbackmaker(req, res, next)
+
+#GET                    
 memberOfGroups = (req, res, next) -> 
-  console.log "In acceptInvitationToGroup: cookies=#{req.cookies} payload=#{payload}"
+  console.log "In memberOfGroups"
   changeTime = new Date().getTime()
   
-  ifLoggedIn req, res, (loginid) ->
-    redis_client.get "email:#{loginid}", (err, email) ->
-        #fqGroupName="#{email}/#{rawGroupName}"
-        redis_client.smembers "memberof:#{email}",  (err3, reply) ->
-                    successfulRequest res, message:reply
+  ifHaveEmail req, res, (email) ->
+    redis_client.smembers "memberof:#{email}", httpcallbackmaker(req, res, next)
 #only owner of group can do this   params=groupname, username
 #BUG: currently not checking if any random people are being tried to be removed
 #will silently fail
-removeUserFromGroup = (payload, req, res, next) ->
-  console.log "In removeUserFromGroup: cookies=#{req.cookies} payload=#{payload}"
+
+#Also we wont remove anything the user added to group
+
+remove_user_from_group = (email, fqGroupName, userNames, callback) ->
+    redis_client.hget "group:#{fqGroupName}", 'owner', (err, reply) -> 
+        if err
+            return callback err, reply
+        if reply is email
+            margs1=(['srem', "members:#{fqGroupName}", user] for user in userNames)
+            margs2=(['srem', "memberof:#{user}", fqGroupName] for user in userNames)
+            margs=margs1.concat margs2
+            redis_client.multi(margs).exec callback
+        else
+            return callback err, reply
+                
+removeUserFromGroup = ({fqGroupName, userNames}, req, res, next) ->
+  console.log "In removeUserFromGroup"
   changeTime = new Date().getTime()
 
-  ifLoggedIn req, res, (loginid) ->
-    jsonObj = JSON.parse payload
-    fqGroupName=jsonObj.fqgroupname
-    userNames=jsonObj.usernames
-    redis_client.get "email:#{loginid}", (err, email) ->
-        redis_client.hget fqGroupName, 'owner', (err2, owner) -> 
-            if owner is email
-                margs1 = [
-                    ['srem', "members:#{fqGroupName}", userNames...]
-                ]
-                margs2=(['srem', "memberof:#{user}", fqGroupName] for user in userNames)
-                margs=margs1.concat margs2
-                redis_client.multi(margs).exec (err3, reply) ->
-                    successfulRequest res 
+  ifHaveEmail req, res, (email) ->
+    remove_user_from_group email, fqGroupName, userNames, httpcallbackmaker(req, res, next)
+
 
 
 #current owner if logged on can set someone else as owner param=newOwner, group
-changeOwnershipOfGroup = (payload, req, res, next) ->
-  console.log "In changeOwnershipOfGroup: cookies=#{req.cookies} payload=#{payload}"
-  changeTime = new Date().getTime()
-
-  ifLoggedIn req, res, (loginid) ->
-    jsonObj = JSON.parse payload
-    fqGroupName=jsonObj.fqgroupname
-    newOwner=jsonObj.newowner
-    cParams = 
-        owner:newOwner
-        changedAt:changeTime
-    redis_client.get "email:#{loginid}", (err, email) ->
-        redis_client.hget fqGroupName, 'owner', (err2, owner) -> 
-            if owner is email
-                redis_client.hmset "group:#{fqGroupName}", cParams, (err3, reply) ->
-                    successfulRequest res
+change_ownership_of_group = (email, fqGroupName, newOwner, callback) ->
+    changeTime = new Date().getTime()
+    redis_client.hget "group:#{fqGroupName}", 'owner', (err, reply) -> 
+        if err
+            return callback err, reply
+        if reply is email
+            cParams = 
+                owner:newOwner
+                changedAt:changeTime
+            redis_client.hmset "group:#{fqGroupName}", cParams, callback
+        else
+            return callback err, reply
+    
+changeOwnershipOfGroup = ({fqGroupName, newOwner}, req, res, next) ->
+  console.log "In changeOwnershipOfGroup"
+  ifHaveEmail req, res, (email) ->
+    change_ownership_of_group email, fqGroupName, newOwner, httpcallbackmaker(req, res, next)
+        
 #remove currently logged in user from group. param=group
 #this will not affext one's existing assets in group
 #Stuff you saved in group should remain (does now) TODO
-removeOneselfFromGroup = (payload, req, res, next) ->
-  console.log "In removeOneselfFromGroup: cookies=#{req.cookies} payload=#{payload}"
-  changeTime = new Date().getTime()
 
-  ifLoggedIn req, res, (loginid) ->
-    jsonObj = JSON.parse payload
-    fqGroupName=jsonObj.fqgroupname
-    redis_client.get "email:#{loginid}", (err, email) ->
+#BUG: should stop you from doing this if you are the owner
+remove_oneself_from_group = (email, fqGroupName, callback) ->
+    changeTime = new Date().getTime()
+    redis_client.sismember "members:#{fqGroupName}", email, (err, reply)->
+        if err
+            return callback err, reply
+        if reply
+            margs = [
+                ['srem', "members:#{fqGroupName}", email],
+                ['srem', "memberof:#{email}", fqGroupName]
+            ]
+            redis_client.multi(margs).exec callback
+        else
+            return callback err, reply
+
+removeOneselfFromGroup = ({fqGroupName}, req, res, next) ->
+    console.log "In removeOneselfFromGroup"
+    ifHaveEmail req, res, (email) ->
+        remove_oneself_from_group email, fqGroupName, httpcallbackmaker(req, res, next)
         #fqGroupName="#{email}/#{rawGroupName}"
-        redis.client.sismember "members:#{fqGroupName}", email, (err2, member_p)->
-            if member_p
-                margs = [
-                    ['srem', "members:#{fqGroupName}", email],
-                    ['srem', "memberof:#{email}", fqGroupName]
-                ]
-                redis_client.multi(margs).exec (err3, reply) ->
-                    successfulRequest res    
-
+        
 #remove a group owned by currently logged in user param=group
 #this will remove everything from anyone associated with group
 #BUG: this is incomplete and dosent delete saved searches under the user
@@ -187,6 +195,9 @@ removeOneselfFromGroup = (payload, req, res, next) ->
 
 #Also, BUG: this code has now combined concerns. It should emit a deleting group
 #And saved.coffee should add events to the eventhandler loop that do the needful there.
+
+#BUG invitations to non-existent group not deleted yet What else?
+
 delete_group=(email, fqGroupName, callback)->
   redis_client.hget "group:#{fqGroupName}", 'owner', (err, reply) -> 
     if err
@@ -211,19 +222,21 @@ deleteGroup = ({fqGroupName}, req, res, next) ->
     delete_group email, fqGroupName, httpcallbackmaker(req, res, next)
 
 
-
+#GET
 getMembersOfGroup = (req, res, next) ->
-  console.log "In removeOneselfFromGroup: cookies=#{req.cookies} payload=#{payload}"
-  changeTime = new Date().getTime()
-  wantedGroup=req.query.wantedgroup
-  
-  ifLoggedIn req, res, (loginid) ->
-    redis_client.get "email:#{loginid}", (err, email) ->
-        #fqGroupName="#{email}/#{rawGroupName}"
-        redis.client.sismember "members:#{wantedgroup}", email, (err2, member_p)->
-            if member_p
-                redis_client.smembers "members:#{wantedgroup}",  (err3, reply) ->
-                    successfulRequest res, message:reply
+    console.log "In getMembersOfGroup"
+    changeTime = new Date().getTime()
+    wantedGroup=req.query.group
+    console.log "wantedGroup", wantedGroup
+    callback =  httpcallbackmaker(req, res, next)
+    ifHaveEmail req, res, (email) ->
+        redis_client.sismember "members:#{wantedGroup}", email, (err, reply)->
+            if err
+                return callback err, reply
+            if reply    
+                redis_client.smembers "members:#{wantedGroup}", callback
+            else
+                return callback err, reply 
         
 exports.createGroup=createGroup
 exports.addInvitationToGroup=addInvitationToGroup
@@ -239,6 +252,10 @@ exports.getMembersOfGroup=getMembersOfGroup
 exports.memberOfGroups=memberOfGroups
 exports.pendingInvitationToGroups=pendingInvitationToGroups
 
-exports.create_group=create_group
-exports.delete_group=delete_group
+elt={}
+
+elt.create_group=create_group
+elt.delete_group=delete_group
+elt.add_invitation_to_group=add_invitation_to_group
+elt.remove_invitation_from_group=remove_invitation_from_group
 #exports.consolecallbackmaker=consolecallbackmaker

@@ -41,7 +41,7 @@
       });
     });
   };
-  _doSaveSearchToGroup = function(savedBy, savedhashlist, searchtype, callback) {
+  _doSaveSearchToGroup = function(savedBy, fqGroupName, savedhashlist, searchtype, callback) {
     var saveTime, savedtype;
     saveTime = new Date().getTime();
     savedtype = "saved" + searchtype;
@@ -50,18 +50,18 @@
       if (err) {
         return callback(err, is_member);
       }
-      if (reply) {
+      if (is_member) {
         margs = (function() {
           var _i, _len, _results;
           _results = [];
           for (_i = 0, _len = savedhashlist.length; _i < _len; _i++) {
             savedhash = savedhashlist[_i];
-            _results.push(['hexists', "savedby:" + savedhash.saveInGroup, savedhash.savedsearch]);
+            _results.push(['hexists', "savedby:" + fqGroupName, savedhash[savedtype]]);
           }
           return _results;
         })();
         return redis_client.multi(margs).exec(function(err2, replies) {
-          var idx, savedGroup, savedSearch, _ref, _results;
+          var idx, savedSearch, _ref, _results;
           if (err2) {
             return callback(err2, replies);
           }
@@ -70,19 +70,19 @@
           for (idx = 0, _ref = replies.length; 0 <= _ref ? idx < _ref : idx > _ref; 0 <= _ref ? idx++ : idx--) {
             if (replies[idx] !== 1) {
               savedSearch = savedhashlist[idx][savedtype];
-              savedGroup = savedhashlist[idx].savedInGroup;
               _results.push(redis_client.hget("savedInGroups:" + searchtype, savedSearch, function(err3, reply) {
                 var groupJson;
                 if (err3) {
                   return callback(err3, reply);
                 }
-                if (reply === 'nil') {
-                  groupJson = [savedGroup];
+                console.log("in savedinGroups reply is", reply);
+                if (reply === null) {
+                  groupJson = [fqGroupName];
                 } else {
                   groupJson = JSON.parse(reply);
-                  groupJson.push(savedGroup);
+                  groupJson.push(fqGroupName);
                 }
-                margs = [['zadd', "saved" + searchtype + ":" + savedBy + ":" + savedGroup, saveTime, savedSearch], ['zadd', "saved" + searchtype + ":" + savedGroup, saveTime, savedSearch], ['hset', "savedby:" + savedGroup, savedSearch, savedBy], ['hset', "savedInGroups:" + searchtype, savedSearch, JSON.stringify(groupJson)]];
+                margs = [['zadd', "saved" + searchtype + ":" + savedBy + ":" + fqGroupName, saveTime, savedSearch], ['zadd', "saved" + searchtype + ":" + fqGroupName, saveTime, savedSearch], ['hset', "savedby:" + fqGroupName, savedSearch, savedBy], ['hset', "savedInGroups:" + searchtype, savedSearch, JSON.stringify(groupJson)]];
                 return redis_client.multi(margs).exec(callback);
               }));
             }
@@ -95,11 +95,11 @@
     });
   };
   saveSearchesToGroup = function(_arg, req, res, next) {
-    var searchObjectsToSave;
-    searchObjectsToSave = _arg.searchObjectsToSave;
+    var fqGroupName, objectsToSave;
+    fqGroupName = _arg.fqGroupName, objectsToSave = _arg.objectsToSave;
     console.log("In saveSearchestoGroup");
     return ifHaveEmail(req, res, function(savedBy) {
-      return _doSaveSearchToGroup(savedBy, searchObjectsToSave, 'search', httpcallbackmaker(req, res, next));
+      return _doSaveSearchToGroup(savedBy, fqGroupName, objectsToSave, 'search', httpcallbackmaker(req, res, next));
     });
   };
   savePub = function(payload, req, res, next) {
@@ -122,11 +122,11 @@
     });
   };
   savePubsToGroup = function(_arg, req, res, next) {
-    var pubObjectsToSave;
-    pubObjectsToSave = _arg.pubObjectsToSave;
+    var fqGroupName, objectsToSave;
+    fqGroupName = _arg.fqGroupName, objectsToSave = _arg.objectsToSave;
     console.log("In savePubsToGroup");
     return ifHaveEmail(req, res, function(savedBy) {
-      return _doSaveSearchToGroup(savedBy, pubObjectsToSave, 'pub', httpcallbackmaker(req, res, next));
+      return _doSaveSearchToGroup(savedBy, fqGroupName, objectsToSave, 'pub', httpcallbackmaker(req, res, next));
     });
   };
   saveObsv = function(payload, req, res, next) {
@@ -149,11 +149,11 @@
     });
   };
   saveObsvsToGroup = function(_arg, req, res, next) {
-    var obsvObjectsToSave;
-    obsvObjectsToSave = _arg.obsvObjectsToSave;
+    var fqGroupName, objectsToSave;
+    fqGroupName = _arg.fqGroupName, objectsToSave = _arg.objectsToSave;
     console.log("In saveObsvToGroup: cookies=" + req.cookies + " payload=" + payload);
     return ifHaveEmail(req, res, function(savedBy) {
-      return _doSaveSearchToGroup(savedBy, obsvObjectsToSave, 'obsv', httpcallbackmaker(req, res, next));
+      return _doSaveSearchToGroup(savedBy, fqGroupName, objectsToSave, 'obsv', httpcallbackmaker(req, res, next));
     });
   };
   searchToText = function(searchTerm) {
@@ -514,7 +514,7 @@
   getSavedSearchesForGroup2 = function(req, res, next) {
     var kword, wantedGroup;
     kword = 'savedsearchesforgroup';
-    wantedGroup = req.query.wantedGroup;
+    wantedGroup = req.query.fqGroupName;
     return ifHaveEmail(req, res, function(email) {
       return _doSearchForGroup(email, wantedGroup, 'search', createSavedSearchTemplates, res, kword, httpcallbackmaker(req, res, next));
     });
@@ -592,7 +592,7 @@
   getSavedPubsForGroup2 = function(req, res, next) {
     var kword, wantedGroup;
     kword = 'savedpubsforgroup';
-    wantedGroup = req.query.wantedGroup;
+    wantedGroup = req.query.fqGroupName;
     return ifHaveEmail(req, res, function(email) {
       return _doSearchForGroup(email, wantedGroup, 'pub', createSavedPubTemplates, res, kword, httpcallbackmaker(req, res, next), {
         titlefield: 'titles',
@@ -673,7 +673,7 @@
   getSavedObsvsForGroup2 = function(req, res, next) {
     var kword, wantedGroup;
     kword = 'savedobsvsforgroup';
-    wantedGroup = req.query.wantedGroup;
+    wantedGroup = req.query.fqGroupName;
     return ifHaveEmail(req, res, function(email) {
       return _doSearchForGroup(email, wantedGroup, 'obsv', createSavedObsvTemplates, res, kword, httpcallbackmaker(req, res, next), {
         titlefield: 'obsvtitles',
@@ -706,11 +706,11 @@
     });
   };
   _doRemoveSearchesFromGroup = function(email, group, searchtype, searchids, callback) {
-    var hashkeystodelete, key4savedbyhash, keyemail, keyemailgroup, keygroup, margs, sid;
+    var hashkeystodelete, keyemail, keyemailgroup, keygroup, keys4savedbyhash, margs, sid;
     keyemail = "saved" + searchtype + ":" + email;
     keygroup = "saved" + searchtype + ":" + group;
     keyemailgroup = "saved" + searchtype + ":" + email + ":" + group;
-    key4savedbyhash = "savedby:" + group;
+    keys4savedbyhash = "savedby:" + group;
     margs = (function() {
       var _i, _len, _results;
       _results = [];
@@ -894,7 +894,7 @@
       return ifHaveEmail(req, res, function(email) {
         var action, delids, group, _ref;
         action = terms.action;
-        group = (_ref = terms.group) != null ? _ref : 'default';
+        group = (_ref = terms.fqGroupName) != null ? _ref : 'default';
         delids = isArray(terms[idname]) ? terms[idname] : [terms[idname]];
         if (action === "delete" && delids.length > 0) {
           return delItems(email, group, delids, httpcallbackmaker(req, res, next));
@@ -910,9 +910,9 @@
   exports.deleteSearches = deleteItems("deleteSearches", "searchid", removeSearches);
   exports.deletePubs = deleteItems("deletePubs", "pubid", removePubs);
   exports.deleteObsvs = deleteItems("deleteObsvs", "obsvid", removeObsvs);
-  exports.deleteSearchesFromGroup = deleteItemsWithJSON("deleteSearchesFromGroup", "searchid", removeSearchesFromGroup);
-  exports.deletePubsFromGroup = deleteItemsWithJSON("deletePubsFromGroup", "pubid", removePubsFromGroup);
-  exports.deleteObsvsFromGroup = deleteItemsWithJSON("deleteObsvsFromGroup", "obsvid", removeObsvsFromGroup);
+  exports.deleteSearchesFromGroup = deleteItemsWithJSON("deleteSearchesFromGroup", "search", removeSearchesFromGroup);
+  exports.deletePubsFromGroup = deleteItemsWithJSON("deletePubsFromGroup", "pub", removePubsFromGroup);
+  exports.deleteObsvsFromGroup = deleteItemsWithJSON("deleteObsvsFromGroup", "obsv", removeObsvsFromGroup);
   exports.saveSearch = saveSearch;
   exports.savePub = savePub;
   exports.saveObsv = saveObsv;

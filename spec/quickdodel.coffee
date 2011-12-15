@@ -4,15 +4,17 @@ request = require('request')
 testGlobal={}
 #this will need to change
 logincookie='logincookie=GJnUa6yclX8Z5ko1; path=/; expires=Sat, 08 Dec 2012 22:26:43 GMT'
-makeCookieJar = () ->
+
+#laptop
+logincookie="logincookie=UZvAydg61ejMlcf7; path=/; expires=Sat, 08 Dec 2012 14:12:33 GMT"
+makeCookieJar = (lc) ->
     j=request.jar()
-    c=request.cookie logincookie
+    c=request.cookie lc
     j.add c
-    testGlobal.jar=j
     return j
 #groups.create_group 'rahuldave@gmail.com', 'huns', requests.consolecallbackmaker()
 #groups.delete_group 'rahuldave@gmail.com', 'rahuldave@gmail.com/huns', requests.consolecallbackmaker()
-j = makeCookieJar()
+j = makeCookieJar(logincookie)
 requestdict=
     url:"http://localhost:3010#{config.SITEPREFIX}/deletegroup"
     jar:j

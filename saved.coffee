@@ -53,45 +53,45 @@ saveSearch = (payload, req, res, next) ->
       margs = [['zadd', "savedsearch:#{email}", saveTime, savedSearch]]
       redis_client.multi(margs).exec (err2, reply) -> successfulRequest res
 
-#each searchObject is {saveInGroup, savedsearch}
-_doSaveSearchToGroup = (savedBy, savedhashlist, searchtype, callback) ->
+#each searchObject is {savedsearch|savedpub|savedobsv}
+_doSaveSearchToGroup = (savedBy, fqGroupName, savedhashlist, searchtype, callback) ->
     saveTime = new Date().getTime()
     savedtype="saved#{searchtype}"
     redis_client.sismember "members:#{fqGroupName}", savedBy, (err, is_member)->
         if err
             return callback err, is_member
-        if reply
-            margs=(['hexists', "savedby:#{savedhash.saveInGroup}", savedhash.savedsearch] for savedhash in savedhashlist)
+        if is_member
+            margs=(['hexists', "savedby:#{fqGroupName}", savedhash[savedtype]] for savedhash in savedhashlist)
             redis_client.multi(margs).exec (err2, replies) ->
                 if err2
                     return callback err2, replies
                 console.log 'REPLIES', replies
                 for idx in [0...replies.length] when replies[idx] isnt 1
                     savedSearch=savedhashlist[idx][savedtype]
-                    savedGroup=savedhashlist[idx].savedInGroup
                     redis_client.hget "savedInGroups:#{searchtype}", savedSearch, (err3, reply) ->
                         if err3
                             return callback err3, reply
-                        if reply is 'nil'
-                            groupJson=[savedGroup]
+                        console.log "in savedinGroups reply is", reply
+                        if reply is null
+                            groupJson=[fqGroupName]
                         else
                             groupJson = JSON.parse reply
-                            groupJson.push(savedGroup) #we dont check for uniqueness, no sets in json
+                            groupJson.push(fqGroupName) #we dont check for uniqueness, no sets in json
                         margs = [
-                          ['zadd', "saved#{searchtype}:#{savedBy}:#{savedGroup}", saveTime, savedSearch],
-                          ['zadd', "saved#{searchtype}:#{savedGroup}", saveTime, savedSearch],
-                          ['hset', "savedby:#{savedGroup}", savedSearch, savedBy],
+                          ['zadd', "saved#{searchtype}:#{savedBy}:#{fqGroupName}", saveTime, savedSearch],
+                          ['zadd', "saved#{searchtype}:#{fqGroupName}", saveTime, savedSearch],
+                          ['hset', "savedby:#{fqGroupName}", savedSearch, savedBy],
                           ['hset', "savedInGroups:#{searchtype}", savedSearch, JSON.stringify groupJson]
                         ]
                         redis_client.multi(margs).exec callback
         else
             return callback err, is_member
               
-saveSearchesToGroup = ({searchObjectsToSave}, req, res, next) ->
+saveSearchesToGroup = ({fqGroupName, objectsToSave}, req, res, next) ->
   console.log "In saveSearchestoGroup"
   ifHaveEmail req, res, (savedBy) ->
       # keep as a multi even though now a single addition
-      _doSaveSearchToGroup savedBy, searchObjectsToSave, 'search',  httpcallbackmaker(req, res, next)
+      _doSaveSearchToGroup savedBy, fqGroupName, objectsToSave, 'search',  httpcallbackmaker(req, res, next)
 
       
 savePub = (payload, req, res, next) ->
@@ -116,10 +116,10 @@ savePub = (payload, req, res, next) ->
                ['zadd', "savedpub:#{email}", saveTime, savedPub]]
       redis_client.multi(margs).exec (err2, reply) -> successfulRequest res
 
-savePubsToGroup = ({pubObjectsToSave}, req, res, next) ->
+savePubsToGroup = ({fqGroupName, objectsToSave}, req, res, next) ->
   console.log "In savePubsToGroup"
   ifHaveEmail req, res, (savedBy) ->
-     _doSaveSearchToGroup savedBy, pubObjectsToSave, 'pub', httpcallbackmaker(req, res, next)
+     _doSaveSearchToGroup savedBy, fqGroupName, objectsToSave, 'pub', httpcallbackmaker(req, res, next)
       
 saveObsv = (payload, req, res, next) ->
   console.log "In saveObsv: cookies=#{req.cookies} payload=#{payload}"
@@ -144,10 +144,10 @@ saveObsv = (payload, req, res, next) ->
       redis_client.multi(margs).exec (err2, reply) -> successfulRequest res
       
       
-saveObsvsToGroup = ({obsvObjectsToSave}, req, res, next) ->
+saveObsvsToGroup = ({fqGroupName, objectsToSave}, req, res, next) ->
   console.log "In saveObsvToGroup: cookies=#{req.cookies} payload=#{payload}"
   ifHaveEmail req, res, (savedBy) ->
-      _doSaveSearchToGroup savedBy, obsvObjectsToSave, 'obsv', httpcallbackmaker(req, res, next)
+      _doSaveSearchToGroup savedBy, fqGroupName, objectsToSave, 'obsv', httpcallbackmaker(req, res, next)
             
 searchToText = (searchTerm) ->
     # lazy way to remove the trailing search term
@@ -416,7 +416,7 @@ _doSearchForGroup = (email, wantedGroup, searchtype, templateCreatorFunc, res, k
       
 getSavedSearchesForGroup2 = (req, res, next) ->
   kword = 'savedsearchesforgroup'
-  wantedGroup = req.query.wantedGroup
+  wantedGroup = req.query.fqGroupName
   ifHaveEmail req, res, (email) ->
       _doSearchForGroup email, wantedGroup, 'search', createSavedSearchTemplates, res, kword, httpcallbackmaker(req, res, next)
   
@@ -464,7 +464,7 @@ getSavedPubs2 = (req, res, next) ->
   
 getSavedPubsForGroup2 = (req, res, next) ->
   kword = 'savedpubsforgroup'
-  wantedGroup = req.query.wantedGroup
+  wantedGroup = req.query.fqGroupName
   ifHaveEmail req, res, (email) ->
         _doSearchForGroup email, wantedGroup, 'pub', createSavedPubTemplates, res, kword, 
                 httpcallbackmaker(req, res, next), {titlefield:'titles', namefield:'bibcodes'}
@@ -512,7 +512,7 @@ getSavedObsvs2 = (req, res, next) ->
   
 getSavedObsvsForGroup2 = (req, res, next) ->
   kword = 'savedobsvsforgroup'
-  wantedGroup = req.query.wantedGroup
+  wantedGroup = req.query.fqGroupName
   ifHaveEmail req, res, (email) ->
         _doSearchForGroup email, wantedGroup, 'obsv', createSavedObsvTemplates, res, kword, httpcallbackmaker(req, res, next),
                     {titlefield:'obsvtitles', namefield:'targets'}
@@ -542,7 +542,7 @@ _doRemoveSearchesFromGroup = (email, group, searchtype, searchids, callback) ->
     keyemail = "saved#{searchtype}:#{email}"
     keygroup = "saved#{searchtype}:#{group}"
     keyemailgroup = "saved#{searchtype}:#{email}:#{group}"
-    key4savedbyhash = "savedby:#{group}"
+    keys4savedbyhash = "savedby:#{group}"
 
     margs=(['zrank', keyemailgroup, sid] for sid in searchids)
 
@@ -671,13 +671,13 @@ deleteItems = (funcname, idname, delItems) ->
       else
         failedRequest res
 
-#terms = {action, group?, [search|pub|obsv]}        
+#terms = {action, group?, [searchid|pubid|obsvid]}        
 deleteItemsWithJSON = (funcname, idname, delItems) ->
   return (terms, req, res, next) ->
     console.log ">> In #{funcname}"
     ifHaveEmail req, res, (email) ->
       action = terms.action
-      group=terms.group ? 'default'
+      group=terms.fqGroupName ? 'default'
       delids = if isArray terms[idname] then terms[idname] else [terms[idname]]
 
       if action is "delete" and delids.length > 0
@@ -693,9 +693,9 @@ exports.deleteSearches = deleteItems "deleteSearches", "searchid", removeSearche
 exports.deletePubs     = deleteItems "deletePubs",     "pubid",    removePubs
 exports.deleteObsvs     = deleteItems "deleteObsvs",     "obsvid",    removeObsvs
 
-exports.deleteSearchesFromGroup = deleteItemsWithJSON "deleteSearchesFromGroup", "searchid", removeSearchesFromGroup
-exports.deletePubsFromGroup     = deleteItemsWithJSON "deletePubsFromGroup",     "pubid",    removePubsFromGroup
-exports.deleteObsvsFromGroup     = deleteItemsWithJSON "deleteObsvsFromGroup",     "obsvid",    removeObsvsFromGroup
+exports.deleteSearchesFromGroup = deleteItemsWithJSON "deleteSearchesFromGroup", "search", removeSearchesFromGroup
+exports.deletePubsFromGroup     = deleteItemsWithJSON "deletePubsFromGroup",     "pub",    removePubsFromGroup
+exports.deleteObsvsFromGroup     = deleteItemsWithJSON "deleteObsvsFromGroup",     "obsv",    removeObsvsFromGroup
 
 exports.saveSearch = saveSearch
 exports.savePub = savePub

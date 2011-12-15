@@ -148,9 +148,9 @@ server.use SITEPREFIX+'/savesearch', doPost saved.saveSearch
 server.use SITEPREFIX+'/savepub', doPost saved.savePub
 server.use SITEPREFIX+'/saveobsv', doPost saved.saveObsv
 
-server.use SITEPREFIX+'/savesearchestogroup', doPost saved.saveSearchesToGroup
-server.use SITEPREFIX+'/savepubstogroup', doPost saved.savePubsToGroup
-server.use SITEPREFIX+'/saveobsvstogroup', doPost saved.saveObsvsToGroup
+server.use SITEPREFIX+'/savesearchestogroup', doPostWithJSON saved.saveSearchesToGroup
+server.use SITEPREFIX+'/savepubstogroup', doPostWithJSON saved.savePubsToGroup
+server.use SITEPREFIX+'/saveobsvstogroup', doPostWithJSON saved.saveObsvsToGroup
 
 
 server.use SITEPREFIX+'/deletesearch', doPost saved.deleteSearch
@@ -161,9 +161,9 @@ server.use SITEPREFIX+'/deleteobsv', doPost saved.deleteObsv
 server.use SITEPREFIX+'/deleteobsvs', doPost saved.deleteObsvs
 
 
-server.use SITEPREFIX+'/deletesearchesfromgroup', doPost saved.deleteSearchesFromGroup
-server.use SITEPREFIX+'/deletepubsfromgroup', doPost saved.deletePubsFromGroup
-server.use SITEPREFIX+'/deleteobsvsfromgroup', doPost saved.deleteObsvsFromGroup
+server.use SITEPREFIX+'/deletesearchesfromgroup', doPostWithJSON saved.deleteSearchesFromGroup
+server.use SITEPREFIX+'/deletepubsfromgroup', doPostWithJSON saved.deletePubsFromGroup
+server.use SITEPREFIX+'/deleteobsvsfromgroup', doPostWithJSON saved.deleteObsvsFromGroup
 # Used by the saved search page to provide functionality
 # to the saved publications list. This is a hack to work
 # around the same-origin policy.

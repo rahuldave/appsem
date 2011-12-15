@@ -3,12 +3,27 @@
   Handles saved items - e.g. searches and publications - that involves
   accessing information from Redis.
   */
-  var createSavedObsvTemplates, createSavedPubTemplates, createSavedSearchTemplates, deleteItem, deleteItems, failedRequest, getSavedObsvs, getSavedObsvs2, getSavedObsvsForGroup2, getSavedPubs, getSavedPubs2, getSavedPubsForGroup2, getSavedSearches, getSavedSearches2, getSavedSearchesForGroup2, getSortedElements, getSortedElementsAndScores, ifLoggedIn, isArray, redis_client, removeObsvs, removeObsvsFromGroup, removePubs, removePubsFromGroup, removeSearches, removeSearchesFromGroup, requests, saveObsv, saveObsvsToGroup, savePub, savePubsToGroup, saveSearch, saveSearchesToGroup, searchToText, successfulRequest, timeToText, _doRemoveSearchesFromGroup, _doSaveSearchToGroup, _doSearchForGroup;
+  var createSavedObsvTemplates, createSavedPubTemplates, createSavedSearchTemplates, deleteItem, deleteItems, deleteItemsWithJSON, failedRequest, getSavedObsvs, getSavedObsvs2, getSavedObsvsForGroup2, getSavedPubs, getSavedPubs2, getSavedPubsForGroup2, getSavedSearches, getSavedSearches2, getSavedSearchesForGroup2, getSortedElements, getSortedElementsAndScores, httpcallbackmaker, ifHaveEmail, ifLoggedIn, isArray, redis_client, removeObsvs, removeObsvsFromGroup, removePubs, removePubsFromGroup, removeSearches, removeSearchesFromGroup, requests, saveObsv, saveObsvsToGroup, savePub, savePubsToGroup, saveSearch, saveSearchesToGroup, searchToText, successfulRequest, timeToText, _doRemoveSearchesFromGroup, _doSaveSearchToGroup, _doSearchForGroup;
   redis_client = require("redis").createClient();
   requests = require("./requests");
   failedRequest = requests.failedRequest;
   successfulRequest = requests.successfulRequest;
   ifLoggedIn = requests.ifLoggedIn;
+  httpcallbackmaker = requests.httpcallbackmaker;
+  ifHaveEmail = function(req, res, cb, failopts) {
+    if (failopts == null) {
+      failopts = {};
+    }
+    return ifLoggedIn(req, res, function(loginid) {
+      return redis_client.get("email:" + loginid, function(err, email) {
+        if (email) {
+          return cb(email);
+        } else {
+          return failedRequest(res, failopts);
+        }
+      });
+    });
+  };
   saveSearch = function(payload, req, res, next) {
     var saveTime;
     console.log("In saveSearch: cookies=" + req.cookies + " payload=" + payload);
@@ -26,53 +41,65 @@
       });
     });
   };
-  _doSaveSearchToGroup = function(savedBy, savedhashlist, searchtype, res) {
-    var margs, savedhash, savedtype;
+  _doSaveSearchToGroup = function(savedBy, savedhashlist, searchtype, callback) {
+    var saveTime, savedtype;
+    saveTime = new Date().getTime();
     savedtype = "saved" + searchtype;
-    margs = (function() {
-      var _i, _len, _results;
-      _results = [];
-      for (_i = 0, _len = savedhashlist.length; _i < _len; _i++) {
-        savedhash = savedhashlist[_i];
-        _results.push(['hexists', "savedby:" + savedhash.savedgroup, savedhash.savedsearch]);
+    return redis_client.sismember("members:" + fqGroupName, savedBy, function(err, is_member) {
+      var margs, savedhash;
+      if (err) {
+        return callback(err, is_member);
       }
-      return _results;
-    })();
-    return redis_client.multi(margs).exec(function(err, replies) {
-      var idx, savedGroup, savedSearch, _ref, _results;
-      _results = [];
-      for (idx = 0, _ref = replies.length; 0 <= _ref ? idx < _ref : idx > _ref; 0 <= _ref ? idx++ : idx--) {
-        if (replies[idx] !== 1) {
-          savedSearch = savedhashlist[idx][savedtype];
-          savedGroup = savedhashlist[idx].savedgroup;
-          _results.push(redis_client.hget("savedInGroups:" + searchtype, savedSearch, function(err2, reply) {
-            var groupJson;
-            if (reply === 'nil') {
-              groupJson = [savedGroup];
-            } else {
-              groupJson = JSON.parse(reply);
-              groupJson.push(savedGroup);
+      if (reply) {
+        margs = (function() {
+          var _i, _len, _results;
+          _results = [];
+          for (_i = 0, _len = savedhashlist.length; _i < _len; _i++) {
+            savedhash = savedhashlist[_i];
+            _results.push(['hexists', "savedby:" + savedhash.saveInGroup, savedhash.savedsearch]);
+          }
+          return _results;
+        })();
+        return redis_client.multi(margs).exec(function(err2, replies) {
+          var idx, savedGroup, savedSearch, _ref, _results;
+          if (err2) {
+            return callback(err2, replies);
+          }
+          console.log('REPLIES', replies);
+          _results = [];
+          for (idx = 0, _ref = replies.length; 0 <= _ref ? idx < _ref : idx > _ref; 0 <= _ref ? idx++ : idx--) {
+            if (replies[idx] !== 1) {
+              savedSearch = savedhashlist[idx][savedtype];
+              savedGroup = savedhashlist[idx].savedInGroup;
+              _results.push(redis_client.hget("savedInGroups:" + searchtype, savedSearch, function(err3, reply) {
+                var groupJson;
+                if (err3) {
+                  return callback(err3, reply);
+                }
+                if (reply === 'nil') {
+                  groupJson = [savedGroup];
+                } else {
+                  groupJson = JSON.parse(reply);
+                  groupJson.push(savedGroup);
+                }
+                margs = [['zadd', "saved" + searchtype + ":" + savedBy + ":" + savedGroup, saveTime, savedSearch], ['zadd', "saved" + searchtype + ":" + savedGroup, saveTime, savedSearch], ['hset', "savedby:" + savedGroup, savedSearch, savedBy], ['hset', "savedInGroups:" + searchtype, savedSearch, JSON.stringify(groupJson)]];
+                return redis_client.multi(margs).exec(callback);
+              }));
             }
-            margs = [['zadd', "saved" + searchtype + ":" + savedBy + ":" + savedGroup, saveTime, savedSearch], ['zadd', "saved" + searchtype + ":" + savedGroup, saveTime, savedSearch], ['hset', "savedby:" + savedGroup, savedSearch, savedBy], ['hset', "savedInGroups:" + searchtype, savedSearch, JSON.stringify(groupJson)]];
-            return redis_client.multi(margs).exec(function(err2, reply) {
-              return successfulRequest(res);
-            });
-          }));
-        }
+          }
+          return _results;
+        });
+      } else {
+        return callback(err, is_member);
       }
-      return _results;
     });
   };
-  saveSearchesToGroup = function(payload, req, res, next) {
-    var saveTime;
-    console.log("In saveSearchtoGroup: cookies=" + req.cookies + " payload=" + payload);
-    saveTime = new Date().getTime();
-    return ifLoggedIn(req, res, function(loginid) {
-      var savedhashlist;
-      savedhashlist = JSON.parse(payload);
-      return redis_client.get("email:" + loginid, function(err, savedBy) {
-        return _doSaveSearchToGroup(savedBy, savedhashlist, 'search', res);
-      });
+  saveSearchesToGroup = function(_arg, req, res, next) {
+    var searchObjectsToSave;
+    searchObjectsToSave = _arg.searchObjectsToSave;
+    console.log("In saveSearchestoGroup");
+    return ifHaveEmail(req, res, function(savedBy) {
+      return _doSaveSearchToGroup(savedBy, searchObjectsToSave, 'search', httpcallbackmaker(req, res, next));
     });
   };
   savePub = function(payload, req, res, next) {
@@ -94,16 +121,12 @@
       });
     });
   };
-  savePubsToGroup = function(payload, req, res, next) {
-    var saveTime;
-    console.log("In savePubToGroup: cookies=" + req.cookies + " payload=" + payload);
-    saveTime = new Date().getTime();
-    return ifLoggedIn(req, res, function(loginid) {
-      var savedhashlist;
-      savedhashlist = JSON.parse(payload);
-      return redis_client.get("email:" + loginid, function(err, savedBy) {
-        return _doSaveSearchToGroup(savedBy, savedhashlist, 'pub', res);
-      });
+  savePubsToGroup = function(_arg, req, res, next) {
+    var pubObjectsToSave;
+    pubObjectsToSave = _arg.pubObjectsToSave;
+    console.log("In savePubsToGroup");
+    return ifHaveEmail(req, res, function(savedBy) {
+      return _doSaveSearchToGroup(savedBy, pubObjectsToSave, 'pub', httpcallbackmaker(req, res, next));
     });
   };
   saveObsv = function(payload, req, res, next) {
@@ -125,16 +148,12 @@
       });
     });
   };
-  saveObsvsToGroup = function(payload, req, res, next) {
-    var saveTime;
+  saveObsvsToGroup = function(_arg, req, res, next) {
+    var obsvObjectsToSave;
+    obsvObjectsToSave = _arg.obsvObjectsToSave;
     console.log("In saveObsvToGroup: cookies=" + req.cookies + " payload=" + payload);
-    saveTime = new Date().getTime();
-    return ifLoggedIn(req, res, function(loginid) {
-      var savedhashlist;
-      savedhashlist = JSON.parse(payload);
-      return redis_client.get("email:" + loginid, function(err, savedBy) {
-        return _doSaveSearchToGroup(savedBy, savedhashlist, 'obsv', res);
-      });
+    return ifHaveEmail(req, res, function(savedBy) {
+      return _doSaveSearchToGroup(savedBy, obsvObjectsToSave, 'obsv', httpcallbackmaker(req, res, next));
     });
   };
   searchToText = function(searchTerm) {
@@ -404,104 +423,100 @@
       keyword: kword
     });
   };
-  _doSearchForGroup = function(email, wantedGroup, searchtype, templateCreatorFunc, res, kword, augmenthash) {
+  _doSearchForGroup = function(email, wantedGroup, searchtype, templateCreatorFunc, res, kword, callback, augmenthash) {
+    var nowDate;
     if (augmenthash == null) {
       augmenthash = null;
     }
-    return redis_client.sismember(wantedGroup, email, function(errm, saved_p) {
+    nowDate = new Date().getTime();
+    return redis_client.sismember(wantedGroup, email, function(erra, saved_p) {
+      if (erra) {
+        return callback(erra, saved_p);
+      }
       if (saved_p) {
         return getSortedElementsAndScores(false, "saved" + searchtype + ":" + wantedGroup, function(err2, searches) {
           var ele, margs;
-          if (err2 != null) {
+          if (err2) {
             console.log("*** getSaved" + searchtype + "ForGroup2: failed for email=" + email + " err=" + err2);
-            return failedRequest(res, {
-              keyword: kword
-            });
-          } else {
-            margs = (function() {
+            return callback(err2, searches);
+          }
+          margs = (function() {
+            var _i, _len, _ref, _results;
+            _ref = searches.elements;
+            _results = [];
+            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+              ele = _ref[_i];
+              _results.push(['hget', "savedby:" + wantedGroup, ele]);
+            }
+            return _results;
+          })();
+          return redis_client.multi(margs).exec(function(errm, savedBys) {
+            var ele, margs2;
+            if (errm) {
+              return callback(errm, savedBys);
+            }
+            margs2 = (function() {
               var _i, _len, _ref, _results;
               _ref = searches.elements;
               _results = [];
               for (_i = 0, _len = _ref.length; _i < _len; _i++) {
                 ele = _ref[_i];
-                _results.push(['hget', "savedby:" + wantedGroup, ele]);
+                _results.push(['hget', "savedinGroup:" + searchtype, ele]);
               }
               return _results;
             })();
-            return redis_client.multi(margs).exec(function(err, replies) {
-              var ele, margs2, nowDate, reply, searchbys;
-              searchbys = (function() {
+            return redis_client.multi(margs2).exec(function(err, groupjsonlist) {
+              var ele, savedingroups, view;
+              if (err) {
+                return callback(err, groupjsonlist);
+              }
+              savedingroups = (function() {
                 var _i, _len, _results;
                 _results = [];
-                for (_i = 0, _len = replies.length; _i < _len; _i++) {
-                  reply = replies[_i];
-                  _results.push(reply);
+                for (_i = 0, _len = groupjsonlist.length; _i < _len; _i++) {
+                  ele = groupjsonlist[_i];
+                  _results.push(JSON.parse(ele));
                 }
                 return _results;
               })();
-              nowDate = new Date().getTime();
-              margs2 = (function() {
-                var _i, _len, _ref, _results;
-                _ref = searches.elements;
-                _results = [];
-                for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-                  ele = _ref[_i];
-                  _results.push(['hget', "savedinGroup:" + searchtype, ele]);
-                }
-                return _results;
-              })();
-              return redis_client.multi(margs2).exec(function(err, replies) {
-                var ele, savedingroups, view;
-                savedingroups = (function() {
-                  var _i, _len, _results;
-                  _results = [];
-                  for (_i = 0, _len = replies.length; _i < _len; _i++) {
-                    ele = replies[_i];
-                    _results.push(JSON.parse(ele));
+              if (augmenthash === null) {
+                view = templatecreatorFunc(nowDate, searches.elements, searches.scores, savedBys, savedingroups);
+                return callback(err, {
+                  keyword: kword,
+                  message: view
+                });
+              } else {
+                return redis_client.hmget("saved" + augmenthash.titlefield, searches.elements, function(err3, titles) {
+                  if (err3) {
+                    return callback(err3, titles);
                   }
-                  return _results;
-                })();
-                if (augmenthash === null) {
-                  view = templatecreatorFunc(nowDate, searches.elements, searches.scores, searchbys, savedingroups);
-                  return successfulRequest(res, {
-                    keyword: kword,
-                    message: view
-                  });
-                } else {
-                  return redis_client.hmget("saved" + augmenthash.titlefield, searches.elements, function(err2, titles) {
-                    return redis_client.hmget("saved" + augmenthash.namefield, searches.elements, function(err3, names) {
-                      view = templatecreatorFunc(nowDate, searches.elements, searches.scores, names, titles, searchbys, savedingroups);
-                      return successfulRequest(res, {
-                        keyword: kword,
-                        message: view
-                      });
+                  return redis_client.hmget("saved" + augmenthash.namefield, searches.elements, function(err4, names) {
+                    if (err4) {
+                      return callback(err4, names);
+                    }
+                    view = templatecreatorFunc(nowDate, searches.elements, searches.scores, names, titles, searchbys, savedingroups);
+                    return callback(err4, {
+                      keyword: kword,
+                      message: view
                     });
                   });
-                }
-              });
+                });
+              }
             });
-          }
+          });
         });
       } else {
-        console.log("*** getSaved" + searchtype + "ForGroup2: membership failed for email=" + email + " err=" + errm);
-        return failedRequest(res, {
-          keyword: kword
-        });
+        console.log("*** getSaved" + searchtype + "ForGroup2: membership failed for email=" + email + " err=" + erra);
+        return callback(erra, saved_p);
       }
     });
   };
   getSavedSearchesForGroup2 = function(req, res, next) {
-    var doIt, kword;
+    var kword, wantedGroup;
     kword = 'savedsearchesforgroup';
-    doIt = function(loginid) {
-      var wantedGroup;
-      wantedGroup = req.query.wantedgroup;
-      return redis_client.get("email:" + loginid, function(err, email) {
-        return _doSearchForGroup(email, wantedGroup, 'search', createSavedSearchTemplates, res, kword);
-      });
-    };
-    return ifLoggedIn(req, res, doIt, {
-      keyword: kword
+    wantedGroup = req.query.wantedGroup;
+    return ifHaveEmail(req, res, function(email) {
+      return _doSearchForGroup(email, wantedGroup, 'search', createSavedSearchTemplates, res, kword, httpcallbackmaker(req, res, next));
     });
   };
   getSavedPubs = function(req, res, next) {
@@ -575,20 +590,14 @@
     });
   };
   getSavedPubsForGroup2 = function(req, res, next) {
-    var doIt, kword;
+    var kword, wantedGroup;
     kword = 'savedpubsforgroup';
-    doIt = function(loginid) {
-      var wantedGroup;
-      wantedGroup = req.query.wantedgroup;
-      return redis_client.get("email:" + loginid, function(err, email) {
-        return _doSearchForGroup(email, wantedGroup, 'pub', createSavedPubTemplates, res, kword, {
-          titlefield: 'titles',
-          namefield: 'bibcodes'
-        });
+    wantedGroup = req.query.wantedGroup;
+    return ifHaveEmail(req, res, function(email) {
+      return _doSearchForGroup(email, wantedGroup, 'pub', createSavedPubTemplates, res, kword, httpcallbackmaker(req, res, next), {
+        titlefield: 'titles',
+        namefield: 'bibcodes'
       });
-    };
-    return ifLoggedIn(req, res, doIt, {
-      keyword: kword
     });
   };
   getSavedObsvs = function(req, res, next) {
@@ -662,20 +671,14 @@
     });
   };
   getSavedObsvsForGroup2 = function(req, res, next) {
-    var doIt, kword;
+    var kword, wantedGroup;
     kword = 'savedobsvsforgroup';
-    doIt = function(loginid) {
-      var wantedGroup;
-      wantedGroup = req.query.wantedgroup;
-      return redis_client.get("email:" + loginid, function(err, email) {
-        return _doSearchForGroup(email, wantedGroup, 'obsv', createSavedObsvTemplates, res, kword, {
-          titlefield: 'obsvtitles',
-          namefield: 'targets'
-        });
+    wantedGroup = req.query.wantedGroup;
+    return ifHaveEmail(req, res, function(email) {
+      return _doSearchForGroup(email, wantedGroup, 'obsv', createSavedObsvTemplates, res, kword, httpcallbackmaker(req, res, next), {
+        titlefield: 'obsvtitles',
+        namefield: 'targets'
       });
-    };
-    return ifLoggedIn(req, res, doIt, {
-      keyword: kword
     });
   };
   removeSearches = function(res, loginid, group, searchids) {
@@ -702,7 +705,7 @@
       });
     });
   };
-  _doRemoveSearchesFromGroup = function(email, group, searchtype, searchids, res) {
+  _doRemoveSearchesFromGroup = function(email, group, searchtype, searchids, callback) {
     var hashkeystodelete, key4savedbyhash, keyemail, keyemailgroup, keygroup, margs, sid;
     keyemail = "saved" + searchtype + ":" + email;
     keygroup = "saved" + searchtype + ":" + group;
@@ -719,7 +722,10 @@
     })();
     hashkeystodelete = [];
     return redis_client.multi(margs).exec(function(err, replies) {
-      var idx, margs2, margsemailgroup, margsgroup, mysidstodelete, rank, ranks, rid, sididx, sididxs;
+      var ele, idx, margs2, margsemailgroup, margsgroup, margsi, mysidstodelete, rank, ranks, rid, sididx, sididxs;
+      if (err) {
+        return callback(err, replies);
+      }
       ranks = (function() {
         var _i, _len, _results;
         _results = [];
@@ -768,35 +774,22 @@
         }
         return _results;
       })();
-      margs2 = margsgroup.concat(margsemailgroup);
-      return redis_client.multi(margs2).exec(function(err2, reply) {
-        var ele;
-        console.log("Removed " + ranks.length + " " + searchtype + "s from group " + group);
-        hashkeystodelete = (function() {
-          var _i, _len, _results;
-          _results = [];
-          for (_i = 0, _len = mysidstodelete.length; _i < _len; _i++) {
-            ele = mysidstodelete[_i];
-            _results.push(['hdel', keys4savedbyhash, ele]);
-          }
-          return _results;
-        })();
-        return redis_client.multi(hashkeystodelete).exec(function(err3, reply) {
-          console.log("Hash has been cleaned for " + searchtype);
-          return successfulRequest(res);
-        });
-      });
+      hashkeystodelete = (function() {
+        var _i, _len, _results;
+        _results = [];
+        for (_i = 0, _len = mysidstodelete.length; _i < _len; _i++) {
+          ele = mysidstodelete[_i];
+          _results.push(['hdel', keys4savedbyhash, ele]);
+        }
+        return _results;
+      })();
+      margsi = margsgroup.concat(margsemailgroup);
+      margs2 = margsi.concat(hashkeystodelete);
+      return redis_client.multi(margs2).exec(callback);
     });
   };
-  removeSearchesFromGroup = function(res, loginid, group, searchids) {
-    if (searchids.length === 0) {
-      console.log("ERROR: removeSearches called with empty searchids list; loginid=" + loginid);
-      failedRequest(res);
-      return;
-    }
-    return redis_client.get("email:" + loginid, function(err, email) {
-      return _doRemoveSearchesFromGroup(email, group, 'search', searchids, res);
-    });
+  removeSearchesFromGroup = function(email, group, searchids, callback) {
+    return _doRemoveSearchesFromGroup(email, group, 'search', searchids, callback);
   };
   removePubs = function(res, loginid, group, docids) {
     if (docids.length === 0) {
@@ -824,16 +817,8 @@
       });
     });
   };
-  removePubsFromGroup = function(res, loginid, group, docids) {
-    if (docids.length === 0) {
-      console.log("ERROR: removePubsFromGroup called with empty docids list; loginid=" + loginid);
-      failedRequest(res);
-      return;
-    }
-    return redis_client.get("email:" + loginid, function(err, email) {
-      console.log(">> removePubsFromGroup docids=" + docids);
-      return _doRemoveSearchesFromGroup(email, group, 'pub', docids, res);
-    });
+  removePubsFromGroup = function(email, group, docids, callback) {
+    return _doRemoveSearchesFromGroup(email, group, 'pub', docids, callback);
   };
   removeObsvs = function(res, loginid, group, docids) {
     if (docids.length === 0) {
@@ -861,15 +846,8 @@
       });
     });
   };
-  removeObsvsFromGroup = function(res, loginid, group, docids) {
-    if (docids.length === 0) {
-      console.log("ERROR: removeObsvsFromGroup called with empty docids list; loginid=" + loginid);
-      failedRequest(res);
-      return;
-    }
-    return redis_client.get("email:" + loginid, function(err, email) {
-      return _doRemoveSearchesFromGroup(email, group, 'obsv', docids, res);
-    });
+  removeObsvsFromGroup = function(email, group, obsids, callback) {
+    return _doRemoveSearchesFromGroup(email, group, 'obsv', obsids, callback);
   };
   deleteItem = function(funcname, idname, delItems) {
     return function(payload, req, res, next) {
@@ -910,15 +888,31 @@
       });
     };
   };
+  deleteItemsWithJSON = function(funcname, idname, delItems) {
+    return function(terms, req, res, next) {
+      console.log(">> In " + funcname);
+      return ifHaveEmail(req, res, function(email) {
+        var action, delids, group, _ref;
+        action = terms.action;
+        group = (_ref = terms.group) != null ? _ref : 'default';
+        delids = isArray(terms[idname]) ? terms[idname] : [terms[idname]];
+        if (action === "delete" && delids.length > 0) {
+          return delItems(email, group, delids, httpcallbackmaker(req, res, next));
+        } else {
+          return failedRequest(res);
+        }
+      });
+    };
+  };
   exports.deleteSearch = deleteItem("deleteSearch", "searchid", removeSearches);
   exports.deletePub = deleteItem("deletePub", "pubid", removePubs);
   exports.deleteObsv = deleteItem("deleteObsv", "obsvid", removeObsvs);
   exports.deleteSearches = deleteItems("deleteSearches", "searchid", removeSearches);
   exports.deletePubs = deleteItems("deletePubs", "pubid", removePubs);
   exports.deleteObsvs = deleteItems("deleteObsvs", "obsvid", removeObsvs);
-  exports.deleteSearchesFromGroup = deleteItems("deleteSearches", "searchid", removeSearchesFromGroup);
-  exports.deletePubsFromGroup = deleteItems("deletePubs", "pubid", removePubsFromGroup);
-  exports.deleteObsvsFromGroup = deleteItems("deleteObsvs", "obsvid", removeObsvsFromGroup);
+  exports.deleteSearchesFromGroup = deleteItemsWithJSON("deleteSearchesFromGroup", "searchid", removeSearchesFromGroup);
+  exports.deletePubsFromGroup = deleteItemsWithJSON("deletePubsFromGroup", "pubid", removePubsFromGroup);
+  exports.deleteObsvsFromGroup = deleteItemsWithJSON("deleteObsvsFromGroup", "obsvid", removeObsvsFromGroup);
   exports.saveSearch = saveSearch;
   exports.savePub = savePub;
   exports.saveObsv = saveObsv;

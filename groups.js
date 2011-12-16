@@ -262,7 +262,7 @@
         return callback(err, reply);
       }
       if (reply === email) {
-        margs = [['del', "savedsearch:" + fqGroupName], ['del', "savedpub:" + fqGroupName], ['del', "savedobsv:" + fqGroupName], ['del', "members:" + fqGroupName], ['del', "invitations:" + fqGroupName], ['del', "group:" + fqGroupName], ['srem', "memberof:" + email, fqGroupName]];
+        margs = [['del', "savedsearch:" + fqGroupName], ['del', "savedpub:" + fqGroupName], ['del', "savedobsv:" + fqGroupName], ['del', "members:" + fqGroupName], ['del', "invitations:" + fqGroupName], ['del', "savedby:" + fqGroupName], ['del', "group:" + fqGroupName], ['srem', "memberof:" + email, fqGroupName]];
         return redis_client.multi(margs).exec(callback);
       } else {
         return callback(err, reply);

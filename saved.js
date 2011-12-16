@@ -61,33 +61,74 @@
           return _results;
         })();
         return redis_client.multi(margs).exec(function(err2, replies) {
-          var idx, savedSearch, _ref, _results;
+          var counter, idx, margsi, savedSearch, savedSearches, _ref;
           if (err2) {
             return callback(err2, replies);
           }
-          console.log('REPLIES', replies);
-          _results = [];
+          console.log('REPLIES', replies, savedhashlist);
+          counter = 0;
+          margs = [];
+          savedSearches = [];
           for (idx = 0, _ref = replies.length; 0 <= _ref ? idx < _ref : idx > _ref; 0 <= _ref ? idx++ : idx--) {
             if (replies[idx] !== 1) {
+              console.log("kkk", idx, replies[idx], savedhashlist[idx][savedtype]);
+              counter = counter + 1;
               savedSearch = savedhashlist[idx][savedtype];
-              _results.push(redis_client.hget("savedInGroups:" + searchtype, savedSearch, function(err3, reply) {
-                var groupJson;
-                if (err3) {
-                  return callback(err3, reply);
-                }
-                console.log("in savedinGroups reply is", reply);
-                if (reply === null) {
-                  groupJson = [fqGroupName];
-                } else {
-                  groupJson = JSON.parse(reply);
-                  groupJson.push(fqGroupName);
-                }
-                margs = [['zadd', "saved" + searchtype + ":" + savedBy + ":" + fqGroupName, saveTime, savedSearch], ['zadd', "saved" + searchtype + ":" + fqGroupName, saveTime, savedSearch], ['hset', "savedby:" + fqGroupName, savedSearch, savedBy], ['hset', "savedInGroups:" + searchtype, savedSearch, JSON.stringify(groupJson)]];
-                return redis_client.multi(margs).exec(callback);
-              }));
+              savedSearches.push(savedSearch);
+              margsi = [['zadd', "saved" + searchtype + ":" + savedBy + ":" + fqGroupName, saveTime, savedSearch], ['zadd', "saved" + searchtype + ":" + fqGroupName, saveTime, savedSearch], ['hset', "savedby:" + fqGroupName, savedSearch, savedBy]];
+              margs = margs.concat(margsi);
             }
           }
-          return _results;
+          if (counter === 0) {
+            console.log("These all have already been saved");
+            return callback(err2, replies);
+          }
+          return redis_client.multi(margs).exec(function(err3, reply) {
+            var margs2, thesearch;
+            console.log("3space", err3, reply);
+            if (err3) {
+              return callback(err3, reply);
+            }
+            margs2 = (function() {
+              var _i, _len, _results;
+              _results = [];
+              for (_i = 0, _len = savedSearches.length; _i < _len; _i++) {
+                thesearch = savedSearches[_i];
+                _results.push(['hget', "savedInGroups:" + searchtype, thesearch]);
+              }
+              return _results;
+            })();
+            console.log("margs2", margs2);
+            return redis_client.multi(margs2).exec(function(err4, groupJSONList) {
+              var groupJSON, grouplist, i, margs3, outJSON, _i, _len;
+              console.log("groupJSONList", groupJSONList, err4);
+              if (err4) {
+                return callback(err4, groupJSONList);
+              }
+              outJSON = [];
+              for (_i = 0, _len = groupJSONList.length; _i < _len; _i++) {
+                groupJSON = groupJSONList[_i];
+                if (groupJSON === null) {
+                  grouplist = [fqGroupName];
+                } else {
+                  grouplist = JSON.parse(groupJSON);
+                  grouplist.push(fqGroupName);
+                }
+                outJSON.push(JSON.stringify(grouplist));
+              }
+              console.log("outjsom", outJSON, savedSearches);
+              margs3 = (function() {
+                var _ref2, _results;
+                _results = [];
+                for (i = 0, _ref2 = savedSearches.length; 0 <= _ref2 ? i < _ref2 : i > _ref2; 0 <= _ref2 ? i++ : i--) {
+                  _results.push(['hset', "savedInGroups:" + searchtype, savedSearches[i], outJSON[i]]);
+                }
+                return _results;
+              })();
+              console.log("margs3", margs3);
+              return redis_client.multi(margs3).exec(callback);
+            });
+          });
         });
       } else {
         return callback(err, is_member);
@@ -151,7 +192,7 @@
   saveObsvsToGroup = function(_arg, req, res, next) {
     var fqGroupName, objectsToSave;
     fqGroupName = _arg.fqGroupName, objectsToSave = _arg.objectsToSave;
-    console.log("In saveObsvToGroup: cookies=" + req.cookies + " payload=" + payload);
+    console.log("In saveObsvToGroup");
     return ifHaveEmail(req, res, function(savedBy) {
       return _doSaveSearchToGroup(savedBy, fqGroupName, objectsToSave, 'obsv', httpcallbackmaker(req, res, next));
     });
@@ -423,18 +464,18 @@
       keyword: kword
     });
   };
-  _doSearchForGroup = function(email, wantedGroup, searchtype, templateCreatorFunc, res, kword, callback, augmenthash) {
+  _doSearchForGroup = function(email, fqGroupName, searchtype, templateCreatorFunc, res, kword, callback, augmenthash) {
     var nowDate;
     if (augmenthash == null) {
       augmenthash = null;
     }
     nowDate = new Date().getTime();
-    return redis_client.sismember(wantedGroup, email, function(erra, saved_p) {
+    return redis_client.sismember("members:" + fqGroupName, email, function(erra, saved_p) {
       if (erra) {
         return callback(erra, saved_p);
       }
       if (saved_p) {
-        return getSortedElementsAndScores(false, "saved" + searchtype + ":" + wantedGroup, function(err2, searches) {
+        return getSortedElementsAndScores(false, "saved" + searchtype + ":" + fqGroupName, function(err2, searches) {
           var ele, margs;
           if (err2) {
             console.log("*** getSaved" + searchtype + "ForGroup2: failed for email=" + email + " err=" + err2);
@@ -446,7 +487,7 @@
             _results = [];
             for (_i = 0, _len = _ref.length; _i < _len; _i++) {
               ele = _ref[_i];
-              _results.push(['hget', "savedby:" + wantedGroup, ele]);
+              _results.push(['hget', "savedby:" + fqGroupName, ele]);
             }
             return _results;
           })();
@@ -461,15 +502,17 @@
               _results = [];
               for (_i = 0, _len = _ref.length; _i < _len; _i++) {
                 ele = _ref[_i];
-                _results.push(['hget', "savedinGroup:" + searchtype, ele]);
+                _results.push(['hget', "savedInGroups:" + searchtype, ele]);
               }
               return _results;
             })();
+            console.log("<<<<<", margs2);
             return redis_client.multi(margs2).exec(function(err, groupjsonlist) {
               var ele, savedingroups, view;
               if (err) {
                 return callback(err, groupjsonlist);
               }
+              console.log(">>>>>>>", searches.elements, groupjsonlist);
               savedingroups = (function() {
                 var _i, _len, _results;
                 _results = [];
@@ -480,7 +523,7 @@
                 return _results;
               })();
               if (augmenthash === null) {
-                view = templatecreatorFunc(nowDate, searches.elements, searches.scores, savedBys, savedingroups);
+                view = templateCreatorFunc(nowDate, searches.elements, searches.scores, savedBys, savedingroups);
                 return callback(err, {
                   keyword: kword,
                   message: view
@@ -494,7 +537,7 @@
                     if (err4) {
                       return callback(err4, names);
                     }
-                    view = templatecreatorFunc(nowDate, searches.elements, searches.scores, names, titles, searchbys, savedingroups);
+                    view = templateCreatorFunc(nowDate, searches.elements, searches.scores, names, titles, savedBys, savedingroups);
                     return callback(err4, {
                       keyword: kword,
                       message: view
@@ -512,11 +555,11 @@
     });
   };
   getSavedSearchesForGroup2 = function(req, res, next) {
-    var kword, wantedGroup;
+    var fqGroupName, kword;
     kword = 'savedsearchesforgroup';
-    wantedGroup = req.query.fqGroupName;
+    fqGroupName = req.query.fqGroupName;
     return ifHaveEmail(req, res, function(email) {
-      return _doSearchForGroup(email, wantedGroup, 'search', createSavedSearchTemplates, res, kword, httpcallbackmaker(req, res, next));
+      return _doSearchForGroup(email, fqGroupName, 'search', createSavedSearchTemplates, res, kword, httpcallbackmaker(req, res, next));
     });
   };
   getSavedPubs = function(req, res, next) {
@@ -590,11 +633,11 @@
     });
   };
   getSavedPubsForGroup2 = function(req, res, next) {
-    var kword, wantedGroup;
+    var fqGroupName, kword;
     kword = 'savedpubsforgroup';
-    wantedGroup = req.query.fqGroupName;
+    fqGroupName = req.query.fqGroupName;
     return ifHaveEmail(req, res, function(email) {
-      return _doSearchForGroup(email, wantedGroup, 'pub', createSavedPubTemplates, res, kword, httpcallbackmaker(req, res, next), {
+      return _doSearchForGroup(email, fqGroupName, 'pub', createSavedPubTemplates, res, kword, httpcallbackmaker(req, res, next), {
         titlefield: 'titles',
         namefield: 'bibcodes'
       });
@@ -671,11 +714,11 @@
     });
   };
   getSavedObsvsForGroup2 = function(req, res, next) {
-    var kword, wantedGroup;
+    var fqGroupName, kword;
     kword = 'savedobsvsforgroup';
-    wantedGroup = req.query.fqGroupName;
+    fqGroupName = req.query.fqGroupName;
     return ifHaveEmail(req, res, function(email) {
-      return _doSearchForGroup(email, wantedGroup, 'obsv', createSavedObsvTemplates, res, kword, httpcallbackmaker(req, res, next), {
+      return _doSearchForGroup(email, fqGroupName, 'obsv', createSavedObsvTemplates, res, kword, httpcallbackmaker(req, res, next), {
         titlefield: 'obsvtitles',
         namefield: 'targets'
       });
@@ -706,11 +749,12 @@
     });
   };
   _doRemoveSearchesFromGroup = function(email, group, searchtype, searchids, callback) {
-    var hashkeystodelete, keyemail, keyemailgroup, keygroup, keys4savedbyhash, margs, sid;
+    var hashkeystodelete, keyemail, keyemailgroup, keygroup, keys4savedbyhash, margs, savedingroupshash, sid;
     keyemail = "saved" + searchtype + ":" + email;
     keygroup = "saved" + searchtype + ":" + group;
     keyemailgroup = "saved" + searchtype + ":" + email + ":" + group;
     keys4savedbyhash = "savedby:" + group;
+    savedingroupshash = "savedInGroups:" + searchtype;
     margs = (function() {
       var _i, _len, _results;
       _results = [];
@@ -722,70 +766,129 @@
     })();
     hashkeystodelete = [];
     return redis_client.multi(margs).exec(function(err, replies) {
-      var ele, idx, margs2, margsemailgroup, margsgroup, margsi, mysidstodelete, rank, ranks, rid, sididx, sididxs;
+      var margs2, sid;
       if (err) {
         return callback(err, replies);
       }
-      ranks = (function() {
+      margs2 = (function() {
         var _i, _len, _results;
         _results = [];
-        for (_i = 0, _len = replies.length; _i < _len; _i++) {
-          rank = replies[_i];
-          if (rank !== 'nil') {
-            _results.push(rank);
+        for (_i = 0, _len = searchids.length; _i < _len; _i++) {
+          sid = searchids[_i];
+          _results.push(['hget', savedingroupshash, sid]);
+        }
+        return _results;
+      })();
+      return redis_client.multi(margs2).exec(function(errj, groupjsonlist) {
+        var ele, glist, grouplist, i, idx, margs3, margs4, margsemailgroup, margsgroup, margsi, mysidstodelete, newgroupjsonlist, newgrouplist, newsavedgroups, rank, ranks, rid, savedingroups, savedingroupshashcmds, sididx, sididxs, _i, _j, _len, _len2;
+        if (errj) {
+          return callback(errj, groupjsonlist);
+        }
+        console.log("o>>>>>>>", searchids, groupjsonlist);
+        savedingroups = (function() {
+          var _i, _len, _results;
+          _results = [];
+          for (_i = 0, _len = groupjsonlist.length; _i < _len; _i++) {
+            ele = groupjsonlist[_i];
+            _results.push(JSON.parse(ele));
           }
-        }
-        return _results;
-      })();
-      sididxs = (function() {
-        var _ref, _results;
-        _results = [];
-        for (sididx = 0, _ref = replies.length; 0 <= _ref ? sididx < _ref : sididx > _ref; 0 <= _ref ? sididx++ : sididx--) {
-          if (replies[sididx] !== 'nil') {
-            _results.push(sididx);
+          return _results;
+        })();
+        console.log("savedingroups", savedingroups);
+        newsavedgroups = [];
+        for (_i = 0, _len = savedingroups.length; _i < _len; _i++) {
+          grouplist = savedingroups[_i];
+          console.log('grouplist', grouplist);
+          newgrouplist = [];
+          for (_j = 0, _len2 = grouplist.length; _j < _len2; _j++) {
+            ele = grouplist[_j];
+            if (ele === !group) {
+              newgrouplist.push(ele);
+            }
           }
+          console.log('newgrouplist', newgrouplist);
+          newsavedgroups.push(newgrouplist);
         }
-        return _results;
-      })();
-      mysidstodelete = (function() {
-        var _i, _len, _results;
-        _results = [];
-        for (_i = 0, _len = sididxs.length; _i < _len; _i++) {
-          idx = sididxs[_i];
-          _results.push(searchids[idx]);
-        }
-        return _results;
-      })();
-      margsgroup = (function() {
-        var _i, _len, _results;
-        _results = [];
-        for (_i = 0, _len = ranks.length; _i < _len; _i++) {
-          rid = ranks[_i];
-          _results.push(['zremrangebyrank', keygroup, rid, rid]);
-        }
-        return _results;
-      })();
-      margsemailgroup = (function() {
-        var _i, _len, _results;
-        _results = [];
-        for (_i = 0, _len = ranks.length; _i < _len; _i++) {
-          rid = ranks[_i];
-          _results.push(['zremrangebyrank', keyemailgroup, rid, rid]);
-        }
-        return _results;
-      })();
-      hashkeystodelete = (function() {
-        var _i, _len, _results;
-        _results = [];
-        for (_i = 0, _len = mysidstodelete.length; _i < _len; _i++) {
-          ele = mysidstodelete[_i];
-          _results.push(['hdel', keys4savedbyhash, ele]);
-        }
-        return _results;
-      })();
-      margsi = margsgroup.concat(margsemailgroup);
-      margs2 = margsi.concat(hashkeystodelete);
-      return redis_client.multi(margs2).exec(callback);
+        newgroupjsonlist = (function() {
+          var _k, _len3, _results;
+          _results = [];
+          for (_k = 0, _len3 = newsavedgroups.length; _k < _len3; _k++) {
+            glist = newsavedgroups[_k];
+            _results.push(JSON.stringify(glist));
+          }
+          return _results;
+        })();
+        savedingroupshashcmds = (function() {
+          var _ref, _results;
+          _results = [];
+          for (i = 0, _ref = searchids.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
+            _results.push(['hset', savedingroupshash, searchids[i], newgroupjsonlist[i]]);
+          }
+          return _results;
+        })();
+        console.log("REPLIES", savedingroupshashcmds);
+        ranks = (function() {
+          var _k, _len3, _results;
+          _results = [];
+          for (_k = 0, _len3 = replies.length; _k < _len3; _k++) {
+            rank = replies[_k];
+            if (rank !== null) {
+              _results.push(rank);
+            }
+          }
+          return _results;
+        })();
+        sididxs = (function() {
+          var _ref, _results;
+          _results = [];
+          for (sididx = 0, _ref = replies.length; 0 <= _ref ? sididx < _ref : sididx > _ref; 0 <= _ref ? sididx++ : sididx--) {
+            if (replies[sididx] !== null) {
+              _results.push(sididx);
+            }
+          }
+          return _results;
+        })();
+        mysidstodelete = (function() {
+          var _k, _len3, _results;
+          _results = [];
+          for (_k = 0, _len3 = sididxs.length; _k < _len3; _k++) {
+            idx = sididxs[_k];
+            _results.push(searchids[idx]);
+          }
+          return _results;
+        })();
+        margsgroup = (function() {
+          var _k, _len3, _results;
+          _results = [];
+          for (_k = 0, _len3 = ranks.length; _k < _len3; _k++) {
+            rid = ranks[_k];
+            _results.push(['zremrangebyrank', keygroup, rid, rid]);
+          }
+          return _results;
+        })();
+        margsemailgroup = (function() {
+          var _k, _len3, _results;
+          _results = [];
+          for (_k = 0, _len3 = ranks.length; _k < _len3; _k++) {
+            rid = ranks[_k];
+            _results.push(['zremrangebyrank', keyemailgroup, rid, rid]);
+          }
+          return _results;
+        })();
+        hashkeystodelete = (function() {
+          var _k, _len3, _results;
+          _results = [];
+          for (_k = 0, _len3 = mysidstodelete.length; _k < _len3; _k++) {
+            ele = mysidstodelete[_k];
+            _results.push(['hdel', keys4savedbyhash, ele]);
+          }
+          return _results;
+        })();
+        margsi = margsgroup.concat(margsemailgroup);
+        margs3 = margsi.concat(hashkeystodelete);
+        margs4 = margs3.concat(savedingroupshashcmds);
+        return redis_client.multi(margs4).exec(callback);
+      });
     });
   };
   removeSearchesFromGroup = function(email, group, searchids, callback) {
@@ -895,7 +998,7 @@
         var action, delids, group, _ref;
         action = terms.action;
         group = (_ref = terms.fqGroupName) != null ? _ref : 'default';
-        delids = isArray(terms[idname]) ? terms[idname] : [terms[idname]];
+        delids = isArray(terms.items) ? terms.items : [terms.items];
         if (action === "delete" && delids.length > 0) {
           return delItems(email, group, delids, httpcallbackmaker(req, res, next));
         } else {
@@ -910,9 +1013,9 @@
   exports.deleteSearches = deleteItems("deleteSearches", "searchid", removeSearches);
   exports.deletePubs = deleteItems("deletePubs", "pubid", removePubs);
   exports.deleteObsvs = deleteItems("deleteObsvs", "obsvid", removeObsvs);
-  exports.deleteSearchesFromGroup = deleteItemsWithJSON("deleteSearchesFromGroup", "search", removeSearchesFromGroup);
-  exports.deletePubsFromGroup = deleteItemsWithJSON("deletePubsFromGroup", "pub", removePubsFromGroup);
-  exports.deleteObsvsFromGroup = deleteItemsWithJSON("deleteObsvsFromGroup", "obsv", removeObsvsFromGroup);
+  exports.deleteSearchesFromGroup = deleteItemsWithJSON("deleteSearchesFromGroup", "searches", removeSearchesFromGroup);
+  exports.deletePubsFromGroup = deleteItemsWithJSON("deletePubsFromGroup", "pubs", removePubsFromGroup);
+  exports.deleteObsvsFromGroup = deleteItemsWithJSON("deleteObsvsFromGroup", "obsvs", removeObsvsFromGroup);
   exports.saveSearch = saveSearch;
   exports.savePub = savePub;
   exports.saveObsv = saveObsv;

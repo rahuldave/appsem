@@ -198,6 +198,7 @@ removeOneselfFromGroup = ({fqGroupName}, req, res, next) ->
 
 #BUG invitations to non-existent group not deleted yet What else?
 
+#BUG How about deleting in savedInGroups
 delete_group=(email, fqGroupName, callback)->
   redis_client.hget "group:#{fqGroupName}", 'owner', (err, reply) -> 
     if err
@@ -209,13 +210,15 @@ delete_group=(email, fqGroupName, callback)->
             ['del', "savedobsv:#{fqGroupName}"],
             ['del', "members:#{fqGroupName}"],
             ['del', "invitations:#{fqGroupName}"],
+            ['del', "savedby:#{fqGroupName}"],
             ['del', "group:#{fqGroupName}"],
             ['srem', "memberof:#{email}", fqGroupName]
         ]
         redis_client.multi(margs).exec callback
     else
         return callback err, reply
-    
+
+#  ['del', "savedby:#{fqGroupName}"],  
 deleteGroup = ({fqGroupName}, req, res, next) ->
   console.log "In deleteGroup:"
   ifHaveEmail req, res, (email) ->

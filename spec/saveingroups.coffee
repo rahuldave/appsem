@@ -35,6 +35,19 @@ j2= makeCookieJar(logincookie2)
     #body: JSON.stringify {rawGroupName:'huns'}
 guard=1
 
+fixtures={}
+fixtures.searches=["publications#fq=keywords_s%3Aabsorption&q=*%3A*", "observations#fq=obsvtypes_s%3ACHANDRA%2FDDT&q=*%3A*"]
+fixtures.savedsearches=({savedsearch:s} for s in fixtures.searches)
+fixtures.pubs=["fd094ab3-0ac3-43dd-8657-59783c047072", "4f7f9768-c169-4448-ab3f-4d1b0f3831a7"]
+fixtures.savedpubs=({savedpub:p} for p in fixtures.pubs)
+fixtures.obsvs=["CHANDRA/13008", "CHANDRA/12502"]
+fixtures.savedobsvs=({savedobsv:o} for o in fixtures.obsvs)
+console.log fixtures
+
+thingstype='obsvs'
+things=fixtures[thingstype]
+savedthings=fixtures["saved#{thingstype}"]
+
 request.post 
     jar: j
     url: REQHEAD+'creategroup'
@@ -58,23 +71,24 @@ request.post
                         cbH(e,r,b)
                         request.post
                             jar: j2
-                            url: REQHEAD+'savesearchestogroup'
+                            url: REQHEAD+"save#{thingstype}togroup"
                             body: JSON.stringify
                                     fqGroupName: 'rahuldave@gmail.com/huns'
-                                    objectsToSave:[{savedsearch:"publications#fq=keywords_s%3Aabsorption&q=*%3A*"}, {savedsearch:"observations#fq=obsvtypes_s%3ACHANDRA%2FDDT&q=*%3A*"}]
+                                    objectsToSave: savedthings
                             , (e,r,b) ->
                                 cbH(e,r,b)
                                 request.get
                                     jar:j2
-                                    url: REQHEAD+'savedsearchesforgroup2?fqGroupName=rahuldave@gmail.com/huns'
+                                    url: REQHEAD+"saved#{thingstype}forgroup2?fqGroupName=rahuldave@gmail.com/huns"
                                     , (e,r,b) ->
                                         cbH(e,r,b)
                                         request.post
                                             jar: j2
-                                            url: REQHEAD+'deletesearchesfromgroup'
+                                            url: REQHEAD+"delete#{thingstype}fromgroup"
                                             body: JSON.stringify
                                                     fqGroupName: 'rahuldave@gmail.com/huns'
-                                                    search:["publications#fq=keywords_s%3Aabsorption&q=*%3A*", "observations#fq=obsvtypes_s%3ACHANDRA%2FDDT&q=*%3A*"]
+                                                    deltype: "#{thingstype}"
+                                                    items: things
                                                     action:'delete'
                                             , (e,r,b) ->
                                                 cbH(e,r,b)

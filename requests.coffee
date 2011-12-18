@@ -21,7 +21,9 @@ completeRequest = (res, options, defoptions) ->
   res.writeHead 200, "OK", 'Content-Type': 'application/json'
   out = {}
   out[opts.keyword] = opts.message
+  out.status = opts.status
   omsg = JSON.stringify out
+  console.log "OUT", out
   res.end omsg
 
 
@@ -35,8 +37,9 @@ completeRequest = (res, options, defoptions) ->
 
 failedRequest = (res, options = {}) ->
   completeRequest res, options,
-    keyword: 'success'
+    keyword: 'FAILURE'
     message: 'undefined'
+    status: 'FAILURE'
 
 # The request succeeded.
 #
@@ -47,8 +50,9 @@ failedRequest = (res, options = {}) ->
 
 successfulRequest = (res, options = {}) ->
   completeRequest res, options,
-    keyword: 'success'
+    keyword: 'SUCCESS'
     message: 'defined'
+    status: 'SUCCESS'
 
 # Call cb with the login cookie otherwise return
 # a failed request with failopts.
@@ -65,15 +69,15 @@ ifLoggedIn = (req, res, cb, failopts = {}) ->
 
             
   
-httpcallbackmaker = (req, res, next)->
+httpcallbackmaker = (keyword, req, res, next)->
     return (err, reply)->
         if err
-            failedRequest res, err
+            failedRequest res, keyword: keyword, message: err
         else
             if reply
-                successfulRequest res, keyword: 'SUCCESS', message: reply
+                successfulRequest res, keyword: keyword, message: reply
             else
-                failedRequest res, keyword: 'FAILURE', message: 'undefined'
+                failedRequest res, keyword: keyword, message: 'undefined'
             
 consolecallbackmaker = () ->
     return (err, reply) ->

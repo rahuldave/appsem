@@ -18,7 +18,9 @@
     });
     out = {};
     out[opts.keyword] = opts.message;
+    out.status = opts.status;
     omsg = JSON.stringify(out);
+    console.log("OUT", out);
     return res.end(omsg);
   };
   failedRequest = function(res, options) {
@@ -26,8 +28,9 @@
       options = {};
     }
     return completeRequest(res, options, {
-      keyword: 'success',
-      message: 'undefined'
+      keyword: 'FAILURE',
+      message: 'undefined',
+      status: 'FAILURE'
     });
   };
   successfulRequest = function(res, options) {
@@ -35,8 +38,9 @@
       options = {};
     }
     return completeRequest(res, options, {
-      keyword: 'success',
-      message: 'defined'
+      keyword: 'SUCCESS',
+      message: 'defined',
+      status: 'SUCCESS'
     });
   };
   ifLoggedIn = function(req, res, cb, failopts) {
@@ -51,19 +55,22 @@
       return failedRequest(res, failopts);
     }
   };
-  httpcallbackmaker = function(req, res, next) {
+  httpcallbackmaker = function(keyword, req, res, next) {
     return function(err, reply) {
       if (err) {
-        return failedRequest(res, err);
+        return failedRequest(res, {
+          keyword: keyword,
+          message: err
+        });
       } else {
         if (reply) {
           return successfulRequest(res, {
-            keyword: 'SUCCESS',
+            keyword: keyword,
             message: reply
           });
         } else {
           return failedRequest(res, {
-            keyword: 'FAILURE',
+            keyword: keyword,
             message: 'undefined'
           });
         }

@@ -114,6 +114,7 @@ quickRedirect = (newloc) ->
 explorouter = connect(connect.router (app) ->
   app.get '/publications', views.doPublications
   app.get '/saved', views.doSaved
+  app.get '/group', views.doGroup
   app.get '/objects', quickRedirect 'publications/'
   app.get '/observations', views.doObservations
   app.get '/proposals', quickRedirect 'publications/'

@@ -11,13 +11,16 @@ successfulRequest = requests.successfulRequest
 ifLoggedIn = requests.ifLoggedIn
 httpcallbackmaker = requests.httpcallbackmaker
 
-ifHaveEmail = (req, res, cb, failopts = {}) ->
+ifHaveEmail = (fname, req, res, cb, failopts = {}) ->
+  ecb=httpcallbackmaker(fname, req, res)#no next
   ifLoggedIn req, res, (loginid) ->
     redis_client.get "email:#{loginid}", (err, email) ->
+        if err
+            return ecb err, email
         if email
             cb email
         else
-            failedRequest res, failopts
+            return ecb err, email
 # A comment on saved times, used in both savePub and saveSearch.
 #
 # Approximate the save time as the time we process the request
@@ -117,10 +120,10 @@ _doSaveSearchToGroup = (savedBy, fqGroupName, savedhashlist, searchtype, callbac
             return callback err, is_member
               
 saveSearchesToGroup = ({fqGroupName, objectsToSave}, req, res, next) ->
-  console.log "In saveSearchestoGroup"
-  ifHaveEmail req, res, (savedBy) ->
+  console.log __fname="saveSearchestoGroup"
+  ifHaveEmail __fname, req, res, (savedBy) ->
       # keep as a multi even though now a single addition
-      _doSaveSearchToGroup savedBy, fqGroupName, objectsToSave, 'search',  httpcallbackmaker(req, res, next)
+      _doSaveSearchToGroup savedBy, fqGroupName, objectsToSave, 'search',  httpcallbackmaker(__fname, req, res, next)
 
       
 savePub = (payload, req, res, next) ->
@@ -146,9 +149,9 @@ savePub = (payload, req, res, next) ->
       redis_client.multi(margs).exec (err2, reply) -> successfulRequest res
 
 savePubsToGroup = ({fqGroupName, objectsToSave}, req, res, next) ->
-  console.log "In savePubsToGroup"
-  ifHaveEmail req, res, (savedBy) ->
-     _doSaveSearchToGroup savedBy, fqGroupName, objectsToSave, 'pub', httpcallbackmaker(req, res, next)
+  console.log __fname="savePubsToGroup"
+  ifHaveEmail __fname, req, res, (savedBy) ->
+     _doSaveSearchToGroup savedBy, fqGroupName, objectsToSave, 'pub', httpcallbackmaker(__fname, req, res, next)
       
 saveObsv = (payload, req, res, next) ->
   console.log "In saveObsv: cookies=#{req.cookies} payload=#{payload}"
@@ -174,9 +177,9 @@ saveObsv = (payload, req, res, next) ->
       
       
 saveObsvsToGroup = ({fqGroupName, objectsToSave}, req, res, next) ->
-  console.log "In saveObsvToGroup"
-  ifHaveEmail req, res, (savedBy) ->
-      _doSaveSearchToGroup savedBy, fqGroupName, objectsToSave, 'obsv', httpcallbackmaker(req, res, next)
+  console.log __fname="saveObsvToGroup"
+  ifHaveEmail __fname, req, res, (savedBy) ->
+      _doSaveSearchToGroup savedBy, fqGroupName, objectsToSave, 'obsv', httpcallbackmaker(__fname, req, res, next)
             
 searchToText = (searchTerm) ->
     # lazy way to remove the trailing search term
@@ -238,7 +241,7 @@ timeToText = (nowDate, timeString) ->
 #
 createSavedSearchTemplates = (nowDate, searchkeys, searchtimes, searchbys, groupsin) ->
   view = {}
-  console.log "VIEW", view
+  #console.log "VIEW", view
   nsearch = searchkeys.length
 
   if nsearch is 0
@@ -427,29 +430,28 @@ _doSearchForGroup = (email, fqGroupName, searchtype, templateCreatorFunc, res, k
                             savedingroups = (JSON.parse ele for ele in groupjsonlist)
                             if augmenthash is null
                                 view = templateCreatorFunc nowDate, searches.elements, searches.scores, savedBys, savedingroups
-                                callback err,
-                                    keyword: kword
-                                    message: view
+                                callback err, view
                             else
-                                redis_client.hmget "saved#{augmenthash.titlefield}", searches.elements, (err3, titles) ->
+                                redis_client.hmget "saved#{augmenthash.titlefield}", searches.elements..., (err3, titles) ->
                                     if err3
+                                        console.log "titlefield error"
                                         return callback err3, titles
-                                    redis_client.hmget "saved#{augmenthash.namefield}", searches.elements, (err4, names) ->
+                                    redis_client.hmget "saved#{augmenthash.namefield}", searches.elements..., (err4, names) ->
                                         if err4
+                                            console.log "namefield error"
                                             return callback err4, names
                                         view = templateCreatorFunc nowDate, searches.elements, searches.scores, names, titles, savedBys, savedingroups
-                                        callback err4,
-                                            keyword: kword
-                                            message: view
+                                        callback err4, view
             else
               console.log "*** getSaved#{searchtype}ForGroup2: membership failed for email=#{email} err=#{erra}"
               return callback erra, saved_p
       
 getSavedSearchesForGroup2 = (req, res, next) ->
   kword = 'savedsearchesforgroup'
+  __fname=kword
   fqGroupName = req.query.fqGroupName
-  ifHaveEmail req, res, (email) ->
-      _doSearchForGroup email, fqGroupName, 'search', createSavedSearchTemplates, res, kword, httpcallbackmaker(req, res, next)
+  ifHaveEmail __fname, req, res, (email) ->
+      _doSearchForGroup email, fqGroupName, 'search', createSavedSearchTemplates, res, kword, httpcallbackmaker(__fname, req, res, next)
   
   
 
@@ -495,10 +497,11 @@ getSavedPubs2 = (req, res, next) ->
   
 getSavedPubsForGroup2 = (req, res, next) ->
   kword = 'savedpubsforgroup'
+  __fname=kword
   fqGroupName = req.query.fqGroupName
-  ifHaveEmail req, res, (email) ->
+  ifHaveEmail __fname, req, res, (email) ->
         _doSearchForGroup email, fqGroupName, 'pub', createSavedPubTemplates, res, kword, 
-                httpcallbackmaker(req, res, next), {titlefield:'titles', namefield:'bibcodes'}
+                httpcallbackmaker(__fname, req, res, next), {titlefield:'titles', namefield:'bibcodes'}
 
 
 
@@ -544,8 +547,9 @@ getSavedObsvs2 = (req, res, next) ->
 getSavedObsvsForGroup2 = (req, res, next) ->
   kword = 'savedobsvsforgroup'
   fqGroupName = req.query.fqGroupName
-  ifHaveEmail req, res, (email) ->
-        _doSearchForGroup email, fqGroupName, 'obsv', createSavedObsvTemplates, res, kword, httpcallbackmaker(req, res, next),
+  __fname=kword
+  ifHaveEmail __fname, req, res, (email) ->
+        _doSearchForGroup email, fqGroupName, 'obsv', createSavedObsvTemplates, res, kword, httpcallbackmaker(__fname, req, res, next),
                     {titlefield:'obsvtitles', namefield:'targets'}
 
 # Remove the list of searchids, associated with the given
@@ -585,7 +589,11 @@ _doRemoveSearchesFromGroup = (email, group, searchtype, searchids, callback) ->
     redis_client.multi(margs).exec (err, replies) ->
         if err
             return callback err, replies
-        margs2=(['hget', savedingroupshash, sid] for sid in searchids)
+        ranks=(rank for rank in replies when rank isnt null)
+        sididxs=(sididx for sididx in [0...replies.length] when replies[sididx] isnt null)
+        console.log "sididxs", sididxs
+        mysidstodelete=(searchids[idx] for idx in sididxs)
+        margs2=(['hget', savedingroupshash, searchids[idx]] for idx in sididxs)
         redis_client.multi(margs2).exec (errj, groupjsonlist) ->
             if errj
                 return callback errj, groupjsonlist
@@ -602,12 +610,11 @@ _doRemoveSearchesFromGroup = (email, group, searchtype, searchids, callback) ->
             
             newgroupjsonlist = (JSON.stringify glist for glist in newsavedgroups)
             #BUG if empty json array should we delete key in hash? (above and below this line)
-            savedingroupshashcmds=(['hset', savedingroupshash, searchids[i], newgroupjsonlist[i]] for i in [0...searchids.length])
+            savedingroupshashcmds=(['hset', savedingroupshash, searchids[i], newgroupjsonlist[i]] for i in sididxs)
             #Get those added by user to group from the given sids. I have substituted null for nil
-            console.log "REPLIES", savedingroupshashcmds
-            ranks=(rank for rank in replies when rank isnt null)
-            sididxs=(sididx for sididx in [0...replies.length] when replies[sididx] isnt null)
-            mysidstodelete=(searchids[idx] for idx in sididxs)
+            console.log "savedingroupshashcmds", savedingroupshashcmds
+            
+            
             margsgroup = (['zremrangebyrank', keygroup, rid, rid] for rid in ranks)
             margsemailgroup = (['zremrangebyrank', keyemailgroup, rid, rid] for rid in ranks)
             hashkeystodelete = (['hdel', keys4savedbyhash, ele] for ele in mysidstodelete)
@@ -616,6 +623,7 @@ _doRemoveSearchesFromGroup = (email, group, searchtype, searchids, callback) ->
             margs4=margs3.concat savedingroupshashcmds
             #Doing all the multis here together preserves atomicity since these are destructive
             #they should all be done or not at all
+            console.log 'margs4',margs4
             redis_client.multi(margs4).exec callback
                     
 removeSearchesFromGroup = (email, group, searchids, callback) ->
@@ -728,13 +736,13 @@ deleteItems = (funcname, idname, delItems) ->
 deleteItemsWithJSON = (funcname, idname, delItems) ->
   return (terms, req, res, next) ->
     console.log ">> In #{funcname}"
-    ifHaveEmail req, res, (email) ->
+    ifHaveEmail funcname, req, res, (email) ->
       action = terms.action
       group=terms.fqGroupName ? 'default'
       delids = if isArray terms.items then terms.items else [terms.items]
 
       if action is "delete" and delids.length > 0
-        delItems email, group, delids, httpcallbackmaker(req, res, next)
+        delItems email, group, delids, httpcallbackmaker(funcname, req, res, next)
       else
         failedRequest res
 

@@ -4,22 +4,28 @@
   accessing information from Redis.
   */
   var createSavedObsvTemplates, createSavedPubTemplates, createSavedSearchTemplates, deleteItem, deleteItems, deleteItemsWithJSON, failedRequest, getSavedObsvs, getSavedObsvs2, getSavedObsvsForGroup2, getSavedPubs, getSavedPubs2, getSavedPubsForGroup2, getSavedSearches, getSavedSearches2, getSavedSearchesForGroup2, getSortedElements, getSortedElementsAndScores, httpcallbackmaker, ifHaveEmail, ifLoggedIn, isArray, redis_client, removeObsvs, removeObsvsFromGroup, removePubs, removePubsFromGroup, removeSearches, removeSearchesFromGroup, requests, saveObsv, saveObsvsToGroup, savePub, savePubsToGroup, saveSearch, saveSearchesToGroup, searchToText, successfulRequest, timeToText, _doRemoveSearchesFromGroup, _doSaveSearchToGroup, _doSearchForGroup;
+  var __slice = Array.prototype.slice;
   redis_client = require("redis").createClient();
   requests = require("./requests");
   failedRequest = requests.failedRequest;
   successfulRequest = requests.successfulRequest;
   ifLoggedIn = requests.ifLoggedIn;
   httpcallbackmaker = requests.httpcallbackmaker;
-  ifHaveEmail = function(req, res, cb, failopts) {
+  ifHaveEmail = function(fname, req, res, cb, failopts) {
+    var ecb;
     if (failopts == null) {
       failopts = {};
     }
+    ecb = httpcallbackmaker(fname, req, res);
     return ifLoggedIn(req, res, function(loginid) {
       return redis_client.get("email:" + loginid, function(err, email) {
+        if (err) {
+          return ecb(err, email);
+        }
         if (email) {
           return cb(email);
         } else {
-          return failedRequest(res, failopts);
+          return ecb(err, email);
         }
       });
     });
@@ -136,11 +142,11 @@
     });
   };
   saveSearchesToGroup = function(_arg, req, res, next) {
-    var fqGroupName, objectsToSave;
+    var fqGroupName, objectsToSave, __fname;
     fqGroupName = _arg.fqGroupName, objectsToSave = _arg.objectsToSave;
-    console.log("In saveSearchestoGroup");
-    return ifHaveEmail(req, res, function(savedBy) {
-      return _doSaveSearchToGroup(savedBy, fqGroupName, objectsToSave, 'search', httpcallbackmaker(req, res, next));
+    console.log(__fname = "saveSearchestoGroup");
+    return ifHaveEmail(__fname, req, res, function(savedBy) {
+      return _doSaveSearchToGroup(savedBy, fqGroupName, objectsToSave, 'search', httpcallbackmaker(__fname, req, res, next));
     });
   };
   savePub = function(payload, req, res, next) {
@@ -163,11 +169,11 @@
     });
   };
   savePubsToGroup = function(_arg, req, res, next) {
-    var fqGroupName, objectsToSave;
+    var fqGroupName, objectsToSave, __fname;
     fqGroupName = _arg.fqGroupName, objectsToSave = _arg.objectsToSave;
-    console.log("In savePubsToGroup");
-    return ifHaveEmail(req, res, function(savedBy) {
-      return _doSaveSearchToGroup(savedBy, fqGroupName, objectsToSave, 'pub', httpcallbackmaker(req, res, next));
+    console.log(__fname = "savePubsToGroup");
+    return ifHaveEmail(__fname, req, res, function(savedBy) {
+      return _doSaveSearchToGroup(savedBy, fqGroupName, objectsToSave, 'pub', httpcallbackmaker(__fname, req, res, next));
     });
   };
   saveObsv = function(payload, req, res, next) {
@@ -190,11 +196,11 @@
     });
   };
   saveObsvsToGroup = function(_arg, req, res, next) {
-    var fqGroupName, objectsToSave;
+    var fqGroupName, objectsToSave, __fname;
     fqGroupName = _arg.fqGroupName, objectsToSave = _arg.objectsToSave;
-    console.log("In saveObsvToGroup");
-    return ifHaveEmail(req, res, function(savedBy) {
-      return _doSaveSearchToGroup(savedBy, fqGroupName, objectsToSave, 'obsv', httpcallbackmaker(req, res, next));
+    console.log(__fname = "saveObsvToGroup");
+    return ifHaveEmail(__fname, req, res, function(savedBy) {
+      return _doSaveSearchToGroup(savedBy, fqGroupName, objectsToSave, 'obsv', httpcallbackmaker(__fname, req, res, next));
     });
   };
   searchToText = function(searchTerm) {
@@ -244,7 +250,6 @@
   createSavedSearchTemplates = function(nowDate, searchkeys, searchtimes, searchbys, groupsin) {
     var i, makeTemplate, nsearch, view;
     view = {};
-    console.log("VIEW", view);
     nsearch = searchkeys.length;
     if (nsearch === 0) {
       view.hassearches = false;
@@ -524,26 +529,22 @@
               })();
               if (augmenthash === null) {
                 view = templateCreatorFunc(nowDate, searches.elements, searches.scores, savedBys, savedingroups);
-                return callback(err, {
-                  keyword: kword,
-                  message: view
-                });
+                return callback(err, view);
               } else {
-                return redis_client.hmget("saved" + augmenthash.titlefield, searches.elements, function(err3, titles) {
+                return redis_client.hmget.apply(redis_client, ["saved" + augmenthash.titlefield].concat(__slice.call(searches.elements), [function(err3, titles) {
                   if (err3) {
+                    console.log("titlefield error");
                     return callback(err3, titles);
                   }
-                  return redis_client.hmget("saved" + augmenthash.namefield, searches.elements, function(err4, names) {
+                  return redis_client.hmget.apply(redis_client, ["saved" + augmenthash.namefield].concat(__slice.call(searches.elements), [function(err4, names) {
                     if (err4) {
+                      console.log("namefield error");
                       return callback(err4, names);
                     }
                     view = templateCreatorFunc(nowDate, searches.elements, searches.scores, names, titles, savedBys, savedingroups);
-                    return callback(err4, {
-                      keyword: kword,
-                      message: view
-                    });
-                  });
-                });
+                    return callback(err4, view);
+                  }]));
+                }]));
               }
             });
           });
@@ -555,11 +556,12 @@
     });
   };
   getSavedSearchesForGroup2 = function(req, res, next) {
-    var fqGroupName, kword;
+    var fqGroupName, kword, __fname;
     kword = 'savedsearchesforgroup';
+    __fname = kword;
     fqGroupName = req.query.fqGroupName;
-    return ifHaveEmail(req, res, function(email) {
-      return _doSearchForGroup(email, fqGroupName, 'search', createSavedSearchTemplates, res, kword, httpcallbackmaker(req, res, next));
+    return ifHaveEmail(__fname, req, res, function(email) {
+      return _doSearchForGroup(email, fqGroupName, 'search', createSavedSearchTemplates, res, kword, httpcallbackmaker(__fname, req, res, next));
     });
   };
   getSavedPubs = function(req, res, next) {
@@ -633,11 +635,12 @@
     });
   };
   getSavedPubsForGroup2 = function(req, res, next) {
-    var fqGroupName, kword;
+    var fqGroupName, kword, __fname;
     kword = 'savedpubsforgroup';
+    __fname = kword;
     fqGroupName = req.query.fqGroupName;
-    return ifHaveEmail(req, res, function(email) {
-      return _doSearchForGroup(email, fqGroupName, 'pub', createSavedPubTemplates, res, kword, httpcallbackmaker(req, res, next), {
+    return ifHaveEmail(__fname, req, res, function(email) {
+      return _doSearchForGroup(email, fqGroupName, 'pub', createSavedPubTemplates, res, kword, httpcallbackmaker(__fname, req, res, next), {
         titlefield: 'titles',
         namefield: 'bibcodes'
       });
@@ -714,11 +717,12 @@
     });
   };
   getSavedObsvsForGroup2 = function(req, res, next) {
-    var fqGroupName, kword;
+    var fqGroupName, kword, __fname;
     kword = 'savedobsvsforgroup';
     fqGroupName = req.query.fqGroupName;
-    return ifHaveEmail(req, res, function(email) {
-      return _doSearchForGroup(email, fqGroupName, 'obsv', createSavedObsvTemplates, res, kword, httpcallbackmaker(req, res, next), {
+    __fname = kword;
+    return ifHaveEmail(__fname, req, res, function(email) {
+      return _doSearchForGroup(email, fqGroupName, 'obsv', createSavedObsvTemplates, res, kword, httpcallbackmaker(__fname, req, res, next), {
         titlefield: 'obsvtitles',
         namefield: 'targets'
       });
@@ -766,21 +770,52 @@
     })();
     hashkeystodelete = [];
     return redis_client.multi(margs).exec(function(err, replies) {
-      var margs2, sid;
+      var idx, margs2, mysidstodelete, rank, ranks, sididx, sididxs;
       if (err) {
         return callback(err, replies);
       }
+      ranks = (function() {
+        var _i, _len, _results;
+        _results = [];
+        for (_i = 0, _len = replies.length; _i < _len; _i++) {
+          rank = replies[_i];
+          if (rank !== null) {
+            _results.push(rank);
+          }
+        }
+        return _results;
+      })();
+      sididxs = (function() {
+        var _ref, _results;
+        _results = [];
+        for (sididx = 0, _ref = replies.length; 0 <= _ref ? sididx < _ref : sididx > _ref; 0 <= _ref ? sididx++ : sididx--) {
+          if (replies[sididx] !== null) {
+            _results.push(sididx);
+          }
+        }
+        return _results;
+      })();
+      console.log("sididxs", sididxs);
+      mysidstodelete = (function() {
+        var _i, _len, _results;
+        _results = [];
+        for (_i = 0, _len = sididxs.length; _i < _len; _i++) {
+          idx = sididxs[_i];
+          _results.push(searchids[idx]);
+        }
+        return _results;
+      })();
       margs2 = (function() {
         var _i, _len, _results;
         _results = [];
-        for (_i = 0, _len = searchids.length; _i < _len; _i++) {
-          sid = searchids[_i];
-          _results.push(['hget', savedingroupshash, sid]);
+        for (_i = 0, _len = sididxs.length; _i < _len; _i++) {
+          idx = sididxs[_i];
+          _results.push(['hget', savedingroupshash, searchids[idx]]);
         }
         return _results;
       })();
       return redis_client.multi(margs2).exec(function(errj, groupjsonlist) {
-        var ele, glist, grouplist, i, idx, margs3, margs4, margsemailgroup, margsgroup, margsi, mysidstodelete, newgroupjsonlist, newgrouplist, newsavedgroups, rank, ranks, rid, savedingroups, savedingroupshashcmds, sididx, sididxs, _i, _j, _len, _len2;
+        var ele, glist, grouplist, i, margs3, margs4, margsemailgroup, margsgroup, margsi, newgroupjsonlist, newgrouplist, newsavedgroups, rid, savedingroups, savedingroupshashcmds, _i, _j, _len, _len2;
         if (errj) {
           return callback(errj, groupjsonlist);
         }
@@ -819,44 +854,15 @@
           return _results;
         })();
         savedingroupshashcmds = (function() {
-          var _ref, _results;
+          var _k, _len3, _results;
           _results = [];
-          for (i = 0, _ref = searchids.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
+          for (_k = 0, _len3 = sididxs.length; _k < _len3; _k++) {
+            i = sididxs[_k];
             _results.push(['hset', savedingroupshash, searchids[i], newgroupjsonlist[i]]);
           }
           return _results;
         })();
-        console.log("REPLIES", savedingroupshashcmds);
-        ranks = (function() {
-          var _k, _len3, _results;
-          _results = [];
-          for (_k = 0, _len3 = replies.length; _k < _len3; _k++) {
-            rank = replies[_k];
-            if (rank !== null) {
-              _results.push(rank);
-            }
-          }
-          return _results;
-        })();
-        sididxs = (function() {
-          var _ref, _results;
-          _results = [];
-          for (sididx = 0, _ref = replies.length; 0 <= _ref ? sididx < _ref : sididx > _ref; 0 <= _ref ? sididx++ : sididx--) {
-            if (replies[sididx] !== null) {
-              _results.push(sididx);
-            }
-          }
-          return _results;
-        })();
-        mysidstodelete = (function() {
-          var _k, _len3, _results;
-          _results = [];
-          for (_k = 0, _len3 = sididxs.length; _k < _len3; _k++) {
-            idx = sididxs[_k];
-            _results.push(searchids[idx]);
-          }
-          return _results;
-        })();
+        console.log("savedingroupshashcmds", savedingroupshashcmds);
         margsgroup = (function() {
           var _k, _len3, _results;
           _results = [];
@@ -887,6 +893,7 @@
         margsi = margsgroup.concat(margsemailgroup);
         margs3 = margsi.concat(hashkeystodelete);
         margs4 = margs3.concat(savedingroupshashcmds);
+        console.log('margs4', margs4);
         return redis_client.multi(margs4).exec(callback);
       });
     });
@@ -994,13 +1001,13 @@
   deleteItemsWithJSON = function(funcname, idname, delItems) {
     return function(terms, req, res, next) {
       console.log(">> In " + funcname);
-      return ifHaveEmail(req, res, function(email) {
+      return ifHaveEmail(funcname, req, res, function(email) {
         var action, delids, group, _ref;
         action = terms.action;
         group = (_ref = terms.fqGroupName) != null ? _ref : 'default';
         delids = isArray(terms.items) ? terms.items : [terms.items];
         if (action === "delete" && delids.length > 0) {
-          return delItems(email, group, delids, httpcallbackmaker(req, res, next));
+          return delItems(email, group, delids, httpcallbackmaker(funcname, req, res, next));
         } else {
           return failedRequest(res);
         }

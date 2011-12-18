@@ -29,8 +29,9 @@
       map = {
         action: "delete"
       };
-      map.group = groupName;
-      map[idname] = data;
+      map.fqGroupName = groupName;
+      map.deltype = idname;
+      map.items = data;
       $.post(SITEPREFIX + path, JSON.stringify(map), function(resp) {
         recreate();
         return false;
@@ -164,9 +165,10 @@
   };
   createSavedSearches = function() {
     $('div#saved-searches').empty();
-    return $.getJSON(SITEPREFIX + '/savedsearches2', function(data) {
+    return $.getJSON(SITEPREFIX + '/savedsearchesforgroup2?fqGroupName=' + dagroup, function(data) {
       var searches;
-      searches = data.savedsearches;
+      console.log("DATA IS", data);
+      searches = data.savedsearchesforgroup;
       if (searches.hassearches) {
         return createSavedSearchSection(searches.savedsearches);
       } else {
@@ -210,14 +212,14 @@
     $div = $('div#saved-searches');
     $div.append(AjaxSolr.theme('saved_title', 'Saved Searches'));
     $div.append(AjaxSolr.theme('saved_items', 'searches', ['Date saved', 'Search terms'], rows, null, null));
-    $('#saved-searches-form').submit(submitDeleteAction('/deletesearches', 'searchid', createSavedSearches));
+    $('#saved-searches-form').submit(submitDeleteAction('/deletesearchesfromgroup', 'searches', createSavedSearches, dagroup));
     return $('#saved-searches-table').tablesorter(tsortopts);
   };
   createSavedPublications = function() {
     $('div#saved-pubs').empty();
-    return $.getJSON(SITEPREFIX + '/savedpubs2', function(data) {
+    return $.getJSON(SITEPREFIX + '/savedpubsforgroup2?fqGroupName=' + dagroup, function(data) {
       var pubs;
-      pubs = data.savedpubs;
+      pubs = data.savedpubsforgroup;
       if (pubs.haspubs) {
         return createSavedPublicationSection(pubs.savedpubs);
       } else {
@@ -243,14 +245,14 @@
     $div = $('div#saved-pubs');
     $div.append(AjaxSolr.theme('saved_title', 'Saved Publications'));
     $div.append(AjaxSolr.theme('saved_items', 'pubs', ['Date saved', 'Title', 'Bibcode'], rows, handlePublications(getBibTexFromADS), handlePublications(saveToMyADS)));
-    $('#saved-pubs-form').submit(submitDeleteAction('/deletepubs', 'pubid', createSavedPublications));
+    $('#saved-pubs-form').submit(submitDeleteAction('/deletepubsfromgroup', 'pubs', createSavedPublications, dagroup));
     return $('#saved-pubs-table').tablesorter(tsortopts);
   };
   createSavedObservations = function() {
     $('div#saved-obsvs').empty();
-    return $.getJSON(SITEPREFIX + '/savedobsvs2', function(data) {
+    return $.getJSON(SITEPREFIX + '/savedobsvsforgroup2?fqGroupName=' + dagroup, function(data) {
       var obsvs;
-      obsvs = data.savedobsvs;
+      obsvs = data.savedobsvsforgroup;
       if (obsvs.hasobsvs) {
         return createSavedObservationSection(obsvs.savedobsvs);
       } else {
@@ -276,7 +278,7 @@
     $div = $('div#saved-obsvs');
     $div.append(AjaxSolr.theme('saved_title', 'Saved Observations'));
     $div.append(AjaxSolr.theme('saved_items', 'obsvs', ['Date Observed', 'Obsid', 'Target'], rows, null, null));
-    $('#saved-obsvs-form').submit(submitDeleteAction('/deleteobsvs', 'obsvid', createSavedObservations));
+    $('#saved-obsvs-form').submit(submitDeleteAction('/deleteobsvsfromgroup', 'obsvs', createSavedObservations, dagroup));
     return $('#saved-obsvs-table').tablesorter(tsortopts);
   };
   noSavedSearches = function() {

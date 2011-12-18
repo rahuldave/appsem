@@ -76,7 +76,7 @@ request.post
                                                 cbH(e,r,b)
                                                 request.get
                                                     jar:j2
-                                                    url: REQHEAD+'getmembersofgroup?group=rahuldave@gmail.com/huns'
+                                                    url: REQHEAD+'getmembersofgroup?fqGroupName=rahuldave@gmail.com/huns'
                                                     , (e,r,b) ->
                                                         cbH(e,r,b)
                                                         request.post

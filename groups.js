@@ -8,16 +8,21 @@
   connectutils = require('connect').utils;
   url = require('url');
   redis_client = require("redis").createClient();
-  ifHaveEmail = function(req, res, cb, failopts) {
+  ifHaveEmail = function(fname, req, res, cb, failopts) {
+    var ecb;
     if (failopts == null) {
       failopts = {};
     }
+    ecb = httpcallbackmaker(fname, req, res);
     return ifLoggedIn(req, res, function(loginid) {
       return redis_client.get("email:" + loginid, function(err, email) {
+        if (err) {
+          return ecb(err, email);
+        }
         if (email) {
           return cb(email);
         } else {
-          return failedRequest(res, failopts);
+          return ecb(err, email);
         }
       });
     });
@@ -30,11 +35,11 @@
     return redis_client.multi(margs).exec(callback);
   };
   createGroup = function(_arg, req, res, next) {
-    var rawGroupName;
+    var rawGroupName, __fname;
     rawGroupName = _arg.rawGroupName;
-    console.log("In createGroup:");
-    return ifHaveEmail(req, res, function(email) {
-      return create_group(email, rawGroupName, httpcallbackmaker(req, res, next));
+    console.log(__fname = "createGroup:");
+    return ifHaveEmail(__fname, req, res, function(email) {
+      return create_group(email, rawGroupName, httpcallbackmaker(__fname, req, res, next));
     });
   };
   add_invitation_to_group = function(email, fqGroupName, userNames, callback) {
@@ -73,11 +78,11 @@
     });
   };
   addInvitationToGroup = function(_arg, req, res, next) {
-    var fqGroupName, userNames;
+    var fqGroupName, userNames, __fname;
     fqGroupName = _arg.fqGroupName, userNames = _arg.userNames;
-    console.log("In addInvitationToGroup");
-    return ifHaveEmail(req, res, function(email) {
-      return add_invitation_to_group(email, fqGroupName, userNames, httpcallbackmaker(req, res, next));
+    console.log(__fname = "addInvitationToGroup");
+    return ifHaveEmail(__fname, req, res, function(email) {
+      return add_invitation_to_group(email, fqGroupName, userNames, httpcallbackmaker(__fname, req, res, next));
     });
   };
   remove_invitation_from_group = function(email, fqGroupName, userNames, callback) {
@@ -116,11 +121,11 @@
     });
   };
   removeInvitationFromGroup = function(_arg, req, res, next) {
-    var fqGroupName, userNames;
+    var fqGroupName, userNames, __fname;
     fqGroupName = _arg.fqGroupName, userNames = _arg.userNames;
-    console.log("In removeUserFromGroup");
-    return ifHaveEmail(req, res, function(email) {
-      return remove_invitation_from_group(email, fqGroupName, userNames, httpcallbackmaker(req, res, next));
+    console.log(__fname = "removeUserFromGroup");
+    return ifHaveEmail(__fname, req, res, function(email) {
+      return remove_invitation_from_group(email, fqGroupName, userNames, httpcallbackmaker(__fname, req, res, next));
     });
   };
   accept_invitation_to_group = function(email, fqGroupName, callback) {
@@ -140,27 +145,27 @@
     });
   };
   acceptInvitationToGroup = function(_arg, req, res, next) {
-    var fqGroupName;
+    var fqGroupName, __fname;
     fqGroupName = _arg.fqGroupName;
-    console.log("In acceptInvitationToGroup");
-    return ifHaveEmail(req, res, function(email) {
-      return accept_invitation_to_group(email, fqGroupName, httpcallbackmaker(req, res, next));
+    console.log(__fname = "acceptInvitationToGroup");
+    return ifHaveEmail(__fname, req, res, function(email) {
+      return accept_invitation_to_group(email, fqGroupName, httpcallbackmaker(__fname, req, res, next));
     });
   };
   pendingInvitationToGroups = function(req, res, next) {
-    var changeTime;
-    console.log("In pendingInvitationToGroups");
+    var changeTime, __fname;
+    console.log(__fname = "pendingInvitationToGroups");
     changeTime = new Date().getTime();
-    return ifHaveEmail(req, res, function(email) {
-      return redis_client.smembers("invitationsto:" + email, httpcallbackmaker(req, res, next));
+    return ifHaveEmail(__fname, req, res, function(email) {
+      return redis_client.smembers("invitationsto:" + email, httpcallbackmaker(__fname, req, res, next));
     });
   };
   memberOfGroups = function(req, res, next) {
-    var changeTime;
-    console.log("In memberOfGroups");
+    var changeTime, __fname;
+    console.log(__fname = "memberOfGroups");
     changeTime = new Date().getTime();
-    return ifHaveEmail(req, res, function(email) {
-      return redis_client.smembers("memberof:" + email, httpcallbackmaker(req, res, next));
+    return ifHaveEmail(__fname, req, res, function(email) {
+      return redis_client.smembers("memberof:" + email, httpcallbackmaker(__fname, req, res, next));
     });
   };
   remove_user_from_group = function(email, fqGroupName, userNames, callback) {
@@ -196,12 +201,12 @@
     });
   };
   removeUserFromGroup = function(_arg, req, res, next) {
-    var changeTime, fqGroupName, userNames;
+    var changeTime, fqGroupName, userNames, __fname;
     fqGroupName = _arg.fqGroupName, userNames = _arg.userNames;
-    console.log("In removeUserFromGroup");
+    console.log(__fname = "removeUserFromGroup");
     changeTime = new Date().getTime();
-    return ifHaveEmail(req, res, function(email) {
-      return remove_user_from_group(email, fqGroupName, userNames, httpcallbackmaker(req, res, next));
+    return ifHaveEmail(__fname, req, res, function(email) {
+      return remove_user_from_group(email, fqGroupName, userNames, httpcallbackmaker(__fname, req, res, next));
     });
   };
   change_ownership_of_group = function(email, fqGroupName, newOwner, callback) {
@@ -224,11 +229,11 @@
     });
   };
   changeOwnershipOfGroup = function(_arg, req, res, next) {
-    var fqGroupName, newOwner;
+    var fqGroupName, newOwner, __fname;
     fqGroupName = _arg.fqGroupName, newOwner = _arg.newOwner;
-    console.log("In changeOwnershipOfGroup");
-    return ifHaveEmail(req, res, function(email) {
-      return change_ownership_of_group(email, fqGroupName, newOwner, httpcallbackmaker(req, res, next));
+    console.log(__fname = "changeOwnershipOfGroup");
+    return ifHaveEmail(__fname, req, res, function(email) {
+      return change_ownership_of_group(email, fqGroupName, newOwner, httpcallbackmaker(__fname, req, res, next));
     });
   };
   remove_oneself_from_group = function(email, fqGroupName, callback) {
@@ -248,11 +253,11 @@
     });
   };
   removeOneselfFromGroup = function(_arg, req, res, next) {
-    var fqGroupName;
+    var fqGroupName, __fname;
     fqGroupName = _arg.fqGroupName;
-    console.log("In removeOneselfFromGroup");
-    return ifHaveEmail(req, res, function(email) {
-      return remove_oneself_from_group(email, fqGroupName, httpcallbackmaker(req, res, next));
+    console.log(__fname = "removeOneselfFromGroup");
+    return ifHaveEmail(__fname, req, res, function(email) {
+      return remove_oneself_from_group(email, fqGroupName, httpcallbackmaker(__fname, req, res, next));
     });
   };
   delete_group = function(email, fqGroupName, callback) {
@@ -270,21 +275,21 @@
     });
   };
   deleteGroup = function(_arg, req, res, next) {
-    var fqGroupName;
+    var fqGroupName, __fname;
     fqGroupName = _arg.fqGroupName;
-    console.log("In deleteGroup:");
-    return ifHaveEmail(req, res, function(email) {
-      return delete_group(email, fqGroupName, httpcallbackmaker(req, res, next));
+    console.log(__fname = "deleteGroup:");
+    return ifHaveEmail(__fname, req, res, function(email) {
+      return delete_group(email, fqGroupName, httpcallbackmaker(__fname, req, res, next));
     });
   };
   getMembersOfGroup = function(req, res, next) {
-    var callback, changeTime, wantedGroup;
-    console.log("In getMembersOfGroup");
+    var callback, changeTime, wantedGroup, __fname;
+    console.log(__fname = "getMembersOfGroup");
     changeTime = new Date().getTime();
-    wantedGroup = req.query.group;
+    wantedGroup = req.query.fqGroupName;
     console.log("wantedGroup", wantedGroup);
-    callback = httpcallbackmaker(req, res, next);
-    return ifHaveEmail(req, res, function(email) {
+    callback = httpcallbackmaker(__fname, req, res, next);
+    return ifHaveEmail(__fname, req, res, function(email) {
       return redis_client.sismember("members:" + wantedGroup, email, function(err, reply) {
         if (err) {
           return callback(err, reply);

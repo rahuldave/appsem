@@ -44,7 +44,7 @@ fixtures.obsvs=["CHANDRA/13008", "CHANDRA/12502"]
 fixtures.savedobsvs=({savedobsv:o} for o in fixtures.obsvs)
 console.log fixtures
 
-thingstype='obsvs'
+thingstype='searches'
 things=fixtures[thingstype]
 savedthings=fixtures["saved#{thingstype}"]
 
@@ -82,6 +82,7 @@ request.post
                                     url: REQHEAD+"saved#{thingstype}forgroup2?fqGroupName=rahuldave@gmail.com/huns"
                                     , (e,r,b) ->
                                         cbH(e,r,b)
+"""                                        
                                         request.post
                                             jar: j2
                                             url: REQHEAD+"delete#{thingstype}fromgroup"
@@ -92,4 +93,5 @@ request.post
                                                     action:'delete'
                                             , (e,r,b) ->
                                                 cbH(e,r,b)
+"""
                                         

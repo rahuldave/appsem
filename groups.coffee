@@ -9,13 +9,16 @@ connectutils = require('connect').utils
 url = require 'url'
 redis_client = require("redis").createClient()
 
-ifHaveEmail = (req, res, cb, failopts = {}) ->
+ifHaveEmail = (fname, req, res, cb, failopts = {}) ->
+  ecb=httpcallbackmaker(fname, req, res)#No next as this is end of line
   ifLoggedIn req, res, (loginid) ->
     redis_client.get "email:#{loginid}", (err, email) ->
+        if err
+            return ecb err, email
         if email
             cb email
         else
-            failedRequest res, failopts
+            return ecb err, email
 #the current user creates a group, with himself in it
 #sets up a group hash and a group set and an invitations set param=groupname
 #sets it to email/groupname
@@ -32,9 +35,9 @@ create_group = (email, rawGroupName, callback) ->
         
 
 createGroup = ({rawGroupName}, req, res, next) ->
-  console.log "In createGroup:"
-  ifHaveEmail req, res, (email) ->
-    create_group email, rawGroupName, httpcallbackmaker(req, res, next)
+  console.log __fname="createGroup:"
+  ifHaveEmail __fname, req, res, (email) ->
+    create_group email, rawGroupName, httpcallbackmaker(__fname, req, res, next)
                      
 #you have to be added by somebody else to a group    
 #add another users comma seperated emails to the invitation set param=emails
@@ -56,9 +59,9 @@ add_invitation_to_group = (email, fqGroupName, userNames, callback)->
             return callback err, reply
             
 addInvitationToGroup = ({fqGroupName, userNames}, req, res, next) ->
-    console.log "In addInvitationToGroup"
-    ifHaveEmail req, res, (email) ->
-        add_invitation_to_group email, fqGroupName, userNames, httpcallbackmaker(req, res, next)
+    console.log __fname="addInvitationToGroup"
+    ifHaveEmail __fname, req, res, (email) ->
+        add_invitation_to_group email, fqGroupName, userNames, httpcallbackmaker(__fname, req, res, next)
 
 remove_invitation_from_group = (email, fqGroupName, userNames, callback) ->
     changeTime = new Date().getTime()
@@ -76,9 +79,9 @@ remove_invitation_from_group = (email, fqGroupName, userNames, callback) ->
             return callback err, reply
         
 removeInvitationFromGroup = ({fqGroupName, userNames}, req, res, next) ->
-    console.log "In removeUserFromGroup"
-    ifHaveEmail req, res, (email) ->
-        remove_invitation_from_group email, fqGroupName, userNames, httpcallbackmaker(req, res, next)
+    console.log __fname="removeUserFromGroup"
+    ifHaveEmail __fname, req, res, (email) ->
+        remove_invitation_from_group email, fqGroupName, userNames, httpcallbackmaker(__fname, req, res, next)
         
 
 accept_invitation_to_group = (email, fqGroupName, callback) ->
@@ -98,25 +101,25 @@ accept_invitation_to_group = (email, fqGroupName, callback) ->
             return callback err, reply
 #move the currently logged in user from invitations set to groups set. param=group    
 acceptInvitationToGroup = ({fqGroupName}, req, res, next) -> 
-    console.log "In acceptInvitationToGroup"
-    ifHaveEmail req, res, (email) -> 
-        accept_invitation_to_group email, fqGroupName, httpcallbackmaker(req, res, next)
+    console.log __fname="acceptInvitationToGroup"
+    ifHaveEmail __fname, req, res, (email) -> 
+        accept_invitation_to_group email, fqGroupName, httpcallbackmaker(__fname, req, res, next)
 
 #GET
 pendingInvitationToGroups = (req, res, next) -> 
-  console.log "In pendingInvitationToGroups"
+  console.log __fname="pendingInvitationToGroups"
   changeTime = new Date().getTime()
   
-  ifHaveEmail req, res, (email) ->
-    redis_client.smembers "invitationsto:#{email}", httpcallbackmaker(req, res, next)
+  ifHaveEmail __fname, req, res, (email) ->
+    redis_client.smembers "invitationsto:#{email}", httpcallbackmaker(__fname, req, res, next)
 
 #GET                    
 memberOfGroups = (req, res, next) -> 
-  console.log "In memberOfGroups"
+  console.log __fname="memberOfGroups"
   changeTime = new Date().getTime()
   
-  ifHaveEmail req, res, (email) ->
-    redis_client.smembers "memberof:#{email}", httpcallbackmaker(req, res, next)
+  ifHaveEmail __fname, req, res, (email) ->
+    redis_client.smembers "memberof:#{email}", httpcallbackmaker(__fname, req, res, next)
 #only owner of group can do this   params=groupname, username
 #BUG: currently not checking if any random people are being tried to be removed
 #will silently fail
@@ -136,11 +139,11 @@ remove_user_from_group = (email, fqGroupName, userNames, callback) ->
             return callback err, reply
                 
 removeUserFromGroup = ({fqGroupName, userNames}, req, res, next) ->
-  console.log "In removeUserFromGroup"
+  console.log __fname="removeUserFromGroup"
   changeTime = new Date().getTime()
 
-  ifHaveEmail req, res, (email) ->
-    remove_user_from_group email, fqGroupName, userNames, httpcallbackmaker(req, res, next)
+  ifHaveEmail __fname, req, res, (email) ->
+    remove_user_from_group email, fqGroupName, userNames, httpcallbackmaker(__fname, req, res, next)
 
 
 
@@ -159,9 +162,9 @@ change_ownership_of_group = (email, fqGroupName, newOwner, callback) ->
             return callback err, reply
     
 changeOwnershipOfGroup = ({fqGroupName, newOwner}, req, res, next) ->
-  console.log "In changeOwnershipOfGroup"
-  ifHaveEmail req, res, (email) ->
-    change_ownership_of_group email, fqGroupName, newOwner, httpcallbackmaker(req, res, next)
+  console.log __fname="changeOwnershipOfGroup"
+  ifHaveEmail __fname, req, res, (email) ->
+    change_ownership_of_group email, fqGroupName, newOwner, httpcallbackmaker(__fname, req, res, next)
         
 #remove currently logged in user from group. param=group
 #this will not affext one's existing assets in group
@@ -183,9 +186,9 @@ remove_oneself_from_group = (email, fqGroupName, callback) ->
             return callback err, reply
 
 removeOneselfFromGroup = ({fqGroupName}, req, res, next) ->
-    console.log "In removeOneselfFromGroup"
-    ifHaveEmail req, res, (email) ->
-        remove_oneself_from_group email, fqGroupName, httpcallbackmaker(req, res, next)
+    console.log __fname="removeOneselfFromGroup"
+    ifHaveEmail __fname, req, res, (email) ->
+        remove_oneself_from_group email, fqGroupName, httpcallbackmaker(__fname, req, res, next)
         #fqGroupName="#{email}/#{rawGroupName}"
         
 #remove a group owned by currently logged in user param=group
@@ -220,20 +223,20 @@ delete_group=(email, fqGroupName, callback)->
 
 #  ['del', "savedby:#{fqGroupName}"],  
 deleteGroup = ({fqGroupName}, req, res, next) ->
-  console.log "In deleteGroup:"
-  ifHaveEmail req, res, (email) ->
-    delete_group email, fqGroupName, httpcallbackmaker(req, res, next)
+  console.log __fname="deleteGroup:"
+  ifHaveEmail __fname, req, res, (email) ->
+    delete_group email, fqGroupName, httpcallbackmaker(__fname, req, res, next)
 
 
 #GET
 getMembersOfGroup = (req, res, next) ->
-    console.log "In getMembersOfGroup"
+    console.log __fname="getMembersOfGroup"
     changeTime = new Date().getTime()
-    wantedGroup=req.query.group
+    wantedGroup=req.query.fqGroupName
     console.log "wantedGroup", wantedGroup
-    callback =  httpcallbackmaker(req, res, next)
-    ifHaveEmail req, res, (email) ->
-        redis_client.sismember "members:#{wantedGroup}", email, (err, reply)->
+    callback =  httpcallbackmaker(__fname, req, res, next)
+    ifHaveEmail __fname, req, res, (email) ->
+        redis_client.sismember "members:#{wantedGroup}", email, (err, reply) ->
             if err
                 return callback err, reply
             if reply    

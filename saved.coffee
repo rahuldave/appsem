@@ -593,6 +593,7 @@ _doRemoveSearchesFromGroup = (email, group, searchtype, searchids, callback) ->
         sididxs=(sididx for sididx in [0...replies.length] when replies[sididx] isnt null)
         console.log "sididxs", sididxs
         mysidstodelete=(searchids[idx] for idx in sididxs)
+        #Should error out here if null so that we can use that in UI to say you are not owner, or should we?
         margs2=(['hget', savedingroupshash, searchids[idx]] for idx in sididxs)
         redis_client.multi(margs2).exec (errj, groupjsonlist) ->
             if errj

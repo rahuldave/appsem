@@ -150,7 +150,10 @@ root.fieldname_map =
   t_resolution_f: 'Temporal resolution'
 
 setLoggedIn = (email) ->
-  $('a#logouthref').text "logout #{email}"
+  $('a#logouthref').text "logout"
+  $('a#userhref').text("[#{email}]").attr('href', "#{dasiteprefix}/explorer/user?fqUserName=#{email}")
+  $('a#brandhref').attr('href', "#{dasiteprefix}/explorer/user?fqUserName=#{email}")
+  console.log "SETLOGGEDIN-------------#{email}"
   for elem in $('.userloggedin')
     $(elem).show()
   for elem in $('.userloggedout')
@@ -159,6 +162,7 @@ setLoggedIn = (email) ->
   mediator.publish 'user/login', email
 
 setLoggedOut = () ->
+  $('a#brandhref').attr('href', "#{dasiteprefix}/explorer/publications")
   for elem in $('.userloggedout')
     $(elem).show()
   for elem in $('.userloggedin')

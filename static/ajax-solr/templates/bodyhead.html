@@ -1,21 +1,50 @@
-<div class="topbar">
+<div class="topbar" data-dropdown="dropdown">
     <div class="topbar-inner">
         <div class="container-fluid">
-            <a class="brand" href="#">AstroExplorer&nbsp;<sup>&alpha;:1</sup></a>
+            <a id="brandhref" class="brand" href="#">AstroExplorer&nbsp;<sup>&alpha;:2</sup></a>
             <ul class="nav"> 
                 <li class="{{ isitchosenpublications }}"><a href="{{ siteprefix }}/explorer/publications">Publications</a></li> 
-                <li class="{{ isitchosenobjects }}"><a href="{{ siteprefix }}/explorer/objects">Objects</a></li>
+                
                 <li class="{{ isitchosenobservations }}"><a href="{{ siteprefix }}/explorer/observations">Observations</a></li>
-                <li class="{{ isitchosenproposals }}"><a href="{{ siteprefix }}/explorer/proposals">Proposals</a></li>
-                <li class="{{ isitchosensaved }}"><a href="{{ siteprefix }}/explorer/saved">Saved</a></li>
+                <li class="{{ isitchosenobjects }}"><a href="{{ siteprefix }}/explorer/objects">Objects</a></li>
+                <!--li class="{{ isitchosenproposals }}"><a href="{{ siteprefix }}/explorer/proposals">Proposals</a></li-->
+                <li>&nbsp;&nbsp;</li>
+                <li><img height="36" src="{{ staticprefix }}/images/vao.png"></img></li>
+                <li>&nbsp;&nbsp;</li>
+                <li><img height="36" src="{{ staticprefix }}/images/adslogo_labs.jpg"></img></li>
             </ul>
-            <form class="pull-left">
+            <!--form class="pull-left">
                 <input type="text" id="querybig" name="query"/>&nbsp;&nbsp;<a  id="gosearch" style="cursor: pointer;">Go</a>
-            </form>
-            <p class="pull-right">
+            </form!-->
+            <!--p class="pull-right  {{isitchosenuser}}">
                 <a href="#" class="userlogin userloggedout" id="loginhref" style="display: none; cursor: pointer;">login</a>
+                <a id="userhref" class="userloggedin" style="display: none; cursor: pointer;"></a>
                 <a id="logouthref" class="userloggedin" style="display: none; cursor: pointer;">logout</a>
-	        </p> 
+	        </p-->
+            <ul class="nav secondary-nav pull-right"> 
+                <li class="{{ isitchosensaved }}"><a href="{{ siteprefix }}/explorer/saved">Saved</a></li>
+                <li  class="menu dropdown {{ isitchosengroup }}"> 
+                    <a class="dropdown-toggle menu" href="#" id="groups">Groups</a> 
+                    <ul class="menu-dropdown"> 
+                        <li><a href="#">New Group</a></li>
+                        <li class="divider"></li>
+                    </ul> 
+                </li>
+                <li>
+                    <a href="#" class="userlogin userloggedout" id="loginhref" style="display: none; cursor: pointer;">login</a>
+                </li>
+                <li class="{{isitchosenuser}}">
+                    <a id="userhref" class="userloggedin" style="display: none; cursor: pointer;"></a>
+                </li>
+                <li>
+                    <a id="logouthref" class="userloggedin" style="display: none; cursor: pointer;">logout</a>
+                </li>
+                
+            </ul>
+             
+            
+
+            
         </div> 
     </div>
 </div>

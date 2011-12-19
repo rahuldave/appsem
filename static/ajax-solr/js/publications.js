@@ -183,7 +183,7 @@ var PublicationsManager;
 	    'facet.field': facet_fields,
 	    'facet.limit': 20, // change this to set autocompletion limits differently...or solr 1.5
 	    'facet.mincount': 1,
-	    'f.topics.facet.limit': 50,
+	    //'f.topics.facet.limit': 50,
 	    'json.nl': 'map',
 	    'sort':'citationcount_i desc',
 	    'rows':20,

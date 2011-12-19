@@ -67,6 +67,7 @@ _doSaveSearchToGroup = (savedBy, fqGroupName, savedhashlist, searchtype, callbac
     redis_client.sismember "members:#{fqGroupName}", savedBy, (err, is_member)->
         if err
             return callback err, is_member
+        #BUG I do not check if user has saved stuff first. Shouldnt I do that?
         if is_member
             margs=(['hexists', "savedby:#{fqGroupName}", savedhash[savedtype]] for savedhash in savedhashlist)
             redis_client.multi(margs).exec (err2, replies) ->

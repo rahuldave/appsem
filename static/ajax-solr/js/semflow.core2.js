@@ -125,7 +125,10 @@
   };
   setLoggedIn = function(email) {
     var elem, _i, _j, _len, _len2, _ref, _ref2;
-    $('a#logouthref').text("logout " + email);
+    $('a#logouthref').text("logout");
+    $('a#userhref').text("[" + email + "]").attr('href', "" + dasiteprefix + "/explorer/user?fqUserName=" + email);
+    $('a#brandhref').attr('href', "" + dasiteprefix + "/explorer/user?fqUserName=" + email);
+    console.log("SETLOGGEDIN-------------" + email);
     _ref = $('.userloggedin');
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       elem = _ref[_i];
@@ -140,6 +143,7 @@
   };
   setLoggedOut = function() {
     var elem, _i, _j, _len, _len2, _ref, _ref2;
+    $('a#brandhref').attr('href', "" + dasiteprefix + "/explorer/publications");
     _ref = $('.userloggedout');
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       elem = _ref[_i];

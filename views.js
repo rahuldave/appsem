@@ -2,7 +2,7 @@
   /*
   Create the different views/pages for the application.
   */
-  var SITEPREFIX, STATICPREFIX, TEMPLATEDIR, bodybodygroup, bodybodyobsv, bodybodypub, bodybodysaved, config, doGroup, doObservations, doPublications, doSaved, doView, fs, getTemplate, globpartialsjson, maint, mustache, partials, redis_client, url;
+  var SITEPREFIX, STATICPREFIX, TEMPLATEDIR, bodybodygroup, bodybodyobsv, bodybodypub, bodybodysaved, bodybodyuser, config, doGroup, doObservations, doPublications, doSaved, doUser, doView, fs, getTemplate, globpartialsjson, maint, mustache, partials, redis_client, url;
   fs = require('fs');
   url = require('url');
   mustache = require('mustache');
@@ -25,18 +25,23 @@
   bodybodyobsv = getTemplate('bodybody_observations.html');
   bodybodysaved = getTemplate('bodybody_saved.html');
   bodybodygroup = getTemplate('bodybody_group.html');
+  bodybodyuser = getTemplate('bodybody_user.html');
   doView = function(name, body, view) {
     return function(req, res, next) {
-      var camefrom, group, lpartials, _ref;
+      var camefrom, group, lpartials, user, _ref, _ref2;
       console.log("== doView: name=" + name + " url=" + req.url + " referer=" + req.headers.referer + " originalUrl=" + req.originalUrl);
       camefrom = url.parse(req.url, true).query.camefrom;
       console.log("== request from: " + camefrom + " Query  " + req.query);
       group = (_ref = req.query.fqGroupName) != null ? _ref : 'default';
-      console.log("GROUP", group, name);
+      user = (_ref2 = req.query.fqUserName) != null ? _ref2 : 'default';
+      console.log("GROUP", group, name, user);
       view.bodyhead.current_url = req.url;
       view.pagehead.group = group;
       view.bodyhead.group = group;
       view.bodybody.group = group;
+      view.pagehead.user = user;
+      view.bodyhead.user = user;
+      view.bodybody.user = user;
       lpartials = JSON.parse(globpartialsjson);
       lpartials.bodybody = body;
       res.writeHead(200, {
@@ -130,8 +135,30 @@
       }
     }
   });
+  doUser = doView("User", bodybodyuser, {
+    pagehead: {
+      pagetitle: 'Home',
+      pageclass: 'user',
+      haswidgets: false,
+      siteprefix: SITEPREFIX,
+      staticprefix: STATICPREFIX,
+      jsdir: 'coffee'
+    },
+    bodyhead: {
+      isitchosenuser: 'active',
+      siteprefix: SITEPREFIX,
+      staticprefix: STATICPREFIX
+    },
+    bodybody: {
+      bodyright: {
+        siteprefix: SITEPREFIX,
+        staticprefix: STATICPREFIX
+      }
+    }
+  });
   exports.doPublications = doPublications;
   exports.doObservations = doObservations;
   exports.doSaved = doSaved;
   exports.doGroup = doGroup;
+  exports.doUser = doUser;
 }).call(this);

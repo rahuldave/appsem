@@ -29,6 +29,7 @@ bodybodyobsv   = getTemplate 'bodybody_observations.html'
 # bodybodysearch = getTemplate 'bodybody_search.html'
 bodybodysaved  = getTemplate 'bodybody_saved.html'
 bodybodygroup  = getTemplate 'bodybody_group.html'
+bodybodyuser  = getTemplate 'bodybody_user.html'
 
 # Create the view.
 #   name is for logging and should identify the view
@@ -42,7 +43,8 @@ doView = (name, body, view) ->
     console.log "== request from: #{camefrom} Query  #{req.query}"
     #An application page may be group specific
     group=req.query.fqGroupName ? 'default'
-    console.log "GROUP", group, name
+    user=req.query.fqUserName ? 'default'
+    console.log "GROUP", group, name, user
     # Add in current URL to the view
     # (could be conditional on presence of bodyhead)
     #
@@ -50,6 +52,10 @@ doView = (name, body, view) ->
     view.pagehead.group=group
     view.bodyhead.group=group
     view.bodybody.group=group
+    
+    view.pagehead.user=user
+    view.bodyhead.user=user
+    view.bodybody.user=user
     #view.bodybody.bodyright.group=group
     
     lpartials = JSON.parse globpartialsjson
@@ -135,9 +141,30 @@ doGroup = doView "Group", bodybodygroup,
           bodyright:
             siteprefix: SITEPREFIX
             staticprefix: STATICPREFIX
+            
+doUser = doView "User", bodybodyuser,
+        pagehead:
+          pagetitle: 'Home'
+          pageclass: 'user'
+          haswidgets: false
+          siteprefix: SITEPREFIX
+          staticprefix: STATICPREFIX
+          jsdir: 'coffee'
+
+        bodyhead:
+          isitchosenuser: 'active'
+          siteprefix: SITEPREFIX
+          staticprefix: STATICPREFIX
+
+        bodybody:
+          bodyright:
+            siteprefix: SITEPREFIX
+            staticprefix: STATICPREFIX            
 
 exports.doPublications = doPublications
 exports.doObservations = doObservations
 exports.doSaved = doSaved
 exports.doGroup = doGroup
+exports.doUser = doUser
+
 

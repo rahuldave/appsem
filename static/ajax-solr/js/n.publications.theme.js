@@ -56,11 +56,11 @@
     // pivot_link that doesn't.
     //
     AjaxSolr.theme.prototype.pivot = function (pivotclass){
-        return $('<a facet_field="'+pivotclass+'" class="pivotlink '+pivotclass+'" href="#"/>').text(' [P]');
+        return $('<a facet_field="'+pivotclass+'" class="label important pivotlink '+pivotclass+'" href="#"/>').text('P');
     }
     //HANDLER
     AjaxSolr.theme.prototype.pivot_link = function (handler) {
-        return $('<a href="#"/>').text(' [P]').click(handler);
+        return $('<a class="label important pivotlink" href="#"/>').text('P').click(handler);
     }
     //HANDLER
     //if value has quotes or single quotes, escape it BUG not done yet just do it.

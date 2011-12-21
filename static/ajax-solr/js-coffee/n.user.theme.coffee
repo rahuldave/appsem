@@ -4,7 +4,7 @@ $ = jQuery
 
 # Create a title for a saved item (e.g. searches or publications) area.
 
-AjaxSolr.theme.prototype.section_title = (text) -> $('<h1/>').text text
+AjaxSolr.theme.prototype.section_title = (text) -> $('<h3/>').text text
 
 # Set or unset all the buttons in the table.
 
@@ -14,19 +14,25 @@ changeAllButtons = (newstate) ->
     return true
 
 # Create the form actions for the saved-item form.
-
+AjaxSolr.theme.prototype.owner_groups_formactions = () ->
+  return $('<div class="formactions"/>')
+    .append($('<input type="button" class="btn small" value="Mark all"/>').click(changeAllButtons true))
+    .append($('<input type="button" class="btn small" value="Clear all"/>').click(changeAllButtons false))
+    .append($('<input type="submit" class="btn small danger" value="Delete Groups" name="action"/>'))
+    .append($('<input type="submit" class="btn small primary" value="Add Group" name="action"/>'))
 AjaxSolr.theme.prototype.member_groups_formactions = () ->
   return $('<div class="formactions"/>')
-    .append($('<input type="button" value="Mark all"/>').click(changeAllButtons true))
-    .append($('<input type="button" value="Clear all"/>').click(changeAllButtons false))
-    .append($('<input type="submit" value="Unsubscribe Groups" name="action"/>'))
+    .append($('<input type="button" class="btn small" value="Mark all"/>').click(changeAllButtons true))
+    .append($('<input type="button" class="btn small" value="Clear all"/>').click(changeAllButtons false))
+    .append($('<input type="submit" class="btn small danger" value="Unsubscribe" name="action"/>'))
 
 AjaxSolr.theme.prototype.pending_invitations_formactions = () ->
   return $('<div class="formactions"/>')
-    .append($('<input type="button" value="Mark all"/>').click(changeAllButtons true))
-    .append($('<input type="button" value="Clear all"/>').click(changeAllButtons false))
-    .append($('<input type="submit" value="Accept invitations" name="action"/>'))
-    .append($('<input type="submit" value="Decline invitations" name="action"/>'))        
+    .append($('<input type="button" class="btn small" value="Mark all"/>').click(changeAllButtons true))
+    .append($('<input type="button" class="btn small" value="Clear all"/>').click(changeAllButtons false))
+    .append($('<input type="submit" class="btn small danger" value="Decline" name="action"/>'))
+    .append($('<input type="submit" class="btn small info" value="Accept" name="action"/>'))
+               
 
 # Create the THEAD block for the saved-item table.
 #

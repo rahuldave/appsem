@@ -1,5 +1,5 @@
 (function() {
-  var $, createMemberOfGroups, createMemberOfGroupsSection, createPendingInvitations, createPendingInvitationsSection, makeMemberOfGroupsSectionRow, makePendingInvitationsSectionRow, noMemberOfGroups, noPendingInvitations, submitDeleteAction, submitDeleteActionInvitations;
+  var $, createMemberOfGroups, createMemberOfGroupsSection, createOwnerOfGroups, createOwnerOfGroupsSection, createPendingInvitations, createPendingInvitationsSection, makeMemberOfGroupsSectionRow, makeOwnerOfGroupsSectionRow, makePendingInvitationsSectionRow, noMemberOfGroups, noOwnerOfGroups, noPendingInvitations, submitDeleteAction, submitDeleteActionInvitations, submitDeleteActionOwnerGroups;
   var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
   $ = jQuery;
   submitDeleteAction = function(path, idname, recreate) {
@@ -187,7 +187,99 @@
     $('div#pending_invitations').append(AjaxSolr.theme('saved_title', 'No Pending Invitations To Groups'));
     return true;
   };
+  submitDeleteActionOwnerGroups = function(path, idname, recreate) {
+    return function() {
+      var data, datamap, ele, item, map, _i, _len;
+      data = (function() {
+        var _i, _len, _ref, _results;
+        _ref = $(this).find('input[type=checkbox][checked|=true]');
+        _results = [];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          item = _ref[_i];
+          _results.push(item.value);
+        }
+        return _results;
+      }).call(this);
+      if (data.length === 0) {
+        alert("No items have been selected.");
+        return false;
+      }
+      datamap = (function() {
+        var _i, _len, _results;
+        _results = [];
+        for (_i = 0, _len = data.length; _i < _len; _i++) {
+          ele = data[_i];
+          _results.push({
+            idname: ele
+          });
+        }
+        return _results;
+      })();
+      for (_i = 0, _len = datamap.length; _i < _len; _i++) {
+        map = datamap[_i];
+        $.post(SITEPREFIX + path, JSON.stringify(map), function(resp) {
+          recreate();
+          return false;
+        });
+      }
+      return false;
+    };
+  };
+  createOwnerOfGroups = function() {
+    $('div#owner_groups').empty();
+    return $.getJSON(SITEPREFIX + '/ownerofgroups', function(data) {
+      var status;
+      status = data.status === 'SUCCESS';
+      if (status) {
+        return createOwnerOfGroupsSection(data.ownerOfGroups);
+      } else {
+        return noOwnerOfGroups();
+      }
+    });
+  };
+  makeOwnerOfGroupsSectionRow = function(s) {
+    var frag;
+    frag = s.replace(/\//g, '-').replace('@', '_at_').replace(/\./g, '_dot_');
+    return [$('<input type="checkbox" name="groupid"/>').attr('value', s), $('<a/>').attr('href', "" + SITEPREFIX + "/explorer/group?fqGroupName=" + s).text(s), $("<span id=\"og_" + frag + "\">")];
+  };
+  createOwnerOfGroupsSection = function(groups) {
+    var $div, idx, ngroup, rows, s, _ref, _results;
+    ngroup = groups.length;
+    rows = (function() {
+      var _i, _len, _results;
+      _results = [];
+      for (_i = 0, _len = groups.length; _i < _len; _i++) {
+        s = groups[_i];
+        _results.push(makeOwnerOfGroupsSectionRow(s));
+      }
+      return _results;
+    })();
+    $div = $('div#owner_groups');
+    $div.append(AjaxSolr.theme('section_title', 'Groups you are the owner of:'));
+    $div.append(AjaxSolr.theme('section_items', 'owner_groups', ['Group Name', 'Members'], rows));
+    $('#owner_groups-form').submit(submitDeleteActionOwnerGroups('/deletegroup', 'fqGroupName', createOwnerOfGroups));
+    _results = [];
+    for (idx = 0, _ref = groups.length; 0 <= _ref ? idx < _ref : idx > _ref; 0 <= _ref ? idx++ : idx--) {
+      _results.push($.getJSON(SITEPREFIX + ("/getmembersofgroup?fqGroupName=" + groups[idx]), __bind(function(idx) {
+        return function(data) {
+          var frag, grouptext;
+          frag = groups[idx].replace(/\//g, '-').replace('@', '_at_').replace(/\./g, '_dot_');
+          grouptext = data.getMembersOfGroup.join(', ');
+          $("#og_" + frag).text(grouptext);
+          if (idx === (groups.length - 1)) {
+            return $('#owner_groups-table').tablesorter();
+          }
+        };
+      }, this)(idx)));
+    }
+    return _results;
+  };
+  noOwnerOfGroups = function() {
+    $('div#owner_groups').append(AjaxSolr.theme('saved_title', 'No Groups you are a owner of'));
+    return true;
+  };
   mediator.subscribe('user/login', function(email) {
+    createOwnerOfGroups();
     createPendingInvitations();
     return createMemberOfGroups();
   });

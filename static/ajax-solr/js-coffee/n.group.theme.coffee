@@ -4,7 +4,7 @@ $ = jQuery
 
 # Create a title for a saved item (e.g. searches or publications) area.
 
-AjaxSolr.theme.prototype.saved_title = (text) -> $('<h1/>').text text
+AjaxSolr.theme.prototype.saved_title = (text) -> $('<h3/>').text text
 
 # Set or unset all the buttons in the table.
 

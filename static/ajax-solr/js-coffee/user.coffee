@@ -51,6 +51,7 @@ createMemberOfGroupsSection = (groups) ->
         (data)->
             frag=groups[idx].replace(/\//g, '-').replace('@', '_at_').replace(/\./g, '_dot_')
             grouptext=data.getMembersOfGroup.join ', '
+            #console.log grouptext
             $("#mg_#{frag}").text grouptext
             $('#member_groups-table').tablesorter() if idx is (groups.length-1)
 
@@ -120,8 +121,67 @@ createPendingInvitationsSection = (groups) ->
 noPendingInvitations = () ->
   $('div#pending_invitations').append AjaxSolr.theme('saved_title', 'No Pending Invitations To Groups')
   return true  
-  
+
+submitDeleteActionOwnerGroups = (path, idname, recreate) ->
+    return () ->
+      data = (item.value for item in $(this).find('input[type=checkbox][checked|=true]'))
+      if data.length is 0
+        alert "No items have been selected."
+        return false
+
+      datamap= ({idname:ele} for ele in data)
+      for map in datamap
+          $.post SITEPREFIX+path, JSON.stringify(map), (resp) ->
+            recreate()
+            return false
+
+      return false
+
+createOwnerOfGroups = () ->
+    $('div#owner_groups').empty()
+    $.getJSON SITEPREFIX + '/ownerofgroups', (data) ->
+      status = data.status is 'SUCCESS'
+      if status
+        createOwnerOfGroupsSection data.ownerOfGroups
+      else
+        noOwnerOfGroups()
+
+
+makeOwnerOfGroupsSectionRow = (s) ->
+    frag=s.replace(/\//g, '-').replace('@', '_at_').replace(/\./g, '_dot_')
+    [$('<input type="checkbox" name="groupid"/>').attr('value', s),
+     $('<a/>').attr('href', "#{SITEPREFIX}/explorer/group?fqGroupName=#{s}").text(s),
+     $("<span id=\"og_"+frag+"\">")]
+
+    #makeSearchText s.searchuri]
+
+createOwnerOfGroupsSection = (groups) ->
+    ngroup = groups.length
+
+    rows = (makeOwnerOfGroupsSectionRow s for s in groups)
+    $div = $('div#owner_groups')
+    $div.append AjaxSolr.theme('section_title', 'Groups you are the owner of:')
+    $div.append AjaxSolr.theme('section_items', 'owner_groups',
+      ['Group Name', 'Members'], rows)
+      #handleSearches(getBibTexFromADS),
+      #handleSearches(saveToMyADS))
+
+    $('#owner_groups-form').submit submitDeleteActionOwnerGroups('/deletegroup', 'fqGroupName', createOwnerOfGroups)
+    for idx in [0...groups.length]
+      $.getJSON SITEPREFIX+"/getmembersofgroup?fqGroupName=#{groups[idx]}", do (idx) =>
+          (data)->
+              frag=groups[idx].replace(/\//g, '-').replace('@', '_at_').replace(/\./g, '_dot_')
+              grouptext=data.getMembersOfGroup.join ', '
+              $("#og_#{frag}").text grouptext
+              $('#owner_groups-table').tablesorter() if idx is (groups.length-1)
+
+
+noOwnerOfGroups = () ->
+    $('div#owner_groups').append AjaxSolr.theme('saved_title', 'No Groups you are a owner of')
+    return true
+      
 mediator.subscribe 'user/login', (email) ->
+  createOwnerOfGroups()
   createPendingInvitations()
   createMemberOfGroups()
 

@@ -75,7 +75,7 @@ AjaxSolr.CurrentSearchWidget = AjaxSolr.AbstractWidget.extend
     for c in (self.splitConstraint(cstr) for cstr in fq)
       $span = $('<span class="facetvalue"/>')
       $link = $('<a href="#"/>')
-        .text("(x) #{c.label}")
+        .text("(x) #{c.label} ")
         .click(self.removeFacet c.constraint)
       $pivot = AjaxSolr.theme 'pivot_link',
         self.pivotHandler(c.constraint)

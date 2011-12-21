@@ -2,7 +2,7 @@
   var $, changeAllButtons;
   $ = jQuery;
   AjaxSolr.theme.prototype.saved_title = function(text) {
-    return $('<h1/>').text(text);
+    return $('<h3/>').text(text);
   };
   changeAllButtons = function(newstate) {
     return function() {

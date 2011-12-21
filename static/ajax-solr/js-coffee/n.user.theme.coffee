@@ -15,13 +15,18 @@ changeAllButtons = (newstate) ->
 
 # Create the form actions for the saved-item form.
 
-AjaxSolr.theme.prototype.saved_formactions = () ->
+AjaxSolr.theme.prototype.member_groups_formactions = () ->
   return $('<div class="formactions"/>')
     .append($('<input type="button" value="Mark all"/>').click(changeAllButtons true))
     .append($('<input type="button" value="Clear all"/>').click(changeAllButtons false))
-    .append($('<input type="submit" value="Delete marked" name="action"/>'))
+    .append($('<input type="submit" value="Unsubscribe Groups" name="action"/>'))
 
-        
+AjaxSolr.theme.prototype.pending_invitations_formactions = () ->
+  return $('<div class="formactions"/>')
+    .append($('<input type="button" value="Mark all"/>').click(changeAllButtons true))
+    .append($('<input type="button" value="Clear all"/>').click(changeAllButtons false))
+    .append($('<input type="submit" value="Accept invitations" name="action"/>'))
+    .append($('<input type="submit" value="Decline invitations" name="action"/>'))        
 
 # Create the THEAD block for the saved-item table.
 #
@@ -29,7 +34,7 @@ AjaxSolr.theme.prototype.saved_formactions = () ->
 #
 # The first column is created empty and should not be included in cols.
 
-AjaxSolr.theme.prototype.saved_tablehead = (cols) ->
+AjaxSolr.theme.prototype.section_tablehead = (cols) ->
   $tr = $('<tr/>').append('<th/>')
   for name in cols
     $tr.append $('<th/>').text(name)
@@ -40,7 +45,7 @@ AjaxSolr.theme.prototype.saved_tablehead = (cols) ->
 #
 #   row is an array of items to store in the table
 
-AjaxSolr.theme.prototype.saved_tablerow = (row) ->
+AjaxSolr.theme.prototype.section_tablerow = (row) ->
   $out = $('<tr class="saveditem"/>')
   for value in row
     $out.append $('<td/>').append($(value))
@@ -59,17 +64,16 @@ AjaxSolr.theme.prototype.saved_tablerow = (row) ->
 #   bibtexHandler is the click handler for the 'export as BibTex' button
 #   myADSHandler is the click handler for the 'export to myADS' button
 
-AjaxSolr.theme.prototype.section_items = (idfrag, cols, rows) ->
-  $out = $('<form action="#"/>').attr 'id', "saved-#{idfrag}-form"
-  $actions = AjaxSolr.theme 'saved_formactions'
-
+AjaxSolr.theme.prototype.section_items = (idfrag, cols, rows, addfunc=null) ->
+  $out = $('<form action="#"/>').attr 'id', "#{idfrag}-form"
+  $actions = AjaxSolr.theme "#{idfrag}_formactions"
   $table = $('<table class="tablesorter"/>')
-    .attr('id', "saved-#{idfrag}-table")
-    .append(AjaxSolr.theme 'saved_tablehead', cols)
+    .attr('id', "#{idfrag}-table")
+    .append(AjaxSolr.theme 'section_tablehead', cols)
 
   $tbody = $('<tbody/>')
   for value in rows
-    $tbody.append(AjaxSolr.theme 'saved_tablerow', value)
+    $tbody.append(AjaxSolr.theme "section_tablerow", value)
 
   $table.append $tbody
   $out.append($actions).append($table)

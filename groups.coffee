@@ -29,7 +29,8 @@ create_group = (email, rawGroupName, callback) ->
     margs = [
         ['hmset', "group:#{fqGroupName}", 'owner', email, 'initialOwner', email, 'createdAt', changeTime, 'changedAt', changeTime],
         ['sadd', "members:#{fqGroupName}", email],
-        ['sadd', "memberof:#{email}", fqGroupName]
+        ['sadd', "memberof:#{email}", fqGroupName],
+        ['sadd', "ownerof:#{email}", fqGroupName]
     ]
     redis_client.multi(margs).exec callback
         
@@ -105,6 +106,25 @@ acceptInvitationToGroup = ({fqGroupName}, req, res, next) ->
     ifHaveEmail __fname, req, res, (email) -> 
         accept_invitation_to_group email, fqGroupName, httpcallbackmaker(__fname, req, res, next)
 
+
+decline_invitation_to_group = (email, fqGroupName, callback) ->
+    changeTime = new Date().getTime()
+    redis_client.sismember "invitations:#{fqGroupName}", email, (err, reply)->
+        if err
+            return callback err, reply
+        if reply
+            margs = [
+                ['srem', "invitations:#{fqGroupName}", email],
+                ['srem', "invitationsto:#{email}", fqGroupName]
+            ]
+            redis_client.multi(margs).exec callback
+        else
+            return callback err, reply
+#move the currently logged in user from invitations set to groups set. param=group    
+declineInvitationToGroup = ({fqGroupName}, req, res, next) -> 
+    console.log __fname="declineInvitationToGroup"
+    ifHaveEmail __fname, req, res, (email) -> 
+        decline_invitation_to_group email, fqGroupName, httpcallbackmaker(__fname, req, res, next)
 #GET
 pendingInvitationToGroups = (req, res, next) -> 
   console.log __fname="pendingInvitationToGroups"
@@ -120,6 +140,14 @@ memberOfGroups = (req, res, next) ->
   
   ifHaveEmail __fname, req, res, (email) ->
     redis_client.smembers "memberof:#{email}", httpcallbackmaker(__fname, req, res, next)
+    
+#GET                    
+ownerOfGroups = (req, res, next) -> 
+  console.log __fname="ownerOfGroups"
+  changeTime = new Date().getTime()
+  
+  ifHaveEmail __fname, req, res, (email) ->
+    redis_client.smembers "ownerof:#{email}", httpcallbackmaker(__fname, req, res, next)    
 #only owner of group can do this   params=groupname, username
 #BUG: currently not checking if any random people are being tried to be removed
 #will silently fail
@@ -157,7 +185,13 @@ change_ownership_of_group = (email, fqGroupName, newOwner, callback) ->
             cParams = 
                 owner:newOwner
                 changedAt:changeTime
-            redis_client.hmset "group:#{fqGroupName}", cParams, callback
+            margs=[
+                ['hset', "group:#{fqGroupName}", 'owner', newOwner],
+                ['hset', "group:#{fqGroupName}", 'changedAt', changeTime],
+                ['srem', "owner:#{email}", fqGroupName],
+                ['sadd', "owner:#{newOwner}", fqGroupName]
+            ]
+            redis_client.multi(margs).exec callback
         else
             return callback err, reply
     
@@ -189,6 +223,8 @@ removeOneselfFromGroup = ({fqGroupName}, req, res, next) ->
     console.log __fname="removeOneselfFromGroup"
     ifHaveEmail __fname, req, res, (email) ->
         remove_oneself_from_group email, fqGroupName, httpcallbackmaker(__fname, req, res, next)
+              
+
         #fqGroupName="#{email}/#{rawGroupName}"
         
 #remove a group owned by currently logged in user param=group
@@ -243,11 +279,34 @@ getMembersOfGroup = (req, res, next) ->
                 redis_client.smembers "members:#{wantedGroup}", callback
             else
                 return callback err, reply 
+                
+#GET
+getGroupInfo = (req, res, next) ->
+    console.log __fname="getGroupInfo"
+    changeTime = new Date().getTime()
+    wantedGroup=req.query.fqGroupName
+    console.log "wantedGroup", wantedGroup
+    callback =  httpcallbackmaker(__fname, req, res, next)
+    ifHaveEmail __fname, req, res, (email) ->
+        redis_client.sismember "members:#{wantedGroup}", email, (err, reply) ->
+            if err
+                return callback err, reply
+            if reply    
+                redis_client.hgetall "group:#{wantedGroup}", callback
+            else
+                redis_client.sismember "invitations:#{wantedGroup}", email, (err, reply) ->
+                    if err
+                        return callback err, reply
+                    if reply    
+                        redis_client.hgetall "group:#{wantedGroup}", callback
+                    else
+                        return callback err, reply
         
 exports.createGroup=createGroup
 exports.addInvitationToGroup=addInvitationToGroup
 exports.removeInvitationFromGroup=removeInvitationFromGroup
 exports.acceptInvitationToGroup=acceptInvitationToGroup
+exports.declineInvitationToGroup=declineInvitationToGroup
 exports.removeUserFromGroup=removeUserFromGroup
 exports.changeOwnershipOfGroup=changeOwnershipOfGroup
 exports.removeOneselfFromGroup=removeOneselfFromGroup
@@ -255,7 +314,9 @@ exports.deleteGroup=deleteGroup
 
 #and the gets   
 exports.getMembersOfGroup=getMembersOfGroup
+exports.getGroupInfo=getGroupInfo
 exports.memberOfGroups=memberOfGroups
+exports.ownerOfGroups=ownerOfGroups
 exports.pendingInvitationToGroups=pendingInvitationToGroups
 
 elt={}

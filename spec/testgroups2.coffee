@@ -17,7 +17,7 @@ cbH = (error, response, body) ->
 testGlobal={}
 #this will need to change
 logincookie='logincookie=GJnUa6yclX8Z5ko1; path=/; expires=Sat, 08 Dec 2012 22:26:43 GMT'
-logincookie2 = "logincookie=pgVFxRzAO3g3ls9X; path=/; expires=Thu, 13 Dec 2012 00:52:39 GMT"
+logincookie2 = "logincookie=M8LYoxFzGgUuy102; path=/; expires=Tue, 18 Dec 2012 21:36:08 GMT"
 #laptop
 #logincookie="logincookie=UZvAydg61ejMlcf7; path=/; expires=Sat, 08 Dec 2012 14:12:33 GMT"
 #logincookie2="logincookie=wa0ja5Kjj8mn5bDI; path=/; expires=Fri, 14 Dec 2012 15:42:20 GMT"
@@ -38,3 +38,25 @@ request.get
     url: REQHEAD+'memberofgroups'
     , (e,r,b)->
         cbH(e,r,b)
+                
+request.post 
+    jar: j
+    url: REQHEAD+'creategroup'
+    body: JSON.stringify(rawGroupName:'mongols')
+    , (e,r,b)->
+        cbH(e,r,b)
+        
+request.post 
+    jar: j2
+    url: REQHEAD+'creategroup'
+    body: JSON.stringify(rawGroupName:'islanders')
+    , (e,r,b)->
+        cbH(e,r,b)
+        request.post
+            jar:j2
+            url: REQHEAD+'addinvitationtogroup'
+            body: JSON.stringify
+                fqGroupName: 'rdave@cfa.harvard.edu/islanders'
+                userNames: ['a@b.com', 'rahuldave@gmail.com']
+            , (e,r,b) -> 
+                cbH(e,r,b)

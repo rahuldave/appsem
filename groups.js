@@ -1,5 +1,5 @@
 (function() {
-  var acceptInvitationToGroup, accept_invitation_to_group, addInvitationToGroup, add_invitation_to_group, changeOwnershipOfGroup, change_ownership_of_group, connectutils, createGroup, create_group, deleteGroup, delete_group, elt, failedRequest, getMembersOfGroup, httpcallbackmaker, ifHaveEmail, ifLoggedIn, memberOfGroups, pendingInvitationToGroups, redis_client, removeInvitationFromGroup, removeOneselfFromGroup, removeUserFromGroup, remove_invitation_from_group, remove_oneself_from_group, remove_user_from_group, requests, successfulRequest, url;
+  var acceptInvitationToGroup, accept_invitation_to_group, addInvitationToGroup, add_invitation_to_group, changeOwnershipOfGroup, change_ownership_of_group, connectutils, createGroup, create_group, declineInvitationToGroup, decline_invitation_to_group, deleteGroup, delete_group, elt, failedRequest, getGroupInfo, getMembersOfGroup, httpcallbackmaker, ifHaveEmail, ifLoggedIn, memberOfGroups, ownerOfGroups, pendingInvitationToGroups, redis_client, removeInvitationFromGroup, removeOneselfFromGroup, removeUserFromGroup, remove_invitation_from_group, remove_oneself_from_group, remove_user_from_group, requests, successfulRequest, url;
   requests = require("./requests");
   failedRequest = requests.failedRequest;
   successfulRequest = requests.successfulRequest;
@@ -31,7 +31,7 @@
     var changeTime, fqGroupName, margs;
     changeTime = new Date().getTime();
     fqGroupName = "" + email + "/" + rawGroupName;
-    margs = [['hmset', "group:" + fqGroupName, 'owner', email, 'initialOwner', email, 'createdAt', changeTime, 'changedAt', changeTime], ['sadd', "members:" + fqGroupName, email], ['sadd', "memberof:" + email, fqGroupName]];
+    margs = [['hmset', "group:" + fqGroupName, 'owner', email, 'initialOwner', email, 'createdAt', changeTime, 'changedAt', changeTime], ['sadd', "members:" + fqGroupName, email], ['sadd', "memberof:" + email, fqGroupName], ['sadd', "ownerof:" + email, fqGroupName]];
     return redis_client.multi(margs).exec(callback);
   };
   createGroup = function(_arg, req, res, next) {
@@ -152,6 +152,30 @@
       return accept_invitation_to_group(email, fqGroupName, httpcallbackmaker(__fname, req, res, next));
     });
   };
+  decline_invitation_to_group = function(email, fqGroupName, callback) {
+    var changeTime;
+    changeTime = new Date().getTime();
+    return redis_client.sismember("invitations:" + fqGroupName, email, function(err, reply) {
+      var margs;
+      if (err) {
+        return callback(err, reply);
+      }
+      if (reply) {
+        margs = [['srem', "invitations:" + fqGroupName, email], ['srem', "invitationsto:" + email, fqGroupName]];
+        return redis_client.multi(margs).exec(callback);
+      } else {
+        return callback(err, reply);
+      }
+    });
+  };
+  declineInvitationToGroup = function(_arg, req, res, next) {
+    var fqGroupName, __fname;
+    fqGroupName = _arg.fqGroupName;
+    console.log(__fname = "declineInvitationToGroup");
+    return ifHaveEmail(__fname, req, res, function(email) {
+      return decline_invitation_to_group(email, fqGroupName, httpcallbackmaker(__fname, req, res, next));
+    });
+  };
   pendingInvitationToGroups = function(req, res, next) {
     var changeTime, __fname;
     console.log(__fname = "pendingInvitationToGroups");
@@ -166,6 +190,14 @@
     changeTime = new Date().getTime();
     return ifHaveEmail(__fname, req, res, function(email) {
       return redis_client.smembers("memberof:" + email, httpcallbackmaker(__fname, req, res, next));
+    });
+  };
+  ownerOfGroups = function(req, res, next) {
+    var changeTime, __fname;
+    console.log(__fname = "ownerOfGroups");
+    changeTime = new Date().getTime();
+    return ifHaveEmail(__fname, req, res, function(email) {
+      return redis_client.smembers("ownerof:" + email, httpcallbackmaker(__fname, req, res, next));
     });
   };
   remove_user_from_group = function(email, fqGroupName, userNames, callback) {
@@ -213,7 +245,7 @@
     var changeTime;
     changeTime = new Date().getTime();
     return redis_client.hget("group:" + fqGroupName, 'owner', function(err, reply) {
-      var cParams;
+      var cParams, margs;
       if (err) {
         return callback(err, reply);
       }
@@ -222,7 +254,8 @@
           owner: newOwner,
           changedAt: changeTime
         };
-        return redis_client.hmset("group:" + fqGroupName, cParams, callback);
+        margs = [['hset', "group:" + fqGroupName, 'owner', newOwner], ['hset', "group:" + fqGroupName, 'changedAt', changeTime], ['srem', "owner:" + email, fqGroupName], ['sadd', "owner:" + newOwner, fqGroupName]];
+        return redis_client.multi(margs).exec(callback);
       } else {
         return callback(err, reply);
       }
@@ -302,16 +335,48 @@
       });
     });
   };
+  getGroupInfo = function(req, res, next) {
+    var callback, changeTime, wantedGroup, __fname;
+    console.log(__fname = "getGroupInfo");
+    changeTime = new Date().getTime();
+    wantedGroup = req.query.fqGroupName;
+    console.log("wantedGroup", wantedGroup);
+    callback = httpcallbackmaker(__fname, req, res, next);
+    return ifHaveEmail(__fname, req, res, function(email) {
+      return redis_client.sismember("members:" + wantedGroup, email, function(err, reply) {
+        if (err) {
+          return callback(err, reply);
+        }
+        if (reply) {
+          return redis_client.hgetall("group:" + wantedGroup, callback);
+        } else {
+          return redis_client.sismember("invitations:" + wantedGroup, email, function(err, reply) {
+            if (err) {
+              return callback(err, reply);
+            }
+            if (reply) {
+              return redis_client.hgetall("group:" + wantedGroup, callback);
+            } else {
+              return callback(err, reply);
+            }
+          });
+        }
+      });
+    });
+  };
   exports.createGroup = createGroup;
   exports.addInvitationToGroup = addInvitationToGroup;
   exports.removeInvitationFromGroup = removeInvitationFromGroup;
   exports.acceptInvitationToGroup = acceptInvitationToGroup;
+  exports.declineInvitationToGroup = declineInvitationToGroup;
   exports.removeUserFromGroup = removeUserFromGroup;
   exports.changeOwnershipOfGroup = changeOwnershipOfGroup;
   exports.removeOneselfFromGroup = removeOneselfFromGroup;
   exports.deleteGroup = deleteGroup;
   exports.getMembersOfGroup = getMembersOfGroup;
+  exports.getGroupInfo = getGroupInfo;
   exports.memberOfGroups = memberOfGroups;
+  exports.ownerOfGroups = ownerOfGroups;
   exports.pendingInvitationToGroups = pendingInvitationToGroups;
   elt = {};
   elt.create_group = create_group;

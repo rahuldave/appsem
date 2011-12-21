@@ -187,6 +187,7 @@ server.use SITEPREFIX+'/creategroup', doPostWithJSON groups.createGroup
 server.use SITEPREFIX+'/addinvitationtogroup', doPostWithJSON groups.addInvitationToGroup
 server.use SITEPREFIX+'/removeinvitationfromgroup', doPostWithJSON groups.removeInvitationFromGroup
 server.use SITEPREFIX+'/acceptinvitationtogroup', doPostWithJSON groups.acceptInvitationToGroup
+server.use SITEPREFIX+'/declineinvitationtogroup', doPostWithJSON groups.declineInvitationToGroup
 server.use SITEPREFIX+'/removeuserfromgroup', doPostWithJSON groups.removeUserFromGroup
 server.use SITEPREFIX+'/changeownershipofgroup', doPostWithJSON groups.changeOwnershipOfGroup
 server.use SITEPREFIX+'/removeoneselffromgroup', doPostWithJSON groups.removeOneselfFromGroup
@@ -194,7 +195,9 @@ server.use SITEPREFIX+'/deletegroup', doPostWithJSON groups.deleteGroup
 
 #and the gets   
 server.use SITEPREFIX+'/getmembersofgroup', groups.getMembersOfGroup
+server.use SITEPREFIX+'/getgroupinfo', groups.getGroupInfo
 server.use SITEPREFIX+'/memberofgroups', groups.memberOfGroups
+server.use SITEPREFIX+'/ownerofgroups', groups.ownerOfGroups
 server.use SITEPREFIX+'/pendinginvitationtogroups', groups.pendingInvitationToGroups
 # not sure of the best way to do this, but want to privide access to
 # ajax-loader.gif and this way avoids hacking ResultWidget.2.0.js

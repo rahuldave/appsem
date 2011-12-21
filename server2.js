@@ -162,12 +162,15 @@
   server.use(SITEPREFIX + '/addinvitationtogroup', doPostWithJSON(groups.addInvitationToGroup));
   server.use(SITEPREFIX + '/removeinvitationfromgroup', doPostWithJSON(groups.removeInvitationFromGroup));
   server.use(SITEPREFIX + '/acceptinvitationtogroup', doPostWithJSON(groups.acceptInvitationToGroup));
+  server.use(SITEPREFIX + '/declineinvitationtogroup', doPostWithJSON(groups.declineInvitationToGroup));
   server.use(SITEPREFIX + '/removeuserfromgroup', doPostWithJSON(groups.removeUserFromGroup));
   server.use(SITEPREFIX + '/changeownershipofgroup', doPostWithJSON(groups.changeOwnershipOfGroup));
   server.use(SITEPREFIX + '/removeoneselffromgroup', doPostWithJSON(groups.removeOneselfFromGroup));
   server.use(SITEPREFIX + '/deletegroup', doPostWithJSON(groups.deleteGroup));
   server.use(SITEPREFIX + '/getmembersofgroup', groups.getMembersOfGroup);
+  server.use(SITEPREFIX + '/getgroupinfo', groups.getGroupInfo);
   server.use(SITEPREFIX + '/memberofgroups', groups.memberOfGroups);
+  server.use(SITEPREFIX + '/ownerofgroups', groups.ownerOfGroups);
   server.use(SITEPREFIX + '/pendinginvitationtogroups', groups.pendingInvitationToGroups);
   server.use('/images', connect.static(__dirname + '/static/ajax-solr/images/'));
   server.use('/bootstrap', connect.static(__dirname + '/static/ajax-solr/images/'));

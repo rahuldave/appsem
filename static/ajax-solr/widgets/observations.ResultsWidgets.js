@@ -160,7 +160,7 @@ function encodeObsuri(obsuri){
 			        'obsvtarget':thedoc.targets_s,
 			        'obsvtitle':thedoc.obsv_title
             }), function(data){
-                    if (data['success']==='defined'){
+                    if (data['SUCCESS']==='defined'){
                         that.$('.savelink').hide();
                         that.$('.deletelink').show();
                     }
@@ -174,7 +174,7 @@ function encodeObsuri(obsuri){
            $.post(SITEPREFIX+'/deleteobsv', JSON.stringify({
                 'obsvid':thedoc.obsids_s 
            }), function(data){
-                    if (data['success']==='defined'){
+                    if (data['SUCCESS']==='defined'){
                         that.$('.savelink').show();
                         that.$('.deletelink').hide();
                     }

@@ -158,7 +158,12 @@ setLoggedIn = (email) ->
     $(elem).show()
   for elem in $('.userloggedout')
     $(elem).hide()
-
+  $.getJSON "#{dasiteprefix}/memberofgroups", (data) ->
+    groups=data.memberOfGroups
+    root.mygroups=groups;
+    if groups.length > 0
+        gmhtml=("<li><a href=\"#{dasiteprefix}/explorer/group?fqGroupName=#{group}\">#{group}</a></li>" for group in groups)
+        $('ul#groupsmenu').append gmhtml.join('')
   mediator.publish 'user/login', email
 
 setLoggedOut = () ->

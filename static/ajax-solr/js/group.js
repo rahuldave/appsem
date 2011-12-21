@@ -192,10 +192,20 @@
     return $search;
   };
   makeSearchRow = function(s) {
-    var scpts;
+    var gin, groupsintext, idx, sby, scpts;
+    gin = s.groupsin;
+    sby = s.searchby;
+    groupsintext = (function() {
+      var _ref, _results;
+      _results = [];
+      for (idx = 0, _ref = gin.length; 0 <= _ref ? idx < _ref : idx > _ref; 0 <= _ref ? idx++ : idx--) {
+        _results.push('by ' + sby.split('@')[0] + ' in <a href="' + ("" + SITEPREFIX + "/explorer/group?fqGroupName=" + gin[idx]) + '">' + gin[idx].split('/').pop() + '</a>');
+      }
+      return _results;
+    })();
     scpts = searchToText(s.searchuri, fieldname_map);
     console.log(s.searchtext, s.searchuri, scpts);
-    return [$('<input type="checkbox" name="searchid"/>').attr('value', s.searchuri), $('<span/>').attr('value', s.searchtime).text(s.searchtimestr), $('<a/>').attr('href', "" + SITEPREFIX + "/explorer/" + s.searchuri).text(scpts.join(" "))];
+    return [$('<input type="checkbox" name="searchid"/>').attr('value', s.searchuri), $('<span/>').attr('value', s.searchtime).text(s.searchtimestr), $('<a/>').attr('href', "" + SITEPREFIX + "/explorer/" + s.searchuri).text(scpts.join(" ")), $('<span/>').html(groupsintext.join(', '))];
   };
   createSavedSearchSection = function(searches) {
     var $div, nsearch, rows, s;
@@ -211,7 +221,7 @@
     })();
     $div = $('div#saved-searches');
     $div.append(AjaxSolr.theme('saved_title', 'Saved Searches'));
-    $div.append(AjaxSolr.theme('saved_items', 'searches', ['Date saved', 'Search terms'], rows, null, null));
+    $div.append(AjaxSolr.theme('saved_items', 'searches', ['Date saved', 'Search terms', 'Groups'], rows, null, null));
     $('#saved-searches-form').submit(submitDeleteAction('/deletesearchesfromgroup', 'searches', createSavedSearches, dagroup));
     return $('#saved-searches-table').tablesorter(tsortopts);
   };
@@ -228,7 +238,18 @@
     });
   };
   makePubRow = function(p) {
-    return [$('<input type="checkbox" name="pubid"/>').attr('value', p.pubid), $('<span/>').attr('value', p.pubtime).text(p.pubtimestr), $('<a/>').attr('href', "" + SITEPREFIX + "/explorer/publications#fq=" + p.linkuri + "&q=*%3A*").text(p.linktext), $('<span class="bibcode"/>').text(p.bibcode)];
+    var gin, groupsintext, idx, sby;
+    gin = p.groupsin;
+    sby = p.searchby;
+    groupsintext = (function() {
+      var _ref, _results;
+      _results = [];
+      for (idx = 0, _ref = gin.length; 0 <= _ref ? idx < _ref : idx > _ref; 0 <= _ref ? idx++ : idx--) {
+        _results.push('by ' + sby.split('@')[0] + ' in <a href="' + ("" + SITEPREFIX + "/explorer/group?fqGroupName=" + gin[idx]) + '">' + gin[idx].split('/').pop() + '</a>');
+      }
+      return _results;
+    })();
+    return [$('<input type="checkbox" name="pubid"/>').attr('value', p.pubid), $('<span/>').attr('value', p.pubtime).text(p.pubtimestr), $('<a/>').attr('href', "" + SITEPREFIX + "/explorer/publications#fq=" + p.linkuri + "&q=*%3A*").text(p.linktext), $('<span class="bibcode"/>').text(p.bibcode), $('<span/>').html(groupsintext.join(', '))];
   };
   createSavedPublicationSection = function(pubs) {
     var $div, npubs, pub, rows;
@@ -244,7 +265,7 @@
     })();
     $div = $('div#saved-pubs');
     $div.append(AjaxSolr.theme('saved_title', 'Saved Publications'));
-    $div.append(AjaxSolr.theme('saved_items', 'pubs', ['Date saved', 'Title', 'Bibcode'], rows, handlePublications(getBibTexFromADS), handlePublications(saveToMyADS)));
+    $div.append(AjaxSolr.theme('saved_items', 'pubs', ['Date saved', 'Title', 'Bibcode', 'Groups'], rows, handlePublications(getBibTexFromADS), handlePublications(saveToMyADS)));
     $('#saved-pubs-form').submit(submitDeleteAction('/deletepubsfromgroup', 'pubs', createSavedPublications, dagroup));
     return $('#saved-pubs-table').tablesorter(tsortopts);
   };
@@ -261,7 +282,18 @@
     });
   };
   makeObsvRow = function(o) {
-    return [$('<input type="checkbox" name="obsvid"/>').attr('value', o.obsvid), $('<span/>').attr('value', o.obsvtime).text(o.obsvtimestr), $('<a/>').attr('href', "" + SITEPREFIX + "/explorer/observations#fq=" + o.linkuri + "&q=*%3A*").text(o.linktext), $('<span class="bibcode"/>').text(o.target)];
+    var gin, groupsintext, idx, sby;
+    gin = o.groupsin;
+    sby = o.searchby;
+    groupsintext = (function() {
+      var _ref, _results;
+      _results = [];
+      for (idx = 0, _ref = gin.length; 0 <= _ref ? idx < _ref : idx > _ref; 0 <= _ref ? idx++ : idx--) {
+        _results.push('by ' + sby.split('@')[0] + ' in <a href="' + ("" + SITEPREFIX + "/explorer/group?fqGroupName=" + gin[idx]) + '">' + gin[idx].split('/').pop() + '</a>');
+      }
+      return _results;
+    })();
+    return [$('<input type="checkbox" name="obsvid"/>').attr('value', o.obsvid), $('<span/>').attr('value', o.obsvtime).text(o.obsvtimestr), $('<a/>').attr('href', "" + SITEPREFIX + "/explorer/observations#fq=" + o.linkuri + "&q=*%3A*").text(o.linktext), $('<span class="bibcode"/>').text(o.target), $('<span/>').html(groupsintext.join(', '))];
   };
   createSavedObservationSection = function(obsvs) {
     var $div, nobsvs, obsv, rows;
@@ -277,7 +309,7 @@
     })();
     $div = $('div#saved-obsvs');
     $div.append(AjaxSolr.theme('saved_title', 'Saved Observations'));
-    $div.append(AjaxSolr.theme('saved_items', 'obsvs', ['Date Observed', 'Obsid', 'Target'], rows, null, null));
+    $div.append(AjaxSolr.theme('saved_items', 'obsvs', ['Date Observed', 'Obsid', 'Target', 'Groups'], rows, null, null));
     $('#saved-obsvs-form').submit(submitDeleteAction('/deleteobsvsfromgroup', 'obsvs', createSavedObservations, dagroup));
     return $('#saved-obsvs-table').tablesorter(tsortopts);
   };

@@ -388,7 +388,7 @@ getSavedSearches = (req, res, next) ->
 #This would also be a place to type the search, pub, vs observation, vs thrown, if
 #needed
 
-getSavedSearches2 = (req, res, next) ->
+getSavedSearches22 = (req, res, next) ->
   kword = 'savedsearches'
   doIt = (loginid) ->
     redis_client.get "email:#{loginid}", (err, email) ->
@@ -405,7 +405,70 @@ getSavedSearches2 = (req, res, next) ->
 
   ifLoggedIn req, res, doIt, keyword: kword
 
+#Current BUG: security issue--leaks all groups the item has been saved in, not just mine
+_doSearch = (email, searchtype, templateCreatorFunc, res, kword, callback, augmenthash=null) ->
+    nowDate = new Date().getTime()
+    redis_client.smembers "memberof:#{email}", (err, groups) ->
+        if err
+            return callback err, groups
+        getSortedElementsAndScores false, "saved#{searchtype}:#{email}", (err2, searches) ->
+            if err2
+                return callback err2, searches
+            margs2=(['hget', "savedInGroups:#{searchtype}", ele] for ele in searches.elements)
+            console.log "<<<<<", margs2
+            redis_client.multi(margs2).exec (errg, groupjsonlist) ->
+                if errg
+                    return callback err, groupjsonlist
+                savedingroups=[]
+                for ele in groupjsonlist
+                    if not ele
+                        savedingroups.push([])
+                    else
+                        parsedgroups=JSON.parse ele
+                        groupstoadd = (ele for ele in parsedgroups when ele in groups)
+                        savedingroups.push(groupstoadd)
+                        
+                #savedingroups = (JSON.parse (ele ? '[]') for ele in groupjsonlist)
+                console.log "<<<<<<<<<<<<<<<<>", savedingroups
+                savedBys=(email for ele in searches.elements)
+                if augmenthash is null
+                    view = templateCreatorFunc nowDate, searches.elements, searches.scores, savedBys, savedingroups
+                    callback err, view
+                else
+                    if searches.elements.length == 0
+                        titles=[]
+                        names=[]
+                        view = templateCreatorFunc nowDate, searches.elements, searches.scores, names, titles, savedBys, savedingroups
+                        return callback err, view
+                    redis_client.hmget "saved#{augmenthash.titlefield}", searches.elements..., (err3, titles) ->
+                        if err3
+                            console.log "titlefield error"
+                            return callback err3, titles
+                        redis_client.hmget "saved#{augmenthash.namefield}", searches.elements..., (err4, names) ->
+                            if err4
+                                console.log "namefield error"
+                                return callback err4, names
+                            view = templateCreatorFunc nowDate, searches.elements, searches.scores, names, titles, savedBys, savedingroups
+                            callback err4, view
+
+getSavedPubs2 = (req, res, next) ->
+  kword = 'savedpubs'
+  __fname=kword
+  ifHaveEmail __fname, req, res, (email) ->
+      _doSearch email, 'pub', createSavedPubTemplates, res, kword, httpcallbackmaker(__fname, req, res, next), {titlefield:'titles', namefield:'bibcodes'}  
       
+getSavedSearches2 = (req, res, next) ->
+  kword = 'savedsearches'
+  __fname=kword
+  ifHaveEmail __fname, req, res, (email) ->
+      _doSearch email, 'search', createSavedSearchTemplates, res, kword, httpcallbackmaker(__fname, req, res, next)
+      
+getSavedObsvs2 = (req, res, next) ->
+  kword = 'savedobsvs'
+  __fname=kword
+  ifHaveEmail __fname, req, res, (email) ->
+      _doSearch email, 'obsv', createSavedObsvTemplates, res, kword, httpcallbackmaker(__fname, req, res, next), {titlefield:'obsvtitles', namefield:'targets'}          
+   
 _doSearchForGroup = (email, fqGroupName, searchtype, templateCreatorFunc, res, kword, callback, augmenthash=null) ->
     nowDate = new Date().getTime()
     redis_client.sismember "members:#{fqGroupName}", email, (erra, saved_p)->
@@ -413,36 +476,53 @@ _doSearchForGroup = (email, fqGroupName, searchtype, templateCreatorFunc, res, k
             if erra
                 return callback erra, saved_p
             if saved_p
-                getSortedElementsAndScores false, "saved#{searchtype}:#{fqGroupName}", (err2, searches) ->
-                    if err2
-                        console.log "*** getSaved#{searchtype}ForGroup2: failed for email=#{email} err=#{err2}"
-                        return callback err2, searches
-                    margs=(['hget', "savedby:#{fqGroupName}", ele] for ele in searches.elements)
-                    redis_client.multi(margs).exec (errm, savedBys) ->
-                        if errm
-                            return callback errm, savedBys
-                        #searchbys=(reply for reply in replies)
-                        margs2=(['hget', "savedInGroups:#{searchtype}", ele] for ele in searches.elements)
-                        console.log "<<<<<", margs2
-                        redis_client.multi(margs2).exec (err, groupjsonlist) ->
-                            if err
-                                return callback err, groupjsonlist
-                            console.log ">>>>>>>", searches.elements, groupjsonlist
-                            savedingroups = (JSON.parse ele for ele in groupjsonlist)
-                            if augmenthash is null
-                                view = templateCreatorFunc nowDate, searches.elements, searches.scores, savedBys, savedingroups
-                                callback err, view
-                            else
-                                redis_client.hmget "saved#{augmenthash.titlefield}", searches.elements..., (err3, titles) ->
-                                    if err3
-                                        console.log "titlefield error"
-                                        return callback err3, titles
-                                    redis_client.hmget "saved#{augmenthash.namefield}", searches.elements..., (err4, names) ->
-                                        if err4
-                                            console.log "namefield error"
-                                            return callback err4, names
+                redis_client.smembers "memberof:#{email}", (errb, groups) ->
+                    if errb
+                        return callback errb, groups
+                    getSortedElementsAndScores false, "saved#{searchtype}:#{fqGroupName}", (err2, searches) ->
+                        if err2
+                            console.log "*** getSaved#{searchtype}ForGroup2: failed for email=#{email} err=#{err2}"
+                            return callback err2, searches
+                        margs=(['hget', "savedby:#{fqGroupName}", ele] for ele in searches.elements)
+                        redis_client.multi(margs).exec (errm, savedBys) ->
+                            if errm
+                                return callback errm, savedBys
+                            #searchbys=(reply for reply in replies)
+                            margs2=(['hget', "savedInGroups:#{searchtype}", ele] for ele in searches.elements)
+                            console.log "<<<<<", margs2
+                            redis_client.multi(margs2).exec (err, groupjsonlist) ->
+                                if err
+                                    return callback err, groupjsonlist
+                                #console.log ">>>>>>>", searches.elements, groupjsonlist
+                                savedingroups=[]
+                                for ele in groupjsonlist
+                                    if not ele
+                                        savedingroups.push([])
+                                    else
+                                        parsedgroups=JSON.parse ele
+                                        groupstoadd = (ele for ele in parsedgroups when ele in groups)
+                                        savedingroups.push(groupstoadd)
+                                #savedingroups = (JSON.parse ele for ele in groupjsonlist)
+                                console.log "<<<<<<<<<<<<<<<<>", savedingroups
+                                if augmenthash is null
+                                    view = templateCreatorFunc nowDate, searches.elements, searches.scores, savedBys, savedingroups
+                                    callback err, view
+                                else
+                                    if searches.elements.length == 0
+                                        titles=[]
+                                        names=[]
                                         view = templateCreatorFunc nowDate, searches.elements, searches.scores, names, titles, savedBys, savedingroups
-                                        callback err4, view
+                                        return callback err, view
+                                    redis_client.hmget "saved#{augmenthash.titlefield}", searches.elements..., (err3, titles) ->
+                                        if err3
+                                            console.log "titlefield error"
+                                            return callback err3, titles
+                                        redis_client.hmget "saved#{augmenthash.namefield}", searches.elements..., (err4, names) ->
+                                            if err4
+                                                console.log "namefield error"
+                                                return callback err4, names
+                                            view = templateCreatorFunc nowDate, searches.elements, searches.scores, names, titles, savedBys, savedingroups
+                                            callback err4, view
             else
               console.log "*** getSaved#{searchtype}ForGroup2: membership failed for email=#{email} err=#{erra}"
               return callback erra, saved_p
@@ -474,7 +554,7 @@ getSavedPubs = (req, res, next) ->
 # Unlike getSavedPubs we return the template values for
 # use by the client to create the page
 
-getSavedPubs2 = (req, res, next) ->
+getSavedPubs22 = (req, res, next) ->
   kword = 'savedpubs'
   doIt = (loginid) ->
     redis_client.get "email:#{loginid}", (err, email) ->
@@ -522,7 +602,7 @@ getSavedObsvs = (req, res, next) ->
 # Unlike getSavedPubs we return the template values for
 # use by the client to create the page
 
-getSavedObsvs2 = (req, res, next) ->
+getSavedObsvs22 = (req, res, next) ->
   kword = 'savedobsvs'
   doIt = (loginid) ->
     redis_client.get "email:#{loginid}", (err, email) ->
@@ -748,6 +828,9 @@ deleteItemsWithJSON = (funcname, idname, delItems) ->
       else
         failedRequest res
 
+
+
+    
 exports.deleteSearch   = deleteItem "deleteSearch", "searchid", removeSearches
 exports.deletePub      = deleteItem "deletePub",    "pubid",    removePubs
 exports.deleteObsv      = deleteItem "deleteObsv",    "obsvid",    removeObsvs

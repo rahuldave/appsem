@@ -8,10 +8,7 @@
                 <li class="{{ isitchosenobservations }}"><a href="{{ siteprefix }}/explorer/observations">Observations</a></li>
                 <li class="{{ isitchosenobjects }}"><a href="{{ siteprefix }}/explorer/objects">Objects</a></li>
                 <!--li class="{{ isitchosenproposals }}"><a href="{{ siteprefix }}/explorer/proposals">Proposals</a></li-->
-                <li>&nbsp;&nbsp;</li>
-                <li><img height="36" src="{{ staticprefix }}/images/vao.png"></img></li>
-                <li>&nbsp;&nbsp;</li>
-                <li><img height="36" src="{{ staticprefix }}/images/adslogo_labs.jpg"></img></li>
+                
             </ul>
             <!--form class="pull-left">
                 <input type="text" id="querybig" name="query"/>&nbsp;&nbsp;<a  id="gosearch" style="cursor: pointer;">Go</a>
@@ -22,10 +19,15 @@
                 <a id="logouthref" class="userloggedin" style="display: none; cursor: pointer;">logout</a>
 	        </p-->
             <ul class="nav secondary-nav pull-right"> 
+                <li>&nbsp;&nbsp;</li>
+                <li><img height="36" src="{{ staticprefix }}/images/vao.png"></img></li>
+                <li>&nbsp;&nbsp;</li>
+                <li><img height="36" src="{{ staticprefix }}/images/adslogo_labs.jpg"></img></li>
+                <li>&nbsp;&nbsp;</li>
                 <li class="{{ isitchosensaved }}"><a href="{{ siteprefix }}/explorer/saved">Saved</a></li>
                 <li  class="menu dropdown {{ isitchosengroup }}"> 
                     <a class="dropdown-toggle menu" href="#" id="groups">Groups</a> 
-                    <ul class="menu-dropdown"> 
+                    <ul id="groupsmenu" class="menu-dropdown"> 
                         <li><a href="#">New Group</a></li>
                         <li class="divider"></li>
                     </ul> 

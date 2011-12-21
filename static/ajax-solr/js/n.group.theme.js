@@ -23,9 +23,9 @@
       myADSHandler = null;
     }
     if (!(bibtexHandler === null && myADSHandler === null)) {
-      return $('<div class="formactions"/>').append($('<input type="button" value="Mark all"/>').click(changeAllButtons(true))).append($('<input type="button" value="Clear all"/>').click(changeAllButtons(false))).append($('<input type="submit" value="Delete marked" name="action"/>')).append($('<input type="button" value="Get as BibTex"/>').click(bibtexHandler)).append($('<button type="button" name="myads" value="Send to myADS"/>').click(myADSHandler).append($('<img alt="[myADS logo]"/>').attr('src', "" + SITEPREFIX + "/static/images/ADSlabs-button.png")));
+      return $('<div class="formactions"/>').append($('<input class="btn small" type="button" value="Mark all"/>').click(changeAllButtons(true))).append($('<input class="btn small" type="button" value="Clear all"/>').click(changeAllButtons(false))).append($('<input class="btn danger small" type="submit" value="Remove" name="action"/>')).append($('<input class="btn info small" type="button" value="Get as BibTex"/>').click(bibtexHandler)).append($('<button type="button" name="myads" value="Send to myADS"/>').click(myADSHandler).append($('<img alt="[myADS logo]"/>').attr('src', "" + SITEPREFIX + "/static/images/ADSlabs-button.png")));
     }
-    return $('<div class="formactions"/>').append($('<input type="button" value="Mark all"/>').click(changeAllButtons(true))).append($('<input type="button" value="Clear all"/>').click(changeAllButtons(false))).append($('<input type="submit" value="Delete marked" name="action"/>'));
+    return $('<div class="formactions"/>').append($('<input class="btn small" type="button" value="Mark all"/>').click(changeAllButtons(true))).append($('<input class="btn small" type="button" value="Clear all"/>').click(changeAllButtons(false))).append($('<input class="btn danger small" type="submit" value="Remove" name="action"/>'));
   };
   AjaxSolr.theme.prototype.saved_tablehead = function(cols) {
     var $tr, name, _i, _len;

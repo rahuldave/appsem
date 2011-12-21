@@ -139,6 +139,23 @@
       elem = _ref2[_j];
       $(elem).hide();
     }
+    $.getJSON("" + dasiteprefix + "/memberofgroups", function(data) {
+      var gmhtml, group, groups;
+      groups = data.memberOfGroups;
+      root.mygroups = groups;
+      if (groups.length > 0) {
+        gmhtml = (function() {
+          var _k, _len3, _results;
+          _results = [];
+          for (_k = 0, _len3 = groups.length; _k < _len3; _k++) {
+            group = groups[_k];
+            _results.push("<li><a href=\"" + dasiteprefix + "/explorer/group?fqGroupName=" + group + "\">" + group + "</a></li>");
+          }
+          return _results;
+        })();
+        return $('ul#groupsmenu').append(gmhtml.join(''));
+      }
+    });
     return mediator.publish('user/login', email);
   };
   setLoggedOut = function() {

@@ -207,7 +207,8 @@ PublicationView=Backbone.View.extend({
                'pubbibcode':thedoc.bibcode,
                'pubtitle':thedoc.title
         }), function(data){
-                if (data['success']==='defined'){
+                console.log('data is', data);
+                if (data['SUCCESS']==='defined'){
                     that.$('.savelink').hide();
                     that.$('.deletelink').show();
                 }
@@ -220,7 +221,7 @@ PublicationView=Backbone.View.extend({
        $.post(SITEPREFIX+'/deletepub', JSON.stringify({
            'pubid':thedoc.id 
        }), function(data){
-                if (data['success']==='defined'){
+                if (data['SUCCESS']==='defined'){
                     that.$('.savelink').show();
                     that.$('.deletelink').hide();
                 }

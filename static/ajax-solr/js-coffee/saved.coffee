@@ -158,23 +158,24 @@ makeSearchText = (urifrag) ->
   return $search
 
 makeSearchRow = (s) ->
+  groupsintext = ('<a href="'+"#{SITEPREFIX}/explorer/group?fqGroupName=#{ele}"+'">'+ele.split('/').pop()+'</a>' for ele in s.groupsin)
   scpts=searchToText s.searchuri, fieldname_map
   console.log s.searchtext, s.searchuri, scpts
   [$('<input type="checkbox" name="searchid"/>').attr('value', s.searchuri),
    $('<span/>').attr('value', s.searchtime).text(s.searchtimestr),
    $('<a/>').attr('href', "#{SITEPREFIX}/explorer/#{s.searchuri}")
-     .text(scpts.join " ")]
+     .text(scpts.join " "),
+   $('<span/>').html(groupsintext.join(', '))]
 
 #makeSearchText s.searchuri]
 
 createSavedSearchSection = (searches) ->
   nsearch = searches.length
-
   rows = (makeSearchRow s for s in searches)
   $div = $('div#saved-searches')
   $div.append AjaxSolr.theme('saved_title', 'Saved Searches')
   $div.append AjaxSolr.theme('saved_items', 'searches',
-    ['Date saved', 'Search terms'], rows,
+    ['Date saved', 'Search terms', 'Groups'], rows,
     null,
     null)
     #handleSearches(getBibTexFromADS),
@@ -196,6 +197,7 @@ createSavedSearchSection = (searches) ->
 createSavedPublications = () ->
   $('div#saved-pubs').empty()
   $.getJSON SITEPREFIX + '/savedpubs2', (data) ->
+    console.log "DATA", data
     pubs = data.savedpubs
     if pubs.haspubs
       createSavedPublicationSection pubs.savedpubs
@@ -203,11 +205,13 @@ createSavedPublications = () ->
       noSavedPublications()
 
 makePubRow = (p) ->
+  groupsintext = ('<a href="'+"#{SITEPREFIX}/explorer/group?fqGroupName=#{ele}"+'">'+ele.split('/').pop()+'</a>' for ele in p.groupsin)
   [$('<input type="checkbox" name="pubid"/>').attr('value', p.pubid),
    $('<span/>').attr('value', p.pubtime).text(p.pubtimestr),
    $('<a/>').attr('href', "#{SITEPREFIX}/explorer/publications#fq=#{p.linkuri}&q=*%3A*")
      .text(p.linktext),
-   $('<span class="bibcode"/>').text(p.bibcode)]
+   $('<span class="bibcode"/>').text(p.bibcode),
+   $('<span/>').html(groupsintext.join(', '))]
 
 createSavedPublicationSection = (pubs) ->
   npubs = pubs.length
@@ -216,7 +220,7 @@ createSavedPublicationSection = (pubs) ->
   $div = $('div#saved-pubs')
   $div.append AjaxSolr.theme('saved_title', 'Saved Publications')
   $div.append AjaxSolr.theme('saved_items', 'pubs',
-    ['Date saved', 'Title', 'Bibcode'], rows,
+    ['Date saved', 'Title', 'Bibcode', 'Groups'], rows,
     handlePublications(getBibTexFromADS),
     handlePublications(saveToMyADS))
 
@@ -234,11 +238,13 @@ createSavedObservations = () ->
       noSavedObservations()
 
 makeObsvRow = (o) ->
+  groupsintext = ('<a href="'+"#{SITEPREFIX}/explorer/group?fqGroupName=#{ele}"+'">'+ele.split('/').pop()+'</a>' for ele in o.groupsin)
   [$('<input type="checkbox" name="obsvid"/>').attr('value', o.obsvid),
    $('<span/>').attr('value', o.obsvtime).text(o.obsvtimestr),
    $('<a/>').attr('href', "#{SITEPREFIX}/explorer/observations#fq=#{o.linkuri}&q=*%3A*")
      .text(o.linktext),
-   $('<span class="bibcode"/>').text(o.target)]
+   $('<span class="bibcode"/>').text(o.target),
+   $('<span/>').html(groupsintext.join(', '))]
 
 createSavedObservationSection = (obsvs) ->
   nobsvs = obsvs.length
@@ -247,7 +253,7 @@ createSavedObservationSection = (obsvs) ->
   $div = $('div#saved-obsvs')
   $div.append AjaxSolr.theme('saved_title', 'Saved Observations')
   $div.append AjaxSolr.theme('saved_items', 'obsvs',
-    ['Date Observed', 'Obsid', 'Target'], rows,
+    ['Date Observed', 'Obsid', 'Target', 'Groups'], rows,
     null,
     null)
 

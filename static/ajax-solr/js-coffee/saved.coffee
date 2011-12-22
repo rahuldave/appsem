@@ -7,6 +7,11 @@ $ = jQuery
 # Make a POST request to the ADS servers using the given
 # URL path and apply the given callback to the response.
 
+savemap=
+    obsvs:'obsv'
+    searches:'search'
+    pubs:'pub'
+    
 doADSProxy = (urlpath, callback) ->
   $.post "#{SITEPREFIX}/adsproxy",
     JSON.stringify(urlpath: urlpath),
@@ -68,6 +73,32 @@ handlePublications = (handler) ->
     $.fancybox.showActivity()
     handler data
 
+handleItemsWithPK = (handler, itemstype, recreate) ->
+    () ->
+        console.log 'in stgh', itemstype, $(this.form)
+        items = (item.value for item in $(this.form).find('input[type=checkbox][checked|=true]'))
+        thetype="saved#{savemap[itemstype]}"
+        objectsToSave=[]
+        for ele in items
+            ihash={}
+            ihash[thetype]=ele
+            objectsToSave.push(ihash)
+        console.log items, objectsToSave, $(this.form).find('.groupselect option:selected')
+        fqGroupName=$(this.form).find('.groupselect option:selected')[0].text;
+        if objectsToSave.length is 0
+            alert "No #{itemstype} have been selected."
+            return false
+        data = {fqGroupName, objectsToSave}
+        handler itemstype, data, recreate
+
+saveToGroup = (itemstype, map, recreate) ->
+    console.log "inwith", map, "#{SITEPREFIX}/save#{itemstype}togroup"
+    $.post "#{SITEPREFIX}/save#{itemstype}togroup", JSON.stringify(map), (data) ->
+        console.log "save rets", data
+        recreate()
+        return false
+    return false
+        
 handleObservations = (handler) ->
   () ->
     data = ($(item).text() for item in $(this.form).find('input[type=checkbox][checked|=true]').parent().nextAll('td').find('span.bibcode'))
@@ -175,7 +206,7 @@ createSavedSearchSection = (searches) ->
   $div = $('div#saved-searches')
   $div.append AjaxSolr.theme('saved_title', 'Saved Searches')
   $div.append AjaxSolr.theme('saved_items', 'searches',
-    ['Date saved', 'Search terms', 'Groups'], rows,
+    ['Date saved', 'Search terms', 'Groups'], rows, handleItemsWithPK(saveToGroup, 'searches', createSavedSearches),
     null,
     null)
     #handleSearches(getBibTexFromADS),
@@ -220,7 +251,7 @@ createSavedPublicationSection = (pubs) ->
   $div = $('div#saved-pubs')
   $div.append AjaxSolr.theme('saved_title', 'Saved Publications')
   $div.append AjaxSolr.theme('saved_items', 'pubs',
-    ['Date saved', 'Title', 'Bibcode', 'Groups'], rows,
+    ['Date saved', 'Title', 'Bibcode', 'Groups'], rows, handleItemsWithPK(saveToGroup, 'pubs', createSavedPublications),
     handlePublications(getBibTexFromADS),
     handlePublications(saveToMyADS))
 
@@ -253,7 +284,7 @@ createSavedObservationSection = (obsvs) ->
   $div = $('div#saved-obsvs')
   $div.append AjaxSolr.theme('saved_title', 'Saved Observations')
   $div.append AjaxSolr.theme('saved_items', 'obsvs',
-    ['Date Observed', 'Obsid', 'Target', 'Groups'], rows,
+    ['Date Observed', 'Obsid', 'Target', 'Groups'], rows, handleItemsWithPK(saveToGroup, 'obsvs', createSavedObservations),
     null,
     null)
 

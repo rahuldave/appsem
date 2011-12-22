@@ -1,5 +1,5 @@
 (function() {
-  var acceptInvitationToGroup, accept_invitation_to_group, addInvitationToGroup, add_invitation_to_group, changeOwnershipOfGroup, change_ownership_of_group, connectutils, createGroup, create_group, declineInvitationToGroup, decline_invitation_to_group, deleteGroup, delete_group, elt, failedRequest, getGroupInfo, getMembersOfGroup, httpcallbackmaker, ifHaveEmail, ifLoggedIn, memberOfGroups, ownerOfGroups, pendingInvitationToGroups, redis_client, removeInvitationFromGroup, removeOneselfFromGroup, removeUserFromGroup, remove_invitation_from_group, remove_oneself_from_group, remove_user_from_group, requests, successfulRequest, url;
+  var acceptInvitationToGroup, accept_invitation_to_group, addInvitationToGroup, add_invitation_to_group, changeOwnershipOfGroup, change_ownership_of_group, connectutils, createGroup, create_group, declineInvitationToGroup, decline_invitation_to_group, deleteGroup, delete_group, elt, failedRequest, getGroupInfo, getInvitationsToGroup, getMembersOfGroup, httpcallbackmaker, ifHaveEmail, ifLoggedIn, memberOfGroups, ownerOfGroups, pendingInvitationToGroups, redis_client, removeInvitationFromGroup, removeOneselfFromGroup, removeUserFromGroup, remove_invitation_from_group, remove_oneself_from_group, remove_user_from_group, requests, successfulRequest, url;
   requests = require("./requests");
   failedRequest = requests.failedRequest;
   successfulRequest = requests.successfulRequest;
@@ -335,6 +335,26 @@
       });
     });
   };
+  getInvitationsToGroup = function(req, res, next) {
+    var callback, changeTime, wantedGroup, __fname;
+    console.log(__fname = "getInvitationsToGroup");
+    changeTime = new Date().getTime();
+    wantedGroup = req.query.fqGroupName;
+    console.log("wantedGroup", wantedGroup);
+    callback = httpcallbackmaker(__fname, req, res, next);
+    return ifHaveEmail(__fname, req, res, function(email) {
+      return redis_client.hget("group:" + wantedGroup, 'owner', function(err, reply) {
+        if (err) {
+          return callback(err, reply);
+        }
+        if (reply === email) {
+          return redis_client.smembers("invitations:" + wantedGroup, callback);
+        } else {
+          return callback(err, reply);
+        }
+      });
+    });
+  };
   getGroupInfo = function(req, res, next) {
     var callback, changeTime, wantedGroup, __fname;
     console.log(__fname = "getGroupInfo");
@@ -374,6 +394,7 @@
   exports.removeOneselfFromGroup = removeOneselfFromGroup;
   exports.deleteGroup = deleteGroup;
   exports.getMembersOfGroup = getMembersOfGroup;
+  exports.getInvitationsToGroup = getInvitationsToGroup;
   exports.getGroupInfo = getGroupInfo;
   exports.memberOfGroups = memberOfGroups;
   exports.ownerOfGroups = ownerOfGroups;

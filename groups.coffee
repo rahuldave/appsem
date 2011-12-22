@@ -279,7 +279,22 @@ getMembersOfGroup = (req, res, next) ->
                 redis_client.smembers "members:#{wantedGroup}", callback
             else
                 return callback err, reply 
-                
+
+#GET currently let anyone get BUG later impose owner
+getInvitationsToGroup = (req, res, next) ->
+    console.log __fname="getInvitationsToGroup"
+    changeTime = new Date().getTime()
+    wantedGroup=req.query.fqGroupName
+    console.log "wantedGroup", wantedGroup
+    callback =  httpcallbackmaker(__fname, req, res, next)
+    ifHaveEmail __fname, req, res, (email) ->
+        redis_client.hget "group:#{wantedGroup}", 'owner', (err, reply) ->
+            if err
+                return callback err, reply
+            if reply is email    
+                redis_client.smembers "invitations:#{wantedGroup}", callback
+            else
+                return callback err, reply                
 #GET
 getGroupInfo = (req, res, next) ->
     console.log __fname="getGroupInfo"
@@ -314,6 +329,7 @@ exports.deleteGroup=deleteGroup
 
 #and the gets   
 exports.getMembersOfGroup=getMembersOfGroup
+exports.getInvitationsToGroup=getInvitationsToGroup
 exports.getGroupInfo=getGroupInfo
 exports.memberOfGroups=memberOfGroups
 exports.ownerOfGroups=ownerOfGroups

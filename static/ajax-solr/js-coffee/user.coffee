@@ -151,7 +151,8 @@ makeOwnerOfGroupsSectionRow = (s) ->
     frag=s.replace(/\//g, '-').replace('@', '_at_').replace(/\./g, '_dot_')
     [$('<input type="checkbox" name="groupid"/>').attr('value', s),
      $('<a/>').attr('href', "#{SITEPREFIX}/explorer/group?fqGroupName=#{s}").text(s),
-     $("<span id=\"og_"+frag+"\">")]
+     $("<span id=\"og_"+frag+"\">"),
+     $("<span id=\"ogi_"+frag+"\">")]
 
     #makeSearchText s.searchuri]
 
@@ -162,7 +163,7 @@ createOwnerOfGroupsSection = (groups) ->
     $div = $('div#owner_groups')
     $div.append AjaxSolr.theme('section_title', 'Groups you are the owner of:')
     $div.append AjaxSolr.theme('section_items', 'owner_groups',
-      ['Group Name', 'Members'], rows)
+      ['Group Name', 'Members', 'Invitations'], rows)
       #handleSearches(getBibTexFromADS),
       #handleSearches(saveToMyADS))
 
@@ -173,7 +174,12 @@ createOwnerOfGroupsSection = (groups) ->
               frag=groups[idx].replace(/\//g, '-').replace('@', '_at_').replace(/\./g, '_dot_')
               grouptext=data.getMembersOfGroup.join ', '
               $("#og_#{frag}").text grouptext
-              $('#owner_groups-table').tablesorter() if idx is (groups.length-1)
+              cidx=idx
+              $.getJSON SITEPREFIX+"/getinvitationstogroup?fqGroupName=#{groups[cidx]}", do (cidx) =>
+                  (data2) ->
+                      invitetext=data2.getInvitationsToGroup.join ', '
+                      $("#ogi_#{frag}").text invitetext
+                      $('#owner_groups-table').tablesorter() if cidx is (groups.length-1)
 
 
 noOwnerOfGroups = () ->

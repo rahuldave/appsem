@@ -483,17 +483,18 @@ _doSearchForGroup = (email, fqGroupName, searchtype, templateCreatorFunc, res, k
                         if err2
                             console.log "*** getSaved#{searchtype}ForGroup2: failed for email=#{email} err=#{err2}"
                             return callback err2, searches
+                        console.log searchtype, 'searches.elements', searches.elements
                         margs=(['hget', "savedby:#{fqGroupName}", ele] for ele in searches.elements)
                         redis_client.multi(margs).exec (errm, savedBys) ->
                             if errm
                                 return callback errm, savedBys
                             #searchbys=(reply for reply in replies)
                             margs2=(['hget', "savedInGroups:#{searchtype}", ele] for ele in searches.elements)
-                            console.log "<<<<<", margs2
+                            console.log "<<<<<#{searchtype}", margs2
                             redis_client.multi(margs2).exec (err, groupjsonlist) ->
                                 if err
                                     return callback err, groupjsonlist
-                                #console.log ">>>>>>>", searches.elements, groupjsonlist
+                                console.log ">>>>>>>#{searchtype}", searches.elements, groupjsonlist
                                 savedingroups=[]
                                 for ele in groupjsonlist
                                     if not ele

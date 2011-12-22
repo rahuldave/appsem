@@ -16,7 +16,7 @@
     };
   };
   AjaxSolr.theme.prototype.owner_groups_formactions = function() {
-    return $('<div class="formactions"/>').append($('<input type="button" class="btn small" value="Mark all"/>').click(changeAllButtons(true))).append($('<input type="button" class="btn small" value="Clear all"/>').click(changeAllButtons(false))).append($('<input type="submit" class="btn small danger" value="Delete Groups" name="action"/>')).append($('<input type="submit" class="btn small primary" value="Add Group" name="action"/>'));
+    return $('<div class="formactions"/>').append($('<input type="button" class="btn small" value="Mark all"/>').click(changeAllButtons(true))).append($('<input type="button" class="btn small" value="Clear all"/>').click(changeAllButtons(false))).append($('<input type="submit" class="btn small danger" value="Delete Groups" name="action"/>')).append($('<input class="medium" type="text" id="invitetext"/>')).append($('<input type="submit" class="btn small info" value="Invite" name="action"/>'));
   };
   AjaxSolr.theme.prototype.member_groups_formactions = function() {
     return $('<div class="formactions"/>').append($('<input type="button" class="btn small" value="Mark all"/>').click(changeAllButtons(true))).append($('<input type="button" class="btn small" value="Clear all"/>').click(changeAllButtons(false))).append($('<input type="submit" class="btn small danger" value="Unsubscribe" name="action"/>'));

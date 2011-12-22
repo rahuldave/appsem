@@ -1,14 +1,15 @@
 <div class="content"> 
 <h2> User {{ user }} </h2>
+<hr/>
 <div style="display: none;" class="userloggedout">
  Please <a class="userlogin" href="#">log in</a> to see your home page.
 </div>
   
 <div style="display: none;" class="userloggedin">
+<input type="submit" class="btn small primary" value="Add Group" name="addgroup"/>
+<div id="owner_groups" class="saved-items"></div>	
 <div id="pending_invitations" class="saved-items"></div>
 <div id="member_groups" class="saved-items"></div>
-<div id="owner_groups" class="saved-items"></div>
-<h3>Search Form</h3>
 </div>
     
 </div>

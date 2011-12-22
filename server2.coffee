@@ -195,6 +195,7 @@ server.use SITEPREFIX+'/deletegroup', doPostWithJSON groups.deleteGroup
 
 #and the gets   
 server.use SITEPREFIX+'/getmembersofgroup', groups.getMembersOfGroup
+server.use SITEPREFIX+'/getinvitationstogroup', groups.getInvitationsToGroup
 server.use SITEPREFIX+'/getgroupinfo', groups.getGroupInfo
 server.use SITEPREFIX+'/memberofgroups', groups.memberOfGroups
 server.use SITEPREFIX+'/ownerofgroups', groups.ownerOfGroups

@@ -240,7 +240,7 @@
   makeOwnerOfGroupsSectionRow = function(s) {
     var frag;
     frag = s.replace(/\//g, '-').replace('@', '_at_').replace(/\./g, '_dot_');
-    return [$('<input type="checkbox" name="groupid"/>').attr('value', s), $('<a/>').attr('href', "" + SITEPREFIX + "/explorer/group?fqGroupName=" + s).text(s), $("<span id=\"og_" + frag + "\">")];
+    return [$('<input type="checkbox" name="groupid"/>').attr('value', s), $('<a/>').attr('href', "" + SITEPREFIX + "/explorer/group?fqGroupName=" + s).text(s), $("<span id=\"og_" + frag + "\">"), $("<span id=\"ogi_" + frag + "\">")];
   };
   createOwnerOfGroupsSection = function(groups) {
     var $div, idx, ngroup, rows, s, _ref, _results;
@@ -256,19 +256,27 @@
     })();
     $div = $('div#owner_groups');
     $div.append(AjaxSolr.theme('section_title', 'Groups you are the owner of:'));
-    $div.append(AjaxSolr.theme('section_items', 'owner_groups', ['Group Name', 'Members'], rows));
+    $div.append(AjaxSolr.theme('section_items', 'owner_groups', ['Group Name', 'Members', 'Invitations'], rows));
     $('#owner_groups-form').submit(submitDeleteActionOwnerGroups('/deletegroup', 'fqGroupName', createOwnerOfGroups));
     _results = [];
     for (idx = 0, _ref = groups.length; 0 <= _ref ? idx < _ref : idx > _ref; 0 <= _ref ? idx++ : idx--) {
       _results.push($.getJSON(SITEPREFIX + ("/getmembersofgroup?fqGroupName=" + groups[idx]), __bind(function(idx) {
         return function(data) {
-          var frag, grouptext;
+          var cidx, frag, grouptext;
           frag = groups[idx].replace(/\//g, '-').replace('@', '_at_').replace(/\./g, '_dot_');
           grouptext = data.getMembersOfGroup.join(', ');
           $("#og_" + frag).text(grouptext);
-          if (idx === (groups.length - 1)) {
-            return $('#owner_groups-table').tablesorter();
-          }
+          cidx = idx;
+          return $.getJSON(SITEPREFIX + ("/getinvitationstogroup?fqGroupName=" + groups[cidx]), __bind(function(cidx) {
+            return function(data2) {
+              var invitetext;
+              invitetext = data2.getInvitationsToGroup.join(', ');
+              $("#ogi_" + frag).text(invitetext);
+              if (cidx === (groups.length - 1)) {
+                return $('#owner_groups-table').tablesorter();
+              }
+            };
+          }, this)(cidx));
         };
       }, this)(idx)));
     }

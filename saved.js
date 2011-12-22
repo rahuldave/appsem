@@ -617,6 +617,7 @@
               console.log("*** getSaved" + searchtype + "ForGroup2: failed for email=" + email + " err=" + err2);
               return callback(err2, searches);
             }
+            console.log(searchtype, 'searches.elements', searches.elements);
             margs = (function() {
               var _i, _len, _ref, _results;
               _ref = searches.elements;
@@ -642,12 +643,13 @@
                 }
                 return _results;
               })();
-              console.log("<<<<<", margs2);
+              console.log("<<<<<" + searchtype, margs2);
               return redis_client.multi(margs2).exec(function(err, groupjsonlist) {
                 var ele, groupstoadd, names, parsedgroups, savedingroups, titles, view, _i, _len;
                 if (err) {
                   return callback(err, groupjsonlist);
                 }
+                console.log(">>>>>>>" + searchtype, searches.elements, groupjsonlist);
                 savedingroups = [];
                 for (_i = 0, _len = groupjsonlist.length; _i < _len; _i++) {
                   ele = groupjsonlist[_i];

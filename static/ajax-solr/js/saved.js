@@ -1,6 +1,11 @@
 (function() {
-  var $, createSavedObservationSection, createSavedObservations, createSavedPublicationSection, createSavedPublications, createSavedSearchSection, createSavedSearches, doADSProxy, getBibTexFromADS, handleObservations, handlePublications, handleSearches, makeObsvRow, makePubRow, makeSearchRow, makeSearchText, noSavedObservations, noSavedPublications, noSavedSearches, saveToMyADS, submitDeleteAction, tsortopts;
+  var $, createSavedObservationSection, createSavedObservations, createSavedPublicationSection, createSavedPublications, createSavedSearchSection, createSavedSearches, doADSProxy, getBibTexFromADS, handleItemsWithPK, handleObservations, handlePublications, handleSearches, makeObsvRow, makePubRow, makeSearchRow, makeSearchText, noSavedObservations, noSavedPublications, noSavedSearches, saveToGroup, saveToMyADS, savemap, submitDeleteAction, tsortopts;
   $ = jQuery;
+  savemap = {
+    obsvs: 'obsv',
+    searches: 'search',
+    pubs: 'pub'
+  };
   doADSProxy = function(urlpath, callback) {
     return $.post("" + SITEPREFIX + "/adsproxy", JSON.stringify({
       urlpath: urlpath
@@ -79,6 +84,50 @@
       $.fancybox.showActivity();
       return handler(data);
     };
+  };
+  handleItemsWithPK = function(handler, itemstype, recreate) {
+    return function() {
+      var data, ele, fqGroupName, ihash, item, items, objectsToSave, thetype, _i, _len;
+      console.log('in stgh', itemstype, $(this.form));
+      items = (function() {
+        var _i, _len, _ref, _results;
+        _ref = $(this.form).find('input[type=checkbox][checked|=true]');
+        _results = [];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          item = _ref[_i];
+          _results.push(item.value);
+        }
+        return _results;
+      }).call(this);
+      thetype = "saved" + savemap[itemstype];
+      objectsToSave = [];
+      for (_i = 0, _len = items.length; _i < _len; _i++) {
+        ele = items[_i];
+        ihash = {};
+        ihash[thetype] = ele;
+        objectsToSave.push(ihash);
+      }
+      console.log(items, objectsToSave, $(this.form).find('.groupselect option:selected'));
+      fqGroupName = $(this.form).find('.groupselect option:selected')[0].text;
+      if (objectsToSave.length === 0) {
+        alert("No " + itemstype + " have been selected.");
+        return false;
+      }
+      data = {
+        fqGroupName: fqGroupName,
+        objectsToSave: objectsToSave
+      };
+      return handler(itemstype, data, recreate);
+    };
+  };
+  saveToGroup = function(itemstype, map, recreate) {
+    console.log("inwith", map, "" + SITEPREFIX + "/save" + itemstype + "togroup");
+    $.post("" + SITEPREFIX + "/save" + itemstype + "togroup", JSON.stringify(map), function(data) {
+      console.log("save rets", data);
+      recreate();
+      return false;
+    });
+    return false;
   };
   handleObservations = function(handler) {
     return function() {
@@ -219,7 +268,7 @@
     })();
     $div = $('div#saved-searches');
     $div.append(AjaxSolr.theme('saved_title', 'Saved Searches'));
-    $div.append(AjaxSolr.theme('saved_items', 'searches', ['Date saved', 'Search terms', 'Groups'], rows, null, null));
+    $div.append(AjaxSolr.theme('saved_items', 'searches', ['Date saved', 'Search terms', 'Groups'], rows, handleItemsWithPK(saveToGroup, 'searches', createSavedSearches), null, null));
     $('#saved-searches-form').submit(submitDeleteAction('/deletesearches', 'searchid', createSavedSearches));
     return $('#saved-searches-table').tablesorter(tsortopts);
   };
@@ -264,7 +313,7 @@
     })();
     $div = $('div#saved-pubs');
     $div.append(AjaxSolr.theme('saved_title', 'Saved Publications'));
-    $div.append(AjaxSolr.theme('saved_items', 'pubs', ['Date saved', 'Title', 'Bibcode', 'Groups'], rows, handlePublications(getBibTexFromADS), handlePublications(saveToMyADS)));
+    $div.append(AjaxSolr.theme('saved_items', 'pubs', ['Date saved', 'Title', 'Bibcode', 'Groups'], rows, handleItemsWithPK(saveToGroup, 'pubs', createSavedPublications), handlePublications(getBibTexFromADS), handlePublications(saveToMyADS)));
     $('#saved-pubs-form').submit(submitDeleteAction('/deletepubs', 'pubid', createSavedPublications));
     return $('#saved-pubs-table').tablesorter(tsortopts);
   };
@@ -308,7 +357,7 @@
     })();
     $div = $('div#saved-obsvs');
     $div.append(AjaxSolr.theme('saved_title', 'Saved Observations'));
-    $div.append(AjaxSolr.theme('saved_items', 'obsvs', ['Date Observed', 'Obsid', 'Target', 'Groups'], rows, null, null));
+    $div.append(AjaxSolr.theme('saved_items', 'obsvs', ['Date Observed', 'Obsid', 'Target', 'Groups'], rows, handleItemsWithPK(saveToGroup, 'obsvs', createSavedObservations), null, null));
     $('#saved-obsvs-form').submit(submitDeleteAction('/deleteobsvs', 'obsvid', createSavedObservations));
     return $('#saved-obsvs-table').tablesorter(tsortopts);
   };

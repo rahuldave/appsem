@@ -35,6 +35,24 @@ a {
     border-radius: 10px;
 }
 
+.content a.save {
+    color: #333;
+    border: 1px solid;
+    padding-left: 5px;
+    padding-right: 5px;
+    background: #FAF8CC;
+    border-radius: 10px;
+}
+
+.content a.delete {
+    color: #333;
+    border: 1px solid;
+    padding-left: 5px;
+    padding-right: 5px;
+    background: grey; /* #FAF8CC; */
+    border-radius: 10px;
+}
+
 .content a:hover {
   color: #000;
   text-decoration: underline;
@@ -65,7 +83,7 @@ a.go {
   margin-top: 10px;
   color: #B4241B;
   line-height:18px;
-  font-weight: 100;
+  font-weight: normal;
   /*font-size: 15px;
   padding: 15px 0 5px 0;
   letter-spacing: -2px;*/

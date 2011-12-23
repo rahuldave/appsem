@@ -51,7 +51,7 @@
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         c = _ref[_i];
         $span = $('<span class="facetvalue"/>');
-        $link = $('<a href="#"/>').text("(x) " + c.label + " ").click(self.removeFacet(c.constraint));
+        $link = $('<a href="#"/>').html("" + c.label + " <span class=\"label important\">x</span>").click(self.removeFacet(c.constraint));
         $pivot = AjaxSolr.theme('pivot_link', self.pivotHandler(c.constraint));
         $span.append($link).append($pivot);
         if (_ref2 = c.display, __indexOf.call(order, _ref2) < 0) {
@@ -82,7 +82,7 @@
         $(self.target).html('<div>Viewing all documents!</div>');
       } else {
         if (list.length > 1) {
-          list.push($('<a href="#"/>').text('remove all').click(function() {
+          list.push($('<a class="label important" href="#"/>').text('remove all').click(function() {
             self.manager.store.remove('fq');
             self.manager.doRequest(0);
             return false;

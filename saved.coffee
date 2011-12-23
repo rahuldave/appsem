@@ -687,7 +687,7 @@ _doRemoveSearchesFromGroup = (email, group, searchtype, searchids, callback) ->
             for grouplist in savedingroups
                 console.log 'grouplist', grouplist
                 newgrouplist=[]
-                newgrouplist.push(ele) for ele in grouplist when ele is not group
+                newgrouplist.push(ele) for ele in grouplist when ele isnt group
                 console.log 'newgrouplist', newgrouplist
                 newsavedgroups.push(newgrouplist)
             

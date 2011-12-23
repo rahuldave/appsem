@@ -182,7 +182,7 @@ AjaxSolr.theme.prototype.title2 = function (doc) {
 }
 
     AjaxSolr.theme.prototype.pivot2 = function (pivotclass){
-        return $('<a facet_field="'+pivotclass+'" class="label important pivotlink '+pivotclass+'" href="#"/>').text('P');
+        return $('<a facet_field="'+pivotclass+'" class="label pivotlink '+pivotclass+'" href="#"/>').text('P');
     }
 
     AjaxSolr.theme.prototype.facet_link2 = function (value, pivotclass, valuestring) {
@@ -235,7 +235,7 @@ AjaxSolr.theme.prototype.tag = function (value, thecount, weight, handler, handl
 };
 
 AjaxSolr.theme.prototype.pivot_link = function (handler) {
-    return $('<a class="label important pivotlink" href="#"/>').text('P').click(handler);
+    return $('<a class="label pivotlink" href="#"/>').text('P').click(handler);
 }
 
 AjaxSolr.theme.prototype.facet_link = function (value, handler) {

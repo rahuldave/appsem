@@ -77,6 +77,9 @@ handleItemsWithPK = (handler, itemstype, recreate) ->
     () ->
         console.log 'in stgh', itemstype, $(this.form)
         items = (item.value for item in $(this.form).find('input[type=checkbox][checked|=true]'))
+        if items.length is 0
+          alert "No items have been selected."
+          return false
         thetype="saved#{savemap[itemstype]}"
         objectsToSave=[]
         for ele in items
@@ -195,7 +198,7 @@ makeSearchRow = (s) ->
   [$('<input type="checkbox" name="searchid"/>').attr('value', s.searchuri),
    $('<span/>').attr('value', s.searchtime).text(s.searchtimestr),
    $('<a/>').attr('href', "#{SITEPREFIX}/explorer/#{s.searchuri}")
-     .text(scpts.join " "),
+     .text(scpts.join " | "),
    $('<span/>').html(groupsintext.join(', '))]
 
 #makeSearchText s.searchuri]

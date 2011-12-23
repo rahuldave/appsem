@@ -74,14 +74,24 @@
     return label;
   };
   root.searchToText = function(searchTerm, namemap) {
-    var n, name, out, s, term, terms, v, value, _i, _len, _ref, _results;
+    var ele, n, name, newterms, out, s, term, terms, v, value, _i, _j, _len, _len2, _ref, _results;
     s = ("&" + searchTerm).replace('&q=*%3A*', '');
     terms = s.split(/fq=/);
-    console.log('TERMS', terms);
+    console.log(terms);
     terms.shift();
-    out = {};
+    console.log('TERMS', terms);
+    newterms = [];
     for (_i = 0, _len = terms.length; _i < _len; _i++) {
-      term = terms[_i];
+      ele = terms[_i];
+      if (ele[ele.length - 1] === '&') {
+        newterms.push(ele.slice(0, -1));
+      } else {
+        newterms.push(ele);
+      }
+    }
+    out = {};
+    for (_j = 0, _len2 = newterms.length; _j < _len2; _j++) {
+      term = newterms[_j];
       _ref = decodeURIComponent(term).split(':', 2), name = _ref[0], value = _ref[1];
       value = cleanFacetValue(value);
       if (name in out) {
@@ -124,7 +134,8 @@
     t_resolution_f: 'Temporal resolution'
   };
   setLoggedIn = function(email) {
-    var elem, _i, _j, _len, _len2, _ref, _ref2;
+    var addgrouphandler, elem, _i, _j, _len, _len2, _ref, _ref2;
+    root.myemail = email;
     $('a#logouthref').text("logout");
     $('a#userhref').text("[" + email + "]").attr('href', "" + dasiteprefix + "/explorer/user?fqUserName=" + email);
     $('a#brandhref').attr('href', "" + dasiteprefix + "/explorer/user?fqUserName=" + email);
@@ -139,6 +150,20 @@
       elem = _ref2[_j];
       $(elem).hide();
     }
+    addgrouphandler = function() {
+      var fqGroupName, rawGroupName;
+      rawGroupName = $('#addgrouptext').val();
+      fqGroupName = "" + email + "/" + rawGroupName;
+      console.log(fqGroupName);
+      return $.post("" + dasiteprefix + "/creategroup", JSON.stringify({
+        rawGroupName: rawGroupName
+      }), function(resp) {
+        $.fancybox.close();
+        return window.location.href = "" + dasiteprefix + "/explorer/user?fqUserName=" + email;
+      });
+    };
+    $('a.newgroupfancybox').fancybox();
+    $('#addgroupdiv').append($('<span>Group Name:</span>')).append($('<input class="medium" id="addgrouptext" type="text"/>')).append($('<input type="button" class="btn small info" value="Add" name="Add"/>').click(addgrouphandler));
     $.getJSON("" + dasiteprefix + "/memberofgroups", function(data) {
       var gmhtml, group, groups;
       groups = data.memberOfGroups;

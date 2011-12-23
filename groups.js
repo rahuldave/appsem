@@ -273,13 +273,23 @@
     var changeTime;
     changeTime = new Date().getTime();
     return redis_client.sismember("members:" + fqGroupName, email, function(err, reply) {
-      var margs;
       if (err) {
         return callback(err, reply);
       }
       if (reply) {
-        margs = [['srem', "members:" + fqGroupName, email], ['srem', "memberof:" + email, fqGroupName]];
-        return redis_client.multi(margs).exec(callback);
+        return redis_client.hget("group:" + fqGroupName, 'owner', function(err2, reply2) {
+          var margs;
+          if (err2) {
+            return callback(err2, reply2);
+          }
+          if (reply2 !== email) {
+            margs = [['srem', "members:" + fqGroupName, email], ['srem', "memberof:" + email, fqGroupName]];
+            return redis_client.multi(margs).exec(callback);
+          } else {
+            console.log("here", email, err2, reply2);
+            return callback(err2, reply2);
+          }
+        });
       } else {
         return callback(err, reply);
       }
@@ -300,7 +310,7 @@
         return callback(err, reply);
       }
       if (reply === email) {
-        margs = [['del', "savedsearch:" + fqGroupName], ['del', "savedpub:" + fqGroupName], ['del', "savedobsv:" + fqGroupName], ['del', "members:" + fqGroupName], ['del', "invitations:" + fqGroupName], ['del', "savedby:" + fqGroupName], ['del', "group:" + fqGroupName], ['srem', "memberof:" + email, fqGroupName]];
+        margs = [['del', "savedsearch:" + fqGroupName], ['del', "savedpub:" + fqGroupName], ['del', "savedobsv:" + fqGroupName], ['del', "members:" + fqGroupName], ['del', "invitations:" + fqGroupName], ['del', "savedby:" + fqGroupName], ['del', "group:" + fqGroupName], ['srem', "memberof:" + email, fqGroupName], ['srem', "ownerof:" + email, fqGroupName]];
         return redis_client.multi(margs).exec(callback);
       } else {
         return callback(err, reply);

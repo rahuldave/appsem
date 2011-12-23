@@ -211,11 +211,18 @@ remove_oneself_from_group = (email, fqGroupName, callback) ->
         if err
             return callback err, reply
         if reply
-            margs = [
-                ['srem', "members:#{fqGroupName}", email],
-                ['srem', "memberof:#{email}", fqGroupName]
-            ]
-            redis_client.multi(margs).exec callback
+            redis_client.hget "group:#{fqGroupName}", 'owner', (err2, reply2) -> 
+                if err2
+                    return callback err2, reply2
+                if reply2 isnt email
+                    margs = [
+                        ['srem', "members:#{fqGroupName}", email],
+                        ['srem', "memberof:#{email}", fqGroupName]
+                    ]
+                    redis_client.multi(margs).exec callback
+                else
+                    console.log "here", email, err2, reply2
+                    return callback err2, reply2
         else
             return callback err, reply
 
@@ -237,7 +244,8 @@ removeOneselfFromGroup = ({fqGroupName}, req, res, next) ->
 
 #BUG invitations to non-existent group not deleted yet What else?
 
-#BUG How about deleting in savedInGroups
+#BUG How about deleting in savedInGroups: delete members, invitations from the users
+#or should a group archive
 delete_group=(email, fqGroupName, callback)->
   redis_client.hget "group:#{fqGroupName}", 'owner', (err, reply) -> 
     if err
@@ -251,7 +259,8 @@ delete_group=(email, fqGroupName, callback)->
             ['del', "invitations:#{fqGroupName}"],
             ['del', "savedby:#{fqGroupName}"],
             ['del', "group:#{fqGroupName}"],
-            ['srem', "memberof:#{email}", fqGroupName]
+            ['srem', "memberof:#{email}", fqGroupName],
+            ['srem', "ownerof:#{email}", fqGroupName]
         ]
         redis_client.multi(margs).exec callback
     else

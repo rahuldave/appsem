@@ -989,7 +989,7 @@
           newgrouplist = [];
           for (_j = 0, _len2 = grouplist.length; _j < _len2; _j++) {
             ele = grouplist[_j];
-            if (ele === !group) {
+            if (ele !== group) {
               newgrouplist.push(ele);
             }
           }

@@ -105,10 +105,18 @@ root.searchToText = (searchTerm, namemap) ->
   # only decode after the initial split to protect against the
   # unlikely event that &fq= appears as part of a search term.
   terms = s.split /fq=/
-  console.log 'TERMS', terms
+  console.log terms
   terms.shift() # ignore the first entry as '' by construction
+  
+  console.log 'TERMS', terms
+  newterms=[]
+  for ele in terms
+      if ele[ele.length-1] is '&'
+          newterms.push(ele[...-1])
+      else
+          newterms.push(ele)
   out = {}
-  for term in terms
+  for term in newterms
     [name, value] = decodeURIComponent(term).split ':', 2
     value = cleanFacetValue value
     if name of out
@@ -150,6 +158,7 @@ root.fieldname_map =
   t_resolution_f: 'Temporal resolution'
 
 setLoggedIn = (email) ->
+  root.myemail=email
   $('a#logouthref').text "logout"
   $('a#userhref').text("[#{email}]").attr('href', "#{dasiteprefix}/explorer/user?fqUserName=#{email}")
   $('a#brandhref').attr('href', "#{dasiteprefix}/explorer/user?fqUserName=#{email}")
@@ -158,6 +167,20 @@ setLoggedIn = (email) ->
     $(elem).show()
   for elem in $('.userloggedout')
     $(elem).hide()
+    
+  addgrouphandler = () ->
+      rawGroupName = $('#addgrouptext').val()
+      fqGroupName = "#{email}/#{rawGroupName}"
+      console.log fqGroupName
+      $.post "#{dasiteprefix}/creategroup", JSON.stringify({rawGroupName}), (resp)->
+          $.fancybox.close()
+          window.location.href = "#{dasiteprefix}/explorer/user?fqUserName=#{email}"
+      
+  $('a.newgroupfancybox').fancybox()
+  $('#addgroupdiv')
+  .append($('<span>Group Name:</span>'))
+  .append($('<input class="medium" id="addgrouptext" type="text"/>'))
+  .append($('<input type="button" class="btn small info" value="Add" name="Add"/>').click(addgrouphandler))
   $.getJSON "#{dasiteprefix}/memberofgroups", (data) ->
     groups=data.memberOfGroups
     root.mygroups=groups;

@@ -168,7 +168,7 @@ makeSearchRow = (s) ->
   [$('<input type="checkbox" name="searchid"/>').attr('value', s.searchuri),
    $('<span/>').attr('value', s.searchtime).text(s.searchtimestr),
    $('<a/>').attr('href', "#{SITEPREFIX}/explorer/#{s.searchuri}")
-     .text(scpts.join " "),
+     .text(scpts.join " | "),
    $('<span/>').html(groupsintext.join(', '))]
 
 #makeSearchText s.searchuri]

@@ -14,25 +14,25 @@ changeAllButtons = (newstate) ->
     return true
 
 # Create the form actions for the saved-item form.
-AjaxSolr.theme.prototype.owner_groups_formactions = () ->
+AjaxSolr.theme.prototype.owner_groups_formactions = (invitehandler, accepthandler) ->
   return $('<div class="formactions"/>')
     .append($('<input type="button" class="btn small" value="Mark all"/>').click(changeAllButtons true))
     .append($('<input type="button" class="btn small" value="Clear all"/>').click(changeAllButtons false))
     .append($('<input type="submit" class="btn small danger" value="Delete Groups" name="action"/>'))
-    .append($('<input class="medium" type="text" id="invitetext"/>'))
-    .append($('<input type="submit" class="btn small info" value="Invite" name="action"/>'))
-AjaxSolr.theme.prototype.member_groups_formactions = () ->
+    .append($('<input class="medium invitetext" type="text"/>'))
+    .append($('<input type="button" class="btn small info" value="Invite" name="Invite"/>').click(invitehandler))
+AjaxSolr.theme.prototype.member_groups_formactions = (invitehandler, accepthandler) ->
   return $('<div class="formactions"/>')
     .append($('<input type="button" class="btn small" value="Mark all"/>').click(changeAllButtons true))
     .append($('<input type="button" class="btn small" value="Clear all"/>').click(changeAllButtons false))
     .append($('<input type="submit" class="btn small danger" value="Unsubscribe" name="action"/>'))
 
-AjaxSolr.theme.prototype.pending_invitations_formactions = () ->
+AjaxSolr.theme.prototype.pending_invitations_formactions = (invitehandler, accepthandler) ->
   return $('<div class="formactions"/>')
     .append($('<input type="button" class="btn small" value="Mark all"/>').click(changeAllButtons true))
     .append($('<input type="button" class="btn small" value="Clear all"/>').click(changeAllButtons false))
     .append($('<input type="submit" class="btn small danger" value="Decline" name="action"/>'))
-    .append($('<input type="submit" class="btn small info" value="Accept" name="action"/>'))
+    .append($('<input type="button" class="btn small info" value="Accept" name="Accept"/>').click(accepthandler))
                
 
 # Create the THEAD block for the saved-item table.
@@ -71,9 +71,9 @@ AjaxSolr.theme.prototype.section_tablerow = (row) ->
 #   bibtexHandler is the click handler for the 'export as BibTex' button
 #   myADSHandler is the click handler for the 'export to myADS' button
 
-AjaxSolr.theme.prototype.section_items = (idfrag, cols, rows, addfunc=null) ->
+AjaxSolr.theme.prototype.section_items = (idfrag, cols, rows, invitehandler=null, accepthandler=null) ->
   $out = $('<form action="#"/>').attr 'id', "#{idfrag}-form"
-  $actions = AjaxSolr.theme "#{idfrag}_formactions"
+  $actions = AjaxSolr.theme "#{idfrag}_formactions", invitehandler, accepthandler
   $table = $('<table class="tablesorter"/>')
     .attr('id', "#{idfrag}-table")
     .append(AjaxSolr.theme 'section_tablehead', cols)

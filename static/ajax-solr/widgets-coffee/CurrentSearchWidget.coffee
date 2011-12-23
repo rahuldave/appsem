@@ -68,14 +68,14 @@ AjaxSolr.CurrentSearchWidget = AjaxSolr.AbstractWidget.extend
     # facets not in this.allowmulti we loop over the
     # items backwards. This means that we don't quite get
     # the ordering of multiple facets correct, but I
-    # think that is acceptable.
+    # think that is acceptable. .text("(x) #{c.label} ")
     order = []
     store = {}
 
     for c in (self.splitConstraint(cstr) for cstr in fq)
       $span = $('<span class="facetvalue"/>')
       $link = $('<a href="#"/>')
-        .text("(x) #{c.label} ")
+        .html("#{c.label} <span class=\"label important\">x</span>")
         .click(self.removeFacet c.constraint)
       $pivot = AjaxSolr.theme 'pivot_link',
         self.pivotHandler(c.constraint)
@@ -107,7 +107,7 @@ AjaxSolr.CurrentSearchWidget = AjaxSolr.AbstractWidget.extend
       $(self.target).html '<div>Viewing all documents!</div>'
     else
       if list.length > 1
-        list.push $('<a href="#"/>').text('remove all').click(() ->
+        list.push $('<a class="label important" href="#"/>').text('remove all').click(() ->
           self.manager.store.remove 'fq'
           self.manager.doRequest 0
           return false)

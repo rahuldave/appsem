@@ -99,6 +99,10 @@
         }
         return _results;
       }).call(this);
+      if (items.length === 0) {
+        alert("No items have been selected.");
+        return false;
+      }
       thetype = "saved" + savemap[itemstype];
       objectsToSave = [];
       for (_i = 0, _len = items.length; _i < _len; _i++) {
@@ -252,7 +256,7 @@
     })();
     scpts = searchToText(s.searchuri, fieldname_map);
     console.log(s.searchtext, s.searchuri, scpts);
-    return [$('<input type="checkbox" name="searchid"/>').attr('value', s.searchuri), $('<span/>').attr('value', s.searchtime).text(s.searchtimestr), $('<a/>').attr('href', "" + SITEPREFIX + "/explorer/" + s.searchuri).text(scpts.join(" ")), $('<span/>').html(groupsintext.join(', '))];
+    return [$('<input type="checkbox" name="searchid"/>').attr('value', s.searchuri), $('<span/>').attr('value', s.searchtime).text(s.searchtimestr), $('<a/>').attr('href', "" + SITEPREFIX + "/explorer/" + s.searchuri).text(scpts.join(" | ")), $('<span/>').html(groupsintext.join(', '))];
   };
   createSavedSearchSection = function(searches) {
     var $div, nsearch, rows, s;

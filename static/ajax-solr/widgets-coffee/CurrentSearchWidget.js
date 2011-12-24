@@ -34,7 +34,7 @@
       };
     },
     afterRequest: function() {
-      var $link, $pivot, $span, c, cstr, field, fq, i, list, order, self, store, _i, _j, _len, _len2, _ref, _ref2, _ref3, _ref4;
+      var $link, $pivot, $span, $sspan, c, cstr, field, fq, i, labeltext, list, lp, order, self, store, _i, _j, _len, _len2, _ref, _ref2, _ref3, _ref4;
       self = this;
       fq = self.manager.store.values('fq');
       order = [];
@@ -50,10 +50,21 @@
       })();
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         c = _ref[_i];
-        $span = $('<span class="facetvalue"/>');
-        $link = $('<a href="#"/>').html("" + c.label + " <span class=\"label important\">x</span>").click(self.removeFacet(c.constraint));
+        labeltext = c.label;
+        $span = $('<span/>');
+        if ((lp = c.label.search(/OR/)) !== -1) {
+          labeltext = c.label.slice(0, lp * 2) + '...';
+          console.log(lp, c.label);
+          $sspan = $('<span class="facetvalue"/>').html("" + labeltext + " ").twipsy({
+            fallback: c.label,
+            placement: 'below'
+          });
+        } else {
+          $sspan = $('<span class="facetvalue"/>').html("" + labeltext + " ");
+        }
+        $link = $('<a class="label important" href="#"/>').html('x').click(self.removeFacet(c.constraint));
         $pivot = AjaxSolr.theme('pivot_link', self.pivotHandler(c.constraint));
-        $span.append($link).append($pivot);
+        $span.append($sspan).append($link).append($pivot);
         if (_ref2 = c.display, __indexOf.call(order, _ref2) < 0) {
           order.push(c.display);
           store[c.display] = [];
@@ -61,7 +72,7 @@
         if ((_ref3 = c.field, __indexOf.call(self.allowmulti, _ref3) >= 0) || store[c.display].length === 0) {
           store[c.display].push($span);
         } else {
-          if (self.remove(c.field)) {
+          if (self.removeFacet(c.field)) {
             self.manager.doRequest(0);
           }
         }

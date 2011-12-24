@@ -1,10 +1,12 @@
 (function() {
-  var $;
+  var $, root;
+  root = typeof exports !== "undefined" && exports !== null ? exports : this;
   $ = jQuery;
   AjaxSolr.AutocompleteWidget = AjaxSolr.AbstractFacetWidget.extend({
     fieldmap: {},
     afterRequest: function() {
       var callback, field, getjsonstring, params, self, _i, _len, _ref;
+      $('#thrower').hide();
       $(this.target).find('input').val('');
       self = this;
       $(this.target).find('input').unbind().bind('keydown', function(e) {
@@ -17,14 +19,23 @@
         }
       });
       callback = function(response) {
-        var facet, field, fieldname, list, resHandler, val, _i, _len, _ref, _ref2, _ref3;
+        var ele, facet, faceter, facetfields, field, fieldname, list, listuse, obsvs, othertab, pubs, resHandler, throwhref, throwurlist, val, _i, _len, _ref, _ref2, _ref3;
         list = [];
+        obsvs = [];
+        pubs = [];
+        facetfields = response.facet_counts.facet_fields;
         _ref = self.fields;
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           field = _ref[_i];
-          _ref2 = response.facet_counts.facet_fields[field];
+          _ref2 = facetfields[field];
           for (facet in _ref2) {
             val = _ref2[facet];
+            if (field === 'obsids_s') {
+              obsvs.push(facet);
+            }
+            if (field === 'bibcode') {
+              pubs.push(facet);
+            }
             fieldname = (_ref3 = self.fieldmap[field]) != null ? _ref3 : field;
             list.push({
               field: field,
@@ -33,7 +44,35 @@
             });
           }
         }
+        console.log(self.tab, pubs.length, obsvs.length);
         self.requestSent = false;
+        if (self.tab === 'publications') {
+          othertab = 'observations';
+          faceter = 'obsids_s';
+          listuse = obsvs;
+        }
+        if (self.tab === 'observations') {
+          othertab = 'publications';
+          faceter = 'bibcode';
+          listuse = pubs;
+        }
+        if (listuse.length > 0) {
+          throwurlist = (function() {
+            var _j, _len2, _results;
+            _results = [];
+            for (_j = 0, _len2 = listuse.length; _j < _len2; _j++) {
+              ele = listuse[_j];
+              _results.push("" + (encodeURIComponent(ele)));
+            }
+            return _results;
+          })();
+          throwhref = "" + root.dasiteprefix + "/explorer/" + othertab + "#fq=" + faceter + "%3A" + (throwurlist.join('%20OR%20'));
+          console.log(throwhref.length);
+          if (throwhref.length < 3750) {
+            $('#thrower').attr('href', throwhref);
+            $('#thrower').show();
+          }
+        }
         resHandler = function(err, facet) {
           var nval;
           self.requestSent = true;
@@ -48,7 +87,7 @@
           }
         }).result(resHandler);
       };
-      params = [self.manager.store.hash, 'facet=true&facet.limit=-1&facet.mincount=1&json.nl=map'];
+      params = [self.manager.store.hash, 'q=*:*&rows=0&facet=true&facet.limit=-1&facet.mincount=1&json.nl=map'];
       _ref = self.fields;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         field = _ref[_i];

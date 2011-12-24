@@ -73,13 +73,22 @@ AjaxSolr.CurrentSearchWidget = AjaxSolr.AbstractWidget.extend
     store = {}
 
     for c in (self.splitConstraint(cstr) for cstr in fq)
-      $span = $('<span class="facetvalue"/>')
-      $link = $('<a href="#"/>')
-        .html("#{c.label} <span class=\"label important\">x</span>")
-        .click(self.removeFacet c.constraint)
+      labeltext=c.label
+      #console.log ';;;', c.label
+      $span=$('<span/>')
+      if (lp=c.label.search /OR/) isnt -1
+          labeltext=c.label[0...lp*2]+'...'
+          console.log lp, c.label
+          $sspan = $('<span class="facetvalue"/>').html("#{labeltext} ").twipsy({fallback:c.label, placement:'below'})
+      else
+          $sspan = $('<span class="facetvalue"/>').html("#{labeltext} ")
+      $link = $('<a class="label important" href="#"/>')
+        .html('x').click(self.removeFacet c.constraint)
+        #.html("<span class=\"label important\">x</span>")
+        #.click(self.removeFacet c.constraint)
       $pivot = AjaxSolr.theme 'pivot_link',
         self.pivotHandler(c.constraint)
-      $span.append($link).append($pivot)
+      $span.append($sspan).append($link).append($pivot)
 
       if c.display not in order
         order.push c.display
@@ -88,7 +97,8 @@ AjaxSolr.CurrentSearchWidget = AjaxSolr.AbstractWidget.extend
       if c.field in self.allowmulti or store[c.display].length is 0
         store[c.display].push $span
       else
-        if self.remove c.field
+        #rahul changed remove to removeFacet here. not sure. BUG?
+        if self.removeFacet c.field
           self.manager.doRequest 0
 
     list = []

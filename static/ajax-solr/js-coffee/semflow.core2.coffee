@@ -156,6 +156,7 @@ root.fieldname_map =
   data_collection_s: 'Data Collection'
   resolution_f: 'Spatial resolution'
   t_resolution_f: 'Temporal resolution'
+  bibcode: 'Bibcode'
 
 setLoggedIn = (email) ->
   root.myemail=email

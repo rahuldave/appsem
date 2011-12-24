@@ -1,7 +1,7 @@
 /*
  * Code for the publications page
  */
-
+root = typeof exports !== "undefined" && exports !== null ? exports : this;
 var SOLRURL = SITEPREFIX + '/solr/';
 
 var PublicationsManager;
@@ -89,52 +89,51 @@ var PublicationsManager;
 		});
 	    } // renderHeader
 	}));
-	
-	var fields = [ 'keywords', 'author', 'objecttypes', 'objectnames', 'obsvtypes', 'obsids', 'instruments', 'missions', 'emdomains', 'targets', 'datatypes', 'propids', 'proposaltype', 'proposalpi'];
-	var facet_fields= [ 'keywords_s', 'author_s', 'objecttypes_s', 'objectnames_s', 'obsvtypes_s', 'obsids_s', 'instruments_s', 'obsv_mission_s', 'emdomains_s', 'targets_s', 'datatypes_s', 'propids_s', 'proposaltype_s', 'proposalpi_s'];
+	//removing obsids, obsids_s
+	var fields = [ 'keywords', 'author', 'objecttypes', 'objectnames', 'obsvtypes', 'instruments', 'missions', 'emdomains', 'targets', 'datatypes', 'propids', 'proposaltype', 'proposalpi'];
+	var facet_fields= [ 'keywords_s', 'author_s', 'objecttypes_s', 'objectnames_s', 'obsvtypes_s', 'instruments_s', 'obsv_mission_s', 'emdomains_s', 'targets_s', 'datatypes_s', 'propids_s', 'proposaltype_s', 'proposalpi_s'];
 	var field_names = ['Keyword', 'Author', 'Object Type', 'Object Name', 'Observation Type', 'Obsid', 'Instrument',
 			   'Mission', 'Wavelength', 'Target Name',
 			   'Data Type', 'Proposal ID', 'Proposal Type', 'Proposal PI'];
-	var field_map = {};
-	
+	var field_map = root.fieldname_map;
+	console.log("fl, ffl", fields.length, facet_fields.length);
 	for (var i = 0, l = fields.length; i < l; i++) {
-	    field_map[facet_fields[i]] = field_names[i];
-	    
+	    //field_map[facet_fields[i]] = field_names[i];
 	    PublicationsManager.addWidget(new AjaxSolr.TagcloudWidget({
-		id: fields[i],
-		target: '#' + fields[i],
-		field: facet_fields[i]
+		    id: fields[i],
+    		target: '#' + fields[i],
+    		field: facet_fields[i]
 	    }));
 	}
 	
 	// Additions
-	field_map['pubyear_i'] = 'Publication Year'
-	field_map['ra_f'] = 'RA'
-	field_map['dec_f'] = 'Dec'
-	field_map['obsvtime_d'] = 'Observation Date'
-	field_map['exptime_f'] = 'Exposure Time'
+	//field_map['pubyear_i'] = 'Publication Year'
+	//field_map['ra_f'] = 'RA'
+	//field_map['dec_f'] = 'Dec'
+	//field_map['obsvtime_d'] = 'Observation Date'
+	//field_map['exptime_f'] = 'Exposure Time'
 	
 	PublicationsManager.addWidget(new AjaxSolr.CurrentSearchWidget({
             id: 'currentsearch',
             target: '#selection',
-	    fieldmap: field_map,
-	    allowmulti: facet_fields
-	    
+	        fieldmap: field_map,
+	        allowmulti: facet_fields
 	}));
 	PublicationsManager.addWidget(new AjaxSolr.AutocompleteWidget({
             id: 'text',
             target: '#search',
             field: 'text',
-            fields: facet_fields.concat(['bibcode']),
-	    fieldmap: field_map
+            tab: 'publications',
+            fields: facet_fields.concat(['bibcode', 'obsids_s']),
+	        fieldmap: field_map
 	}));
 	PublicationsManager.addWidget(new AjaxSolr.YearWidget({
             id: 'pubyear',
             target: '#pubyear',
             field: 'pubyear_i',
-	    datamin: 1978,
-	    datamax: 2011,
-	    datastep: 1
+	        datamin: 1978,
+	        datamax: 2011,
+	        datastep: 1
 	}));
 	
 	numericfields=['ra', 'dec'];

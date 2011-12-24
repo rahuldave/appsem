@@ -131,7 +131,8 @@
     exptime_f: 'Exposure Time',
     data_collection_s: 'Data Collection',
     resolution_f: 'Spatial resolution',
-    t_resolution_f: 'Temporal resolution'
+    t_resolution_f: 'Temporal resolution',
+    bibcode: 'Bibcode'
   };
   setLoggedIn = function(email) {
     var addgrouphandler, elem, _i, _j, _len, _len2, _ref, _ref2;

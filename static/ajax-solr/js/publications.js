@@ -52,6 +52,7 @@ var PublicationsManager;
 		if (PublicationsManager.store.values('fq').length == 0) {
 		    $('#save-search').hide();
 		} else {
+		    console.log('FQVALS', PublicationsManager.store.values('fq'))
 		    $('#save-search').show();
 		}
 		console.log("IN THE MIDDLE OF RENDERHEADER");
@@ -77,6 +78,12 @@ var PublicationsManager;
     			$('#delete-search').hide();
     			// $('#get-data').hide(); currently usunsed
     		}
+    		if (PublicationsManager.store.values('fq').length == 0) {
+		        $('#save-search').hide();
+		    } else {
+		        console.log('FQVALS', PublicationsManager.store.values('fq'))
+		        $('#save-search').show();
+		    }
 		});
 	    } // renderHeader
 	}));

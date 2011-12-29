@@ -68,6 +68,12 @@ var SOLRURL2 = SITEPREFIX + '/solr2/';
     			$('#delete-search').hide();
     			// $('#get-data').hide(); currently usunsed
 		    }
+		    if (ObservationsManager.store.values('fq').length == 0) {
+		        $('#save-search').hide();
+		    } else {
+		        console.log('FQVALS', ObservationsManager.store.values('fq'))
+		        $('#save-search').show();
+		    }
 		});
 
 

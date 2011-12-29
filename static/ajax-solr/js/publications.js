@@ -28,30 +28,15 @@ var PublicationsManager;
 		$('#pager-header')
 		    .html($('<span/>')
 			  .text('displaying ' + Math.min(total, offset + 1) + ' to ' + Math.min(total, offset + perPage) + ' of ' + total+' '))
-		    .append($('<a class="save" id="save-search" href="#">save search</a>'))
-		    .append($('<a class="delete" id="delete-search" style="display:none" href="#">delete search</a>'));
+		    //.append($('<a class="save" id="save-search" href="#">save search</a>'))
+		    //.append($('<a class="delete" id="delete-search" style="display:none" href="#">delete search</a>'))
+		    //.append($('<span class="label notice pull-right">Sort By:&nbsp;&nbsp;</span>')
+		        //.append($('<select class="small" id="sortselector"/>'))
+		        //.append($('<a class="btn small sorter" id="togglesort" state="desc">&darr;</a>'))).append('<br/>');
+		    
+		    //$('#orderselector').append('<option>&uarr;</option><option>&darr;</option>');
 		// FOR now remove get-data: append($('<a class="save" id="get-data" href="#">get data</a>'));
 		
-		$('#save-search').click(function(){
-		    $.post(SITEPREFIX+'/savesearch', JSON.stringify({'savedsearch':'publications#'+location.href.split("#")[1]}), function(data){
-			//should we decode uri component above? We do it on server so perhaps not.
-			if (data['SUCCESS']==='defined'){
-			    $('#save-search').hide();
-			    $('#delete-search').show();
-			}
-		    });  
-		    return false;
-		});
-		$('#delete-search').click(function(){
-		    $.post(SITEPREFIX+'/deletesearch', JSON.stringify({'searchid':'publications#'+location.href.split("#")[1]}), function(data){
-			//should we decode uri component above? We do it on server so perhaps not.
-			if (data['SUCCESS']==='defined'){
-			    $('#delete-search').hide();
-			    $('#save-search').show();
-			}
-		    });  
-		    return false;
-		});
 		
 		/*
 		// get-data button has been removed for now
@@ -66,29 +51,89 @@ var PublicationsManager;
 		//       queries
 		if (PublicationsManager.store.values('fq').length == 0) {
 		    $('#save-search').hide();
+		} else {
+		    $('#save-search').show();
 		}
-		
+		console.log("IN THE MIDDLE OF RENDERHEADER");
 		//this gets called all the time. How to avoid this?
 		$.getJSON(SITEPREFIX+'/savedsearches', function(data){
 		    var thissearchurl='publications#'+location.href.split("#")[1];
-		    console.log("THISSEARCHURL", thissearchurl);
+		    console.log("THISSEARCHURL", thissearchurl, data['savedsearches']);
 		    //alert(thissearchurl);
 		    if (data['savedsearches']!='undefined'){
-			var savedsearcharray=data['savedsearches'];
-			console.log("SAVEDSEARCHARRAY", savedsearcharray);
-			if (_.indexOf(savedsearcharray, thissearchurl)!=-1){
-			    console.log("ELE",thissearchurl);
+			    var savedsearcharray=data['savedsearches'];
+    			//console.log("SAVEDSEARCHARRAY", savedsearcharray);
+    			if (_.indexOf(savedsearcharray, thissearchurl)!=-1){
+    			    console.log("ELE",thissearchurl);
+    			    $('#save-search').hide();
+    			    $('#delete-search').show();
+    			} else {
+    			    $('#save-search').show();
+    			    $('#delete-search').hide();
+    			}
+    		} else {
+    		    console.log("saved searches not coming through");
 			    $('#save-search').hide();
-			    $('#delete-search').show();
-			}
-		    } else {
-			$('#save-search').hide();
-			$('#delete-search').hide();
-			// $('#get-data').hide(); currently usunsed
-		    }
+    			$('#delete-search').hide();
+    			// $('#get-data').hide(); currently usunsed
+    		}
 		});
 	    } // renderHeader
 	}));
+	$('#sortselector').append('<option value="citationcount_i">Citations</option><option value="pubyear_i">PubYear</option>');
+    
+	$('#sortselector').change(function(){
+	    var $togglesort=$('#togglesort');
+	    var $sortselector=$('#sortselector');
+	    var order=$togglesort.attr('state');
+	    var sorter = $sortselector.find('option:selected')[0].value;
+	    console.log(sorter, order);
+        PublicationsManager.store.get('sort').val(sorter+' '+order);		    
+        //PublicationsManager.store.addByValue('sort', sorter+' '+order);
+	    PublicationsManager.doRequest();
+	});
+	$('#togglesort').click(function(){
+	    var statemap={desc:'&darr;', asc:'&uarr;'};
+	    var $togglesort=$('#togglesort');
+	    var $sortselector=$('#sortselector');
+	    var sorter = $sortselector.find('option:selected')[0].value;
+	    console.log('state', $togglesort.attr('state'));
+	    if ($togglesort.attr('state')==='desc') {
+	        $togglesort.attr('state','asc');
+	        console.log('dtoa');
+	    } else if ($togglesort.attr('state')==='asc') {
+	        $togglesort.attr('state','desc');
+	        console.log('atod');
+	    }
+	    console.log('state', $togglesort.attr('state'));
+	    var order=$togglesort.attr('state');
+	    $togglesort.html(statemap[$togglesort.attr('state')]);
+	    console.log(sorter, order);
+	    PublicationsManager.store.get('sort').val(sorter+' '+order);
+	    //PublicationsManager.store.addByValue('sort', sorter+' '+order);
+        PublicationsManager.doRequest();
+	});
+	
+	$('#save-search').click(function(){
+	    $.post(SITEPREFIX+'/savesearch', JSON.stringify({'savedsearch':'publications#'+location.href.split("#")[1]}), function(data){
+		//should we decode uri component above? We do it on server so perhaps not.
+		if (data['SUCCESS']==='defined'){
+		    $('#save-search').hide();
+		    $('#delete-search').show();
+		}
+	    });  
+	    return false;
+	});
+	$('#delete-search').click(function(){
+	    $.post(SITEPREFIX+'/deletesearch', JSON.stringify({'searchid':'publications#'+location.href.split("#")[1]}), function(data){
+		//should we decode uri component above? We do it on server so perhaps not.
+		if (data['SUCCESS']==='defined'){
+		    $('#delete-search').hide();
+		    $('#save-search').show();
+		}
+	    });  
+	    return false;
+	});
 	//removing obsids, obsids_s
 	var fields = [ 'keywords', 'author', 'objecttypes', 'objectnames', 'obsvtypes', 'instruments', 'missions', 'emdomains', 'targets', 'datatypes', 'propids', 'proposaltype', 'proposalpi'];
 	var facet_fields= [ 'keywords_s', 'author_s', 'objecttypes_s', 'objectnames_s', 'obsvtypes_s', 'instruments_s', 'obsv_mission_s', 'emdomains_s', 'targets_s', 'datatypes_s', 'propids_s', 'proposaltype_s', 'proposalpi_s'];
@@ -143,12 +188,12 @@ var PublicationsManager;
 	step_numericfields=[15.0, 10.0];
 	for (var i = 0, l = numericfields.length; i < l; i++) {
             PublicationsManager.addWidget(new AjaxSolr.DualSliderWidget({
-		id: numericfields[i],
-		target: '#'+numericfields[i],
-		field: facet_numericfields[i],
-		datamin: min_numericfields[i],
-		datamax: max_numericfields[i],
-		datastep: step_numericfields[i]
+		        id: numericfields[i],
+        		target: '#'+numericfields[i],
+        		field: facet_numericfields[i],
+        		datamin: min_numericfields[i],
+        		datamax: max_numericfields[i],
+        		datastep: step_numericfields[i]
             }));
 	}
 	
@@ -192,6 +237,7 @@ var PublicationsManager;
 	for (var name in params) {
 	    PublicationsManager.store.addByValue(name, params[name]);
 	}
+	console.log("BLOOOORG==========================");
 	PublicationsManager.doRequest();
 
     });

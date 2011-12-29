@@ -2,8 +2,17 @@
   <div id="result"> 
     <div id="navigation"> 
       <ul id="pager"></ul> 
-      <div id="pager-header"></div> 
-    </div> 
+      <div id="pager-header"></div>
+	  <div id="other-header">
+		<a class="save" id="save-search" style="display:none" href="#">save search</a>
+		<a class="delete" id="delete-search" style="display:none" href="#">delete search</a>
+		<span class="label notice pull-right">
+			 <span>Sort By:&nbsp;&nbsp;</span>
+		     <select class="small" id="sortselector"></select>
+		     <a class="btn small sorter" id="togglesort" state="desc">&darr;</a>
+		</span>
+	  </div> 
+    </div>
     <div id="docs"></div> 
   </div> 
 </div>

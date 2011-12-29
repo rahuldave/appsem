@@ -43,12 +43,16 @@ function encodeObsuri(obsuri){
     AjaxSolr.theme.prototype.emdomains = function(){
         return $('<p class="links"/>');
     };
-    AjaxSolr.theme.prototype.additional = function(doc, year){
+    AjaxSolr.theme.prototype.additional = function(doc, year, exptime){
 	    var $output1 = $('<p class="links"/>')
 	        .append(pubLabel('Observed at:'))
 	        // .append(' ' + doc.pubyear_i + ' ')
 	        .append(' ')
 	        .append(year)
+	        .append(pubLabel('Exposure Time:'))
+	        // .append(' ' + doc.pubyear_i + ' ')
+	        .append(' ')
+	        .append(exptime)
 	        .append('<br/>')
 	        .append(pubLabel('Target:'))
 	        .append(' ')

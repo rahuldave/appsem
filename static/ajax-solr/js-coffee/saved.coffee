@@ -1,5 +1,5 @@
 # Code for the saved page
-
+#BUG: even though UI should stop double saving, is there server side code to prevent double saving?
 # fancyboxOpts = autoDimensions: false, width: 1024, height: 768
 
 $ = jQuery

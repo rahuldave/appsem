@@ -164,6 +164,13 @@
       });
     };
     $('a.newgroupfancybox').fancybox();
+    $('#searchsubmit').click(function() {
+      var etts, tts, value;
+      value = $("input[@name=optionsRadios]:checked").val();
+      tts = $('#qtext').val();
+      etts = encodeURIComponent(tts);
+      return window.location.href = "" + dasiteprefix + "/explorer/" + value + "#fq=text%3A" + etts + "&q=*%3A*";
+    });
     $('#addgroupdiv').append($('<span>Group Name:</span>')).append($('<input class="medium" id="addgrouptext" type="text"/>')).append($('<input type="button" class="btn small info" value="Add" name="Add"/>').click(addgrouphandler));
     $.getJSON("" + dasiteprefix + "/memberofgroups", function(data) {
       var gmhtml, group, groups;

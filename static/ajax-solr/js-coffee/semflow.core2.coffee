@@ -176,8 +176,14 @@ setLoggedIn = (email) ->
       $.post "#{dasiteprefix}/creategroup", JSON.stringify({rawGroupName}), (resp)->
           $.fancybox.close()
           window.location.href = "#{dasiteprefix}/explorer/user?fqUserName=#{email}"
-      
+  #Not always available. So how to deal with this on separate pages? Assciate a js with each?    
   $('a.newgroupfancybox').fancybox()
+  $('#searchsubmit').click () ->
+      ##fq=text%3Ahello&q=*%3A*
+      value = $("input[@name=optionsRadios]:checked").val()
+      tts = $('#qtext').val()
+      etts= encodeURIComponent tts
+      window.location.href = "#{dasiteprefix}/explorer/#{value}#fq=text%3A#{etts}&q=*%3A*"
   $('#addgroupdiv')
   .append($('<span>Group Name:</span>'))
   .append($('<input class="medium" id="addgrouptext" type="text"/>'))

@@ -202,7 +202,7 @@ function encodeObsuri(obsuri){
                 AjaxSolr.theme('list_items', AjaxSolr.theme('emdomains'), emdomains, "| "),
                 AjaxSolr.theme('additional', 
                     doc,
-                    AjaxSolr.theme('facet_link2', obsvtime_d, 'obsvtime_d', '['+obsvtime_d+' TO ' + obsvtime_d +']')
+                    AjaxSolr.theme('facet_link2', obsvtime_d, 'obsvtime_d', '['+obsvtime_d+' TO ' + obsvtime_d +']'), doc.exptime_f
                 ),
                 AjaxSolr.theme('lessmore', doc, this.objcollectionview.render().el, this.pubcollectionview.render().el),
                 this.widget

@@ -221,10 +221,9 @@ var SOLRURL2 = SITEPREFIX + '/solr2/';
 	    'facet.field': facet_fields,
 	    'facet.limit': 20,/* change this to set autocompletion limits differently...or solr 1.5*/
 	    'facet.mincount': 1,
-	    'f.topics.facet.limit': 50,
 	    'json.nl': 'map',
 	    'sort':'obsvtime_d desc',
-	    'rows':20,
+	    'rows':40,
 	    'stats': 'true',
 	    'stats.field': facet_numericfields.concat(['exptime_f', 'pubyear_i'])
 	};

@@ -230,7 +230,7 @@ var PublicationsManager;
 	    //'f.topics.facet.limit': 50,
 	    'json.nl': 'map',
 	    'sort':'citationcount_i desc',
-	    'rows':20,
+	    'rows':40,
 	    'stats': 'true',
 	    'stats.field': facet_numericfields.concat(['exptime_f', 'pubyear_i'])
 	};

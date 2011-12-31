@@ -3,7 +3,7 @@
   A NodeJS server that statically serves javascript out, proxies solr requests,
   and handles authentication through the ADS
   */
-  var SITEPREFIX, STATICPREFIX, addUser, completeRequest, config, connect, connectutils, doADSProxy, doADSProxyHandler, doPost, doPostWithJSON, explorouter, failedRequest, fs, getUser, groups, http, ifLoggedIn, loginUser, logoutUser, makeADSJSONPCall, migration, mustache, postHandler, postHandlerWithJSON, proxy, quickRedirect, redis_client, requests, runServer, saved, server, solrrouter, solrrouter2, successfulRequest, url, user, views;
+  var SITEPREFIX, STATICPREFIX, addUser, completeRequest, config, connect, connectutils, doADSProxy, doADSProxyHandler, doPost, doPostWithJSON, explorouter, failedRequest, fs, getUser, groups, http, ifLoggedIn, loginUser, logoutUser, makeADSJSONPCall, migration, mustache, postHandler, postHandlerWithJSON, proxy, quickRedirect, redis_client, requests, runServer, saved, server, solrrouter, solrrouter2, successfulRequest, tags, url, user, views;
   connect = require('connect');
   connectutils = connect.utils;
   http = require('http');
@@ -25,6 +25,7 @@
   getUser = user.getUser;
   views = require("./views");
   saved = require("./saved");
+  tags = require("./tags");
   groups = require("./groups");
   migration = require('./migration2');
   config = require("./config").config;
@@ -148,6 +149,15 @@
   server.use(SITEPREFIX + '/deletesearchesfromgroup', doPostWithJSON(saved.deleteSearchesFromGroup));
   server.use(SITEPREFIX + '/deletepubsfromgroup', doPostWithJSON(saved.deletePubsFromGroup));
   server.use(SITEPREFIX + '/deleteobsvsfromgroup', doPostWithJSON(saved.deleteObsvsFromGroup));
+  server.use(SITEPREFIX + '/deletesearchesfromtag', doPostWithJSON(tags.deleteSearchesFromTag));
+  server.use(SITEPREFIX + '/deletepubsfromtag', doPostWithJSON(tags.deletePubsFromTag));
+  server.use(SITEPREFIX + '/deleteobsvsfromtag', doPostWithJSON(tags.deleteObsvsFromTag));
+  server.use(SITEPREFIX + '/savedsearchesfortag', tags.getSavedSearchesForTag);
+  server.use(SITEPREFIX + '/savedpubsfortag', tags.getSavedPubsForTag);
+  server.use(SITEPREFIX + '/savedobsvsfortag', tags.getSavedObsvsForTag);
+  server.use(SITEPREFIX + '/savesearchestotag', doPostWithJSON(tags.saveSearchesToTag));
+  server.use(SITEPREFIX + '/savepubstotag', doPostWithJSON(tags.savePubsToTag));
+  server.use(SITEPREFIX + '/saveobsvstotag', doPostWithJSON(tags.saveObsvsToTag));
   server.use(SITEPREFIX + '/adsproxy', doADSProxy);
   server.use(SITEPREFIX + '/savedsearches', saved.getSavedSearches);
   server.use(SITEPREFIX + '/savedsearches2', saved.getSavedSearches2);

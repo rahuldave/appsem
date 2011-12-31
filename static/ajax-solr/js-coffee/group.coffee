@@ -162,7 +162,8 @@ makeSearchText = (urifrag) ->
 makeSearchRow = (s) ->
   gin=s.groupsin
   sby=s.searchby
-  groupsintext = ('by '+sby.split('@')[0]+' in <a href="'+"#{SITEPREFIX}/explorer/group?fqGroupName=#{gin[idx]}"+'">'+gin[idx].split('/').pop()+'</a>' for idx in [0...gin.length])
+  console.log s, gin, sby
+  groupsintext = ('by '+sby[idx].split('@')[0]+' in <a href="'+"#{SITEPREFIX}/explorer/group?fqGroupName=#{gin[idx]}"+'">'+gin[idx].split('/').pop()+'</a>' for idx in [0...gin.length])
   scpts=searchToText s.searchuri, fieldname_map
   console.log s.searchtext, s.searchuri, scpts
   [$('<input type="checkbox" name="searchid"/>').attr('value', s.searchuri),
@@ -211,7 +212,7 @@ createSavedPublications = () ->
 makePubRow = (p) ->
   gin=p.groupsin
   sby=p.searchby
-  groupsintext = ('by '+sby.split('@')[0]+' in <a href="'+"#{SITEPREFIX}/explorer/group?fqGroupName=#{gin[idx]}"+'">'+gin[idx].split('/').pop()+'</a>' for idx in [0...gin.length])
+  groupsintext = ('by '+sby[idx].split('@')[0]+' in <a href="'+"#{SITEPREFIX}/explorer/group?fqGroupName=#{gin[idx]}"+'">'+gin[idx].split('/').pop()+'</a>' for idx in [0...gin.length])
   [$('<input type="checkbox" name="pubid"/>').attr('value', p.pubid),
    $('<span/>').attr('value', p.pubtime).text(p.pubtimestr),
    $('<a/>').attr('href', "#{SITEPREFIX}/explorer/publications#fq=#{p.linkuri}&q=*%3A*")
@@ -246,7 +247,8 @@ createSavedObservations = () ->
 makeObsvRow = (o) ->
   gin=o.groupsin
   sby=o.searchby
-  groupsintext = ('by '+sby.split('@')[0]+' in <a href="'+"#{SITEPREFIX}/explorer/group?fqGroupName=#{gin[idx]}"+'">'+gin[idx].split('/').pop()+'</a>' for idx in [0...gin.length])
+  console.log o, gin, sby
+  groupsintext = ('by '+sby[idx].split('@')[0]+' in <a href="'+"#{SITEPREFIX}/explorer/group?fqGroupName=#{gin[idx]}"+'">'+gin[idx].split('/').pop()+'</a>' for idx in [0...gin.length])
   [$('<input type="checkbox" name="obsvid"/>').attr('value', o.obsvid),
    $('<span/>').attr('value', o.obsvtime).text(o.obsvtimestr),
    $('<a/>').attr('href', "#{SITEPREFIX}/explorer/observations#fq=#{o.linkuri}&q=*%3A*")

@@ -1,6 +1,19 @@
 (function() {
   var $, createSavedObservationSection, createSavedObservations, createSavedPublicationSection, createSavedPublications, createSavedSearchSection, createSavedSearches, doADSProxy, getBibTexFromADS, handleItemsWithPK, handleObservations, handlePublications, handleSearches, makeObsvRow, makePubRow, makeSearchRow, makeSearchText, noSavedObservations, noSavedPublications, noSavedSearches, saveToGroup, saveToMyADS, savemap, submitDeleteAction, tsortopts;
   $ = jQuery;
+  Array.prototype.unique = function() {
+    var key, output, value, _ref, _results;
+    output = {};
+    for (key = 0, _ref = this.length; 0 <= _ref ? key < _ref : key > _ref; 0 <= _ref ? key++ : key--) {
+      output[this[key]] = this[key];
+    }
+    _results = [];
+    for (key in output) {
+      value = output[key];
+      _results.push(value);
+    }
+    return _results;
+  };
   savemap = {
     obsvs: 'obsv',
     searches: 'search',
@@ -246,7 +259,7 @@
     var ele, groupsintext, scpts;
     groupsintext = (function() {
       var _i, _len, _ref, _results;
-      _ref = s.groupsin;
+      _ref = s.groupsin.unique();
       _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         ele = _ref[_i];
@@ -293,7 +306,7 @@
     var ele, groupsintext;
     groupsintext = (function() {
       var _i, _len, _ref, _results;
-      _ref = p.groupsin;
+      _ref = p.groupsin.unique();
       _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         ele = _ref[_i];
@@ -337,7 +350,7 @@
     var ele, groupsintext;
     groupsintext = (function() {
       var _i, _len, _ref, _results;
-      _ref = o.groupsin;
+      _ref = o.groupsin.unique();
       _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         ele = _ref[_i];

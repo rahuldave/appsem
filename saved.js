@@ -53,9 +53,22 @@
     });
   };
   _doSaveSearchToGroup = function(savedBy, fqGroupName, savedhashlist, searchtype, callback) {
-    var saveTime, savedtype;
+    var allTagsGroupHash, allTagsHash, idx, saveTime, savedSearches, savedtype, taggedtype, tagsForGroup, tagsForUser;
     saveTime = new Date().getTime();
     savedtype = "saved" + searchtype;
+    taggedtype = "tagged" + searchtype;
+    allTagsHash = "tagged:" + savedBy + ":" + searchtype;
+    allTagsGroupHash = "tagged:" + fqGroupName + ":" + searchtype;
+    tagsForUser = "tags:" + savedBy;
+    tagsForGroup = "tags:" + fqGroupName;
+    savedSearches = (function() {
+      var _ref, _results;
+      _results = [];
+      for (idx = 0, _ref = savedhashlist.length; 0 <= _ref ? idx < _ref : idx > _ref; 0 <= _ref ? idx++ : idx--) {
+        _results.push(savedhashlist[idx][savedtype]);
+      }
+      return _results;
+    })();
     return redis_client.sismember("members:" + fqGroupName, savedBy, function(err, is_member) {
       var margs, savedhash;
       if (err) {
@@ -67,38 +80,36 @@
           _results = [];
           for (_i = 0, _len = savedhashlist.length; _i < _len; _i++) {
             savedhash = savedhashlist[_i];
-            _results.push(['hexists', "savedby:" + fqGroupName, savedhash[savedtype]]);
+            _results.push(['hget', "savedby:" + fqGroupName, savedhash[savedtype]]);
           }
           return _results;
         })();
         return redis_client.multi(margs).exec(function(err2, replies) {
-          var counter, idx, margsi, savedSearch, savedSearches, _ref;
+          var counter, idx, margsi, savedByJSON, savedSearch, _ref;
           if (err2) {
             return callback(err2, replies);
           }
           console.log('REPLIES', replies, savedhashlist);
           counter = 0;
           margs = [];
-          savedSearches = [];
           for (idx = 0, _ref = replies.length; 0 <= _ref ? idx < _ref : idx > _ref; 0 <= _ref ? idx++ : idx--) {
-            if (replies[idx] !== 1) {
-              console.log("kkk", idx, replies[idx], savedhashlist[idx][savedtype]);
-              counter = counter + 1;
-              savedSearch = savedhashlist[idx][savedtype];
-              savedSearches.push(savedSearch);
-              margsi = [['zadd', "saved" + searchtype + ":" + savedBy + ":" + fqGroupName, saveTime, savedSearch], ['zadd', "saved" + searchtype + ":" + fqGroupName, saveTime, savedSearch], ['hset', "savedby:" + fqGroupName, savedSearch, savedBy]];
-              margs = margs.concat(margsi);
+            console.log("kkk", idx, replies[idx]);
+            savedSearch = savedSearches[idx];
+            if (replies[idx] !== null) {
+              console.log("saved before", savedSearch, replies[idx]);
+              savedByJSON = JSON.parse(replies[idx]);
+              savedByJSON.push(savedBy);
+            } else {
+              console.log("first time saving", savedSearch, savedBy, fqGroupName);
+              savedByJSON = [savedBy];
             }
+            margsi = [['zadd', "saved" + searchtype + ":" + savedBy + ":" + fqGroupName, saveTime, savedSearch], ['zadd', "saved" + searchtype + ":" + fqGroupName, saveTime, savedSearch], ['hset', "savedby:" + fqGroupName, savedSearch, JSON.stringify(savedByJSON)]];
+            margs = margs.concat(margsi);
           }
-          if (counter === 0) {
-            console.log("These all have already been saved");
-            return callback(err2, replies);
-          }
-          return redis_client.multi(margs).exec(function(err3, reply) {
+          return redis_client.smembers("memberof:" + savedBy, function(errb, mygroups) {
             var margs2, thesearch;
-            console.log("3space", err3, reply);
-            if (err3) {
-              return callback(err3, reply);
+            if (errb) {
+              return callback(errb, mygroups);
             }
             margs2 = (function() {
               var _i, _len, _results;
@@ -111,12 +122,13 @@
             })();
             console.log("margs2", margs2);
             return redis_client.multi(margs2).exec(function(err4, groupJSONList) {
-              var groupJSON, grouplist, i, margs3, outJSON, _i, _len;
+              var groupJSON, grouplist, i, margs22, margs3, outJSON, outgroupsforuser, thesearch, _i, _len;
               console.log("groupJSONList", groupJSONList, err4);
               if (err4) {
                 return callback(err4, groupJSONList);
               }
               outJSON = [];
+              outgroupsforuser = [];
               for (_i = 0, _len = groupJSONList.length; _i < _len; _i++) {
                 groupJSON = groupJSONList[_i];
                 if (groupJSON === null) {
@@ -127,7 +139,7 @@
                 }
                 outJSON.push(JSON.stringify(grouplist));
               }
-              console.log("outjsom", outJSON, savedSearches);
+              console.log("outjsom", outJSON, outgroupsforuser, savedSearches);
               margs3 = (function() {
                 var _ref2, _results;
                 _results = [];
@@ -137,7 +149,82 @@
                 return _results;
               })();
               console.log("margs3", margs3);
-              return redis_client.multi(margs3).exec(callback);
+              margs = margs.concat(margs3);
+              margs22 = (function() {
+                var _j, _len2, _results;
+                _results = [];
+                for (_j = 0, _len2 = savedSearches.length; _j < _len2; _j++) {
+                  thesearch = savedSearches[_j];
+                  _results.push(['hget', allTagsHash, thesearch]);
+                }
+                return _results;
+              })();
+              console.log("margs22", margs22);
+              return redis_client.multi(margs22).exec(function(err22, tagJSONList) {
+                var margs33, thesearch;
+                console.log("tagJSONList", tagJSONList, err22);
+                if (err22) {
+                  return callback(err22, tagJSONList);
+                }
+                margs33 = (function() {
+                  var _j, _len2, _results;
+                  _results = [];
+                  for (_j = 0, _len2 = savedSearches.length; _j < _len2; _j++) {
+                    thesearch = savedSearches[_j];
+                    _results.push(['hget', "tagged:" + fqGroupName + ":" + searchtype, thesearch]);
+                  }
+                  return _results;
+                })();
+                return redis_client.multi(margs33).exec(function(err33, tagGroupJSONList) {
+                  var ele, grptadd1, grtptadd2, grtptadd3, idx, margstagcmds, mergedJSON, mergedtaglist, searchgrouplist, taggrouplist, taglist, _ref2, _ref3;
+                  console.log("tagGroupJSONList", tagGroupJSONList, err33);
+                  if (err33) {
+                    return callback(err33, tagGroupJSONList);
+                  }
+                  searchgrouplist = [];
+                  for (idx = 0, _ref2 = savedSearches.length; 0 <= _ref2 ? idx < _ref2 : idx > _ref2; 0 <= _ref2 ? idx++ : idx--) {
+                    if (tagGroupJSONList[idx] === null) {
+                      taglist = [];
+                    } else {
+                      taglist = JSON.parse(tagGroupJSONList[idx]);
+                    }
+                    searchgrouplist.push(taglist);
+                  }
+                  margstagcmds = [];
+                  for (idx = 0, _ref3 = savedSearches.length; 0 <= _ref3 ? idx < _ref3 : idx > _ref3; 0 <= _ref3 ? idx++ : idx--) {
+                    if (tagJSONList[idx]) {
+                      taglist = JSON.parse(tagJSONList[idx]);
+                      taggrouplist = searchgrouplist[idx];
+                      mergedtaglist = taggrouplist.concat(taglist);
+                      mergedJSON = JSON.stringify(mergedtaglist);
+                      grptadd1 = (function() {
+                        var _j, _len2, _results;
+                        _results = [];
+                        for (_j = 0, _len2 = taglist.length; _j < _len2; _j++) {
+                          ele = taglist[_j];
+                          _results.push(['sadd', "tags:" + fqGroupName, ele]);
+                        }
+                        return _results;
+                      })();
+                      grtptadd2 = (function() {
+                        var _j, _len2, _results;
+                        _results = [];
+                        for (_j = 0, _len2 = taglist.length; _j < _len2; _j++) {
+                          ele = taglist[_j];
+                          _results.push(['sadd', "" + taggedtype + ":" + fqGroupName + ":" + ele, savedSearches[idx]]);
+                        }
+                        return _results;
+                      })();
+                      grtptadd3 = [['hset', "tagged:" + fqGroupName + ":" + searchtype, savedSearches[idx], mergedJSON]];
+                      margstagcmds = margstagcmds.concat(grptadd1);
+                      margstagcmds = margstagcmds.concat(grptadd2);
+                      margstagcmds = margstagcmds.concat(grptadd3);
+                    }
+                  }
+                  margs = margs.concat(margstagcmds);
+                  return redis_client.multi(margs).exec(callback);
+                });
+              });
             });
           });
         });
@@ -252,7 +339,7 @@
     d = new Date(t);
     return d.toUTCString();
   };
-  createSavedSearchTemplates = function(nowDate, searchkeys, searchtimes, searchbys, groupsin) {
+  createSavedSearchTemplates = function(nowDate, searchkeys, searchtimes, searchbys, groupsin, tagsin) {
     var i, makeTemplate, nsearch, view;
     view = {};
     nsearch = searchkeys.length;
@@ -269,6 +356,7 @@
           searchuri: key,
           searchby: searchbys[ctr],
           groupsin: groupsin[ctr],
+          tagsin: tagsin[ctr],
           searchtext: searchToText(key),
           searchtime: time,
           searchtimestr: timeToText(nowDate, time),
@@ -287,7 +375,7 @@
     }
     return view;
   };
-  createSavedPubTemplates = function(nowDate, pubkeys, pubtimes, bibcodes, pubtitles, searchbys, groupsin) {
+  createSavedPubTemplates = function(nowDate, pubkeys, pubtimes, bibcodes, pubtitles, searchbys, groupsin, tagsin) {
     var i, makeTemplate, npub, view;
     view = {};
     npub = pubkeys.length;
@@ -304,6 +392,7 @@
           pubid: pubkeys[ctr],
           searchby: searchbys[ctr],
           groupsin: groupsin[ctr],
+          tagsin: tagsin[ctr],
           linktext: pubtitles[ctr],
           linkuri: linkuri,
           pubtime: pubtimes[ctr],
@@ -324,7 +413,7 @@
     }
     return view;
   };
-  createSavedObsvTemplates = function(nowDate, obsvkeys, obsvtimes, targets, obsvtitles, searchbys, groupsin) {
+  createSavedObsvTemplates = function(nowDate, obsvkeys, obsvtimes, targets, obsvtitles, searchbys, groupsin, tagsin) {
     var i, makeTemplate, nobsv, view;
     view = {};
     nobsv = obsvkeys.length;
@@ -341,6 +430,7 @@
           obsvid: obsvkeys[ctr],
           searchby: searchbys[ctr],
           groupsin: groupsin[ctr],
+          tagsin: tagsin[ctr],
           linktext: obsvkeys[ctr],
           linkuri: linkuri,
           obsvtime: obsvtimes[ctr],
@@ -475,11 +565,12 @@
     });
   };
   _doSearch = function(email, searchtype, templateCreatorFunc, res, kword, callback, augmenthash) {
-    var nowDate;
+    var allTagsHash, nowDate;
     if (augmenthash == null) {
       augmenthash = null;
     }
     nowDate = new Date().getTime();
+    allTagsHash = "tagged:" + email + ":" + searchtype;
     return redis_client.smembers("memberof:" + email, function(err, groups) {
       if (err) {
         return callback(err, groups);
@@ -499,11 +590,11 @@
           }
           return _results;
         })();
-        console.log("<<<<<", margs2);
+        console.log("margs2<<<<<", margs2);
         return redis_client.multi(margs2).exec(function(errg, groupjsonlist) {
-          var ele, groupstoadd, names, parsedgroups, savedBys, savedingroups, titles, view, _i, _len;
+          var ele, groupstoadd, margs22, parsedgroups, savedingroups, _i, _len;
           if (errg) {
-            return callback(err, groupjsonlist);
+            return callback(errg, groupjsonlist);
           }
           savedingroups = [];
           for (_i = 0, _len = groupjsonlist.length; _i < _len; _i++) {
@@ -526,42 +617,78 @@
               savedingroups.push(groupstoadd);
             }
           }
-          console.log("<<<<<<<<<<<<<<<<>", savedingroups);
-          savedBys = (function() {
+          margs22 = (function() {
             var _j, _len2, _ref, _results;
             _ref = searches.elements;
             _results = [];
             for (_j = 0, _len2 = _ref.length; _j < _len2; _j++) {
               ele = _ref[_j];
-              _results.push(email);
+              _results.push(['hget', allTagsHash, ele]);
             }
             return _results;
           })();
-          if (augmenthash === null) {
-            view = templateCreatorFunc(nowDate, searches.elements, searches.scores, savedBys, savedingroups);
-            return callback(err, view);
-          } else {
-            if (searches.elements.length === 0) {
-              titles = [];
-              names = [];
-              view = templateCreatorFunc(nowDate, searches.elements, searches.scores, names, titles, savedBys, savedingroups);
-              return callback(err, view);
+          console.log("margs22<<<<<", margs22);
+          return redis_client.multi(margs22).exec(function(errg22, tagjsonlist) {
+            var ele, names, parsedtags, savedBys, savedintags, tagstoadd, titles, view, _j, _len2;
+            if (errg22) {
+              return callback(errg22, tagjsonlist);
             }
-            return redis_client.hmget.apply(redis_client, ["saved" + augmenthash.titlefield].concat(__slice.call(searches.elements), [function(err3, titles) {
-              if (err3) {
-                console.log("titlefield error");
-                return callback(err3, titles);
+            savedintags = [];
+            for (_j = 0, _len2 = tagjsonlist.length; _j < _len2; _j++) {
+              ele = tagjsonlist[_j];
+              if (!ele) {
+                savedintags.push([]);
+              } else {
+                parsedtags = JSON.parse(ele);
+                tagstoadd = (function() {
+                  var _k, _len3, _results;
+                  _results = [];
+                  for (_k = 0, _len3 = parsedtags.length; _k < _len3; _k++) {
+                    ele = parsedtags[_k];
+                    _results.push(ele);
+                  }
+                  return _results;
+                })();
+                savedintags.push(tagstoadd);
               }
-              return redis_client.hmget.apply(redis_client, ["saved" + augmenthash.namefield].concat(__slice.call(searches.elements), [function(err4, names) {
-                if (err4) {
-                  console.log("namefield error");
-                  return callback(err4, names);
+            }
+            console.log("<<<<<<<<<<<<<<<<>", savedingroups, savedintags);
+            savedBys = (function() {
+              var _k, _len3, _ref, _results;
+              _ref = searches.elements;
+              _results = [];
+              for (_k = 0, _len3 = _ref.length; _k < _len3; _k++) {
+                ele = _ref[_k];
+                _results.push(email);
+              }
+              return _results;
+            })();
+            if (augmenthash === null) {
+              view = templateCreatorFunc(nowDate, searches.elements, searches.scores, savedBys, savedingroups, savedintags);
+              return callback(err, view);
+            } else {
+              if (searches.elements.length === 0) {
+                titles = [];
+                names = [];
+                view = templateCreatorFunc(nowDate, searches.elements, searches.scores, names, titles, savedBys, savedingroups, savedintags);
+                return callback(err, view);
+              }
+              return redis_client.hmget.apply(redis_client, ["saved" + augmenthash.titlefield].concat(__slice.call(searches.elements), [function(err3, titles) {
+                if (err3) {
+                  console.log("titlefield error");
+                  return callback(err3, titles);
                 }
-                view = templateCreatorFunc(nowDate, searches.elements, searches.scores, names, titles, savedBys, savedingroups);
-                return callback(err4, view);
+                return redis_client.hmget.apply(redis_client, ["saved" + augmenthash.namefield].concat(__slice.call(searches.elements), [function(err4, names) {
+                  if (err4) {
+                    console.log("namefield error");
+                    return callback(err4, names);
+                  }
+                  view = templateCreatorFunc(nowDate, searches.elements, searches.scores, names, titles, savedBys, savedingroups, savedintags);
+                  return callback(err4, view);
+                }]));
               }]));
-            }]));
-          }
+            }
+          });
         });
       });
     });
@@ -597,11 +724,12 @@
     });
   };
   _doSearchForGroup = function(email, fqGroupName, searchtype, templateCreatorFunc, res, kword, callback, augmenthash) {
-    var nowDate;
+    var allTagsGroupHash, nowDate;
     if (augmenthash == null) {
       augmenthash = null;
     }
     nowDate = new Date().getTime();
+    allTagsGroupHash = "tagged:" + fqGroupName + ":" + searchtype;
     return redis_client.sismember("members:" + fqGroupName, email, function(erra, saved_p) {
       if (erra) {
         return callback(erra, saved_p);
@@ -628,40 +756,60 @@
               }
               return _results;
             })();
-            return redis_client.multi(margs).exec(function(errm, savedBys) {
-              var ele, margs2;
+            return redis_client.multi(margs).exec(function(errm, savedbysjsonlist) {
+              var ele, margs2, parsedsavedbys, savedBys, savedbystoadd, _i, _len;
               if (errm) {
                 return callback(errm, savedBys);
               }
+              savedBys = [];
+              for (_i = 0, _len = savedbysjsonlist.length; _i < _len; _i++) {
+                ele = savedbysjsonlist[_i];
+                console.log("ELE", ele);
+                if (!ele) {
+                  savedBys.push([]);
+                } else {
+                  parsedsavedbys = JSON.parse(ele);
+                  savedbystoadd = (function() {
+                    var _j, _len2, _results;
+                    _results = [];
+                    for (_j = 0, _len2 = parsedsavedbys.length; _j < _len2; _j++) {
+                      ele = parsedsavedbys[_j];
+                      _results.push(ele);
+                    }
+                    return _results;
+                  })();
+                  savedBys.push(savedbystoadd);
+                }
+              }
               margs2 = (function() {
-                var _i, _len, _ref, _results;
+                var _j, _len2, _ref, _results;
                 _ref = searches.elements;
                 _results = [];
-                for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-                  ele = _ref[_i];
+                for (_j = 0, _len2 = _ref.length; _j < _len2; _j++) {
+                  ele = _ref[_j];
                   _results.push(['hget', "savedInGroups:" + searchtype, ele]);
                 }
                 return _results;
               })();
               console.log("<<<<<" + searchtype, margs2);
               return redis_client.multi(margs2).exec(function(err, groupjsonlist) {
-                var ele, groupstoadd, names, parsedgroups, savedingroups, titles, view, _i, _len;
+                var ele, groupstoadd, margs22, parsedgroups, savedingroups, _j, _len2;
                 if (err) {
                   return callback(err, groupjsonlist);
                 }
                 console.log(">>>>>>>" + searchtype, searches.elements, groupjsonlist);
                 savedingroups = [];
-                for (_i = 0, _len = groupjsonlist.length; _i < _len; _i++) {
-                  ele = groupjsonlist[_i];
+                for (_j = 0, _len2 = groupjsonlist.length; _j < _len2; _j++) {
+                  ele = groupjsonlist[_j];
                   if (!ele) {
                     savedingroups.push([]);
                   } else {
                     parsedgroups = JSON.parse(ele);
                     groupstoadd = (function() {
-                      var _j, _len2, _results;
+                      var _k, _len3, _results;
                       _results = [];
-                      for (_j = 0, _len2 = parsedgroups.length; _j < _len2; _j++) {
-                        ele = parsedgroups[_j];
+                      for (_k = 0, _len3 = parsedgroups.length; _k < _len3; _k++) {
+                        ele = parsedgroups[_k];
                         if (__indexOf.call(groups, ele) >= 0) {
                           _results.push(ele);
                         }
@@ -671,32 +819,68 @@
                     savedingroups.push(groupstoadd);
                   }
                 }
-                console.log("<<<<<<<<<<<<<<<<>", savedingroups);
-                if (augmenthash === null) {
-                  view = templateCreatorFunc(nowDate, searches.elements, searches.scores, savedBys, savedingroups);
-                  return callback(err, view);
-                } else {
-                  if (searches.elements.length === 0) {
-                    titles = [];
-                    names = [];
-                    view = templateCreatorFunc(nowDate, searches.elements, searches.scores, names, titles, savedBys, savedingroups);
-                    return callback(err, view);
+                margs22 = (function() {
+                  var _k, _len3, _ref, _results;
+                  _ref = searches.elements;
+                  _results = [];
+                  for (_k = 0, _len3 = _ref.length; _k < _len3; _k++) {
+                    ele = _ref[_k];
+                    _results.push(['hget', allTagsGroupHash, ele]);
                   }
-                  return redis_client.hmget.apply(redis_client, ["saved" + augmenthash.titlefield].concat(__slice.call(searches.elements), [function(err3, titles) {
-                    if (err3) {
-                      console.log("titlefield error");
-                      return callback(err3, titles);
+                  return _results;
+                })();
+                console.log("<<<<<", margs22);
+                return redis_client.multi(margs22).exec(function(errg22, tagjsonlist) {
+                  var ele, names, parsedtags, savedintags, tagstoadd, titles, view, _k, _len3;
+                  if (errg22) {
+                    return callback(errg22, tagjsonlist);
+                  }
+                  savedintags = [];
+                  for (_k = 0, _len3 = tagjsonlist.length; _k < _len3; _k++) {
+                    ele = tagjsonlist[_k];
+                    if (!ele) {
+                      savedintags.push([]);
+                    } else {
+                      parsedtags = JSON.parse(ele);
+                      tagstoadd = (function() {
+                        var _l, _len4, _results;
+                        _results = [];
+                        for (_l = 0, _len4 = parsedtags.length; _l < _len4; _l++) {
+                          ele = parsedtags[_l];
+                          _results.push(ele);
+                        }
+                        return _results;
+                      })();
+                      savedintags.push(tagstoadd);
                     }
-                    return redis_client.hmget.apply(redis_client, ["saved" + augmenthash.namefield].concat(__slice.call(searches.elements), [function(err4, names) {
-                      if (err4) {
-                        console.log("namefield error");
-                        return callback(err4, names);
+                  }
+                  console.log("<<<<<<<<<<<<<<<<>", savedingroups);
+                  if (augmenthash === null) {
+                    view = templateCreatorFunc(nowDate, searches.elements, searches.scores, savedBys, savedingroups, savedintags);
+                    return callback(err, view);
+                  } else {
+                    if (searches.elements.length === 0) {
+                      titles = [];
+                      names = [];
+                      view = templateCreatorFunc(nowDate, searches.elements, searches.scores, names, titles, savedBys, savedingroups, savedintags);
+                      return callback(err, view);
+                    }
+                    return redis_client.hmget.apply(redis_client, ["saved" + augmenthash.titlefield].concat(__slice.call(searches.elements), [function(err3, titles) {
+                      if (err3) {
+                        console.log("titlefield error");
+                        return callback(err3, titles);
                       }
-                      view = templateCreatorFunc(nowDate, searches.elements, searches.scores, names, titles, savedBys, savedingroups);
-                      return callback(err4, view);
+                      return redis_client.hmget.apply(redis_client, ["saved" + augmenthash.namefield].concat(__slice.call(searches.elements), [function(err4, names) {
+                        if (err4) {
+                          console.log("namefield error");
+                          return callback(err4, names);
+                        }
+                        view = templateCreatorFunc(nowDate, searches.elements, searches.scores, names, titles, savedBys, savedingroups, savedintags);
+                        return callback(err4, view);
+                      }]));
                     }]));
-                  }]));
-                }
+                  }
+                });
               });
             });
           });
@@ -967,7 +1151,7 @@
         return _results;
       })();
       return redis_client.multi(margs2).exec(function(errj, groupjsonlist) {
-        var ele, glist, grouplist, i, margs3, margs4, margsemailgroup, margsgroup, margsi, newgroupjsonlist, newgrouplist, newsavedgroups, rid, savedingroups, savedingroupshashcmds, _i, _j, _len, _len2;
+        var ele, glist, grouplist, i, idx, margs22, newgroupjsonlist, newgrouplist, newsavedgroups, savedingroups, savedingroupshashcmds, _i, _j, _len, _len2;
         if (errj) {
           return callback(errj, groupjsonlist);
         }
@@ -1015,38 +1199,88 @@
           return _results;
         })();
         console.log("savedingroupshashcmds", savedingroupshashcmds);
-        margsgroup = (function() {
+        margs22 = (function() {
           var _k, _len3, _results;
           _results = [];
-          for (_k = 0, _len3 = ranks.length; _k < _len3; _k++) {
-            rid = ranks[_k];
-            _results.push(['zremrangebyrank', keygroup, rid, rid]);
+          for (_k = 0, _len3 = sididxs.length; _k < _len3; _k++) {
+            idx = sididxs[_k];
+            _results.push(['hget', keys4savedbyhash, searchids[idx]]);
           }
           return _results;
         })();
-        margsemailgroup = (function() {
-          var _k, _len3, _results;
-          _results = [];
-          for (_k = 0, _len3 = ranks.length; _k < _len3; _k++) {
-            rid = ranks[_k];
-            _results.push(['zremrangebyrank', keyemailgroup, rid, rid]);
+        return redis_client.multi(margs22).exec(function(errj2, userjsonlist) {
+          var ele, i, margs3, margs4, margsemailgroup, margsgroup, margsi, newsavedbyusers, newuserjsonlist, newuserlist, rid, savedbyusers, savedbyusershashcmds, ulist, userlist, _k, _l, _len3, _len4;
+          if (errj2) {
+            return callback(errj2, userjsonlist);
           }
-          return _results;
-        })();
-        hashkeystodelete = (function() {
-          var _k, _len3, _results;
-          _results = [];
-          for (_k = 0, _len3 = mysidstodelete.length; _k < _len3; _k++) {
-            ele = mysidstodelete[_k];
-            _results.push(['hdel', keys4savedbyhash, ele]);
+          console.log("oo>>>>>>>", searchids, userjsonlist);
+          savedbyusers = (function() {
+            var _k, _len3, _results;
+            _results = [];
+            for (_k = 0, _len3 = userjsonlist.length; _k < _len3; _k++) {
+              ele = userjsonlist[_k];
+              _results.push(JSON.parse(ele));
+            }
+            return _results;
+          })();
+          console.log("savedbyusers", savedbyusers);
+          newsavedbyusers = [];
+          for (_k = 0, _len3 = savedbyusers.length; _k < _len3; _k++) {
+            userlist = savedbyusers[_k];
+            console.log('userlist', userlist);
+            newuserlist = [];
+            for (_l = 0, _len4 = userlist.length; _l < _len4; _l++) {
+              ele = userlist[_l];
+              if (ele !== email) {
+                newuserlist.push(ele);
+              }
+            }
+            console.log('newuserlist', newuserlist);
+            newsavedbyusers.push(newuserlist);
           }
-          return _results;
-        })();
-        margsi = margsgroup.concat(margsemailgroup);
-        margs3 = margsi.concat(hashkeystodelete);
-        margs4 = margs3.concat(savedingroupshashcmds);
-        console.log('margs4', margs4);
-        return redis_client.multi(margs4).exec(callback);
+          newuserjsonlist = (function() {
+            var _len5, _m, _results;
+            _results = [];
+            for (_m = 0, _len5 = newsavedbyusers.length; _m < _len5; _m++) {
+              ulist = newsavedbyusers[_m];
+              _results.push(JSON.stringify(ulist));
+            }
+            return _results;
+          })();
+          savedbyusershashcmds = (function() {
+            var _len5, _m, _results;
+            _results = [];
+            for (_m = 0, _len5 = sididxs.length; _m < _len5; _m++) {
+              i = sididxs[_m];
+              _results.push(['hset', keys4savedbyhash, searchids[i], newuserjsonlist[i]]);
+            }
+            return _results;
+          })();
+          console.log("savedbyusershashcmds", savedbyusershashcmds);
+          margsgroup = (function() {
+            var _len5, _m, _results;
+            _results = [];
+            for (_m = 0, _len5 = ranks.length; _m < _len5; _m++) {
+              rid = ranks[_m];
+              _results.push(['zremrangebyrank', keygroup, rid, rid]);
+            }
+            return _results;
+          })();
+          margsemailgroup = (function() {
+            var _len5, _m, _results;
+            _results = [];
+            for (_m = 0, _len5 = ranks.length; _m < _len5; _m++) {
+              rid = ranks[_m];
+              _results.push(['zremrangebyrank', keyemailgroup, rid, rid]);
+            }
+            return _results;
+          })();
+          margsi = margsgroup.concat(margsemailgroup);
+          margs3 = margsi.concat(savedingroupshashcmds);
+          margs4 = margs3.concat(savedbyusershashcmds);
+          console.log('margs4', margs4);
+          return redis_client.multi(margs4).exec(callback);
+        });
       });
     });
   };

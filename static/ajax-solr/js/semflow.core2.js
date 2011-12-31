@@ -74,10 +74,12 @@
     return label;
   };
   root.searchToText = function(searchTerm, namemap) {
-    var ele, n, name, newterms, out, s, term, terms, v, value, _i, _j, _len, _len2, _ref, _results;
+    var ele, n, name, newterms, out, rlist, s, searchpage, term, terms, v, value, _i, _j, _len, _len2, _ref;
+    console.log("searchTERM", searchTerm);
     s = ("&" + searchTerm).replace('&q=*%3A*', '');
     terms = s.split(/fq=/);
     console.log(terms);
+    searchpage = terms[0].slice(1, terms[0].length - 1);
     terms.shift();
     console.log('TERMS', terms);
     newterms = [];
@@ -100,12 +102,16 @@
         out[name] = [value];
       }
     }
-    _results = [];
-    for (n in out) {
-      v = out[n];
-      _results.push("" + (cleanFacetName(n, namemap)) + "=" + (v.join(',')));
-    }
-    return _results;
+    rlist = [searchpage];
+    return rlist.concat((function() {
+      var _results;
+      _results = [];
+      for (n in out) {
+        v = out[n];
+        _results.push("" + (cleanFacetName(n, namemap)) + "=" + (v.join(',')));
+      }
+      return _results;
+    })());
   };
   root.fieldname_map = {
     keywords_s: 'Keyword',

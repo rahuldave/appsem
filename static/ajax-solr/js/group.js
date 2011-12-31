@@ -195,11 +195,12 @@
     var gin, groupsintext, idx, sby, scpts;
     gin = s.groupsin;
     sby = s.searchby;
+    console.log(s, gin, sby);
     groupsintext = (function() {
       var _ref, _results;
       _results = [];
       for (idx = 0, _ref = gin.length; 0 <= _ref ? idx < _ref : idx > _ref; 0 <= _ref ? idx++ : idx--) {
-        _results.push('by ' + sby.split('@')[0] + ' in <a href="' + ("" + SITEPREFIX + "/explorer/group?fqGroupName=" + gin[idx]) + '">' + gin[idx].split('/').pop() + '</a>');
+        _results.push('by ' + sby[idx].split('@')[0] + ' in <a href="' + ("" + SITEPREFIX + "/explorer/group?fqGroupName=" + gin[idx]) + '">' + gin[idx].split('/').pop() + '</a>');
       }
       return _results;
     })();
@@ -245,7 +246,7 @@
       var _ref, _results;
       _results = [];
       for (idx = 0, _ref = gin.length; 0 <= _ref ? idx < _ref : idx > _ref; 0 <= _ref ? idx++ : idx--) {
-        _results.push('by ' + sby.split('@')[0] + ' in <a href="' + ("" + SITEPREFIX + "/explorer/group?fqGroupName=" + gin[idx]) + '">' + gin[idx].split('/').pop() + '</a>');
+        _results.push('by ' + sby[idx].split('@')[0] + ' in <a href="' + ("" + SITEPREFIX + "/explorer/group?fqGroupName=" + gin[idx]) + '">' + gin[idx].split('/').pop() + '</a>');
       }
       return _results;
     })();
@@ -285,11 +286,12 @@
     var gin, groupsintext, idx, sby;
     gin = o.groupsin;
     sby = o.searchby;
+    console.log(o, gin, sby);
     groupsintext = (function() {
       var _ref, _results;
       _results = [];
       for (idx = 0, _ref = gin.length; 0 <= _ref ? idx < _ref : idx > _ref; 0 <= _ref ? idx++ : idx--) {
-        _results.push('by ' + sby.split('@')[0] + ' in <a href="' + ("" + SITEPREFIX + "/explorer/group?fqGroupName=" + gin[idx]) + '">' + gin[idx].split('/').pop() + '</a>');
+        _results.push('by ' + sby[idx].split('@')[0] + ' in <a href="' + ("" + SITEPREFIX + "/explorer/group?fqGroupName=" + gin[idx]) + '">' + gin[idx].split('/').pop() + '</a>');
       }
       return _results;
     })();

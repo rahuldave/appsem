@@ -30,6 +30,7 @@ getUser = user.getUser
 views = require "./views"
 
 saved = require "./saved"
+tags = require "./tags"
 groups = require "./groups"
 migration = require('./migration2')
 
@@ -166,6 +167,18 @@ server.use SITEPREFIX+'/deleteobsvs', doPost saved.deleteObsvs
 server.use SITEPREFIX+'/deletesearchesfromgroup', doPostWithJSON saved.deleteSearchesFromGroup
 server.use SITEPREFIX+'/deletepubsfromgroup', doPostWithJSON saved.deletePubsFromGroup
 server.use SITEPREFIX+'/deleteobsvsfromgroup', doPostWithJSON saved.deleteObsvsFromGroup
+
+
+server.use SITEPREFIX+'/deletesearchesfromtag', doPostWithJSON tags.deleteSearchesFromTag
+server.use SITEPREFIX+'/deletepubsfromtag', doPostWithJSON tags.deletePubsFromTag
+server.use SITEPREFIX+'/deleteobsvsfromtag', doPostWithJSON tags.deleteObsvsFromTag
+server.use SITEPREFIX+'/savedsearchesfortag', tags.getSavedSearchesForTag
+server.use SITEPREFIX+'/savedpubsfortag', tags.getSavedPubsForTag
+server.use SITEPREFIX+'/savedobsvsfortag', tags.getSavedObsvsForTag
+server.use SITEPREFIX+'/savesearchestotag', doPostWithJSON tags.saveSearchesToTag
+server.use SITEPREFIX+'/savepubstotag', doPostWithJSON tags.savePubsToTag
+server.use SITEPREFIX+'/saveobsvstotag', doPostWithJSON tags.saveObsvsToTag
+
 # Used by the saved search page to provide functionality
 # to the saved publications list. This is a hack to work
 # around the same-origin policy.

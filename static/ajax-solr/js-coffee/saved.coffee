@@ -4,6 +4,10 @@
 
 $ = jQuery
 
+Array::unique = ->
+  output = {}
+  output[@[key]] = @[key] for key in [0...@length]
+  value for key, value of output
 # Make a POST request to the ADS servers using the given
 # URL path and apply the given callback to the response.
 
@@ -192,7 +196,7 @@ makeSearchText = (urifrag) ->
   return $search
 
 makeSearchRow = (s) ->
-  groupsintext = ('<a href="'+"#{SITEPREFIX}/explorer/group?fqGroupName=#{ele}"+'">'+ele.split('/').pop()+'</a>' for ele in s.groupsin)
+  groupsintext = ('<a href="'+"#{SITEPREFIX}/explorer/group?fqGroupName=#{ele}"+'">'+ele.split('/').pop()+'</a>' for ele in s.groupsin.unique())
   scpts=searchToText s.searchuri, fieldname_map
   console.log s.searchtext, s.searchuri, scpts
   [$('<input type="checkbox" name="searchid"/>').attr('value', s.searchuri),
@@ -239,7 +243,7 @@ createSavedPublications = () ->
       noSavedPublications()
 
 makePubRow = (p) ->
-  groupsintext = ('<a href="'+"#{SITEPREFIX}/explorer/group?fqGroupName=#{ele}"+'">'+ele.split('/').pop()+'</a>' for ele in p.groupsin)
+  groupsintext = ('<a href="'+"#{SITEPREFIX}/explorer/group?fqGroupName=#{ele}"+'">'+ele.split('/').pop()+'</a>' for ele in p.groupsin.unique())
   [$('<input type="checkbox" name="pubid"/>').attr('value', p.pubid),
    $('<span/>').attr('value', p.pubtime).text(p.pubtimestr),
    $('<a/>').attr('href', "#{SITEPREFIX}/explorer/publications#fq=#{p.linkuri}&q=*%3A*")
@@ -272,7 +276,7 @@ createSavedObservations = () ->
       noSavedObservations()
 
 makeObsvRow = (o) ->
-  groupsintext = ('<a href="'+"#{SITEPREFIX}/explorer/group?fqGroupName=#{ele}"+'">'+ele.split('/').pop()+'</a>' for ele in o.groupsin)
+  groupsintext = ('<a href="'+"#{SITEPREFIX}/explorer/group?fqGroupName=#{ele}"+'">'+ele.split('/').pop()+'</a>' for ele in o.groupsin.unique())
   [$('<input type="checkbox" name="obsvid"/>').attr('value', o.obsvid),
    $('<span/>').attr('value', o.obsvtime).text(o.obsvtimestr),
    $('<a/>').attr('href', "#{SITEPREFIX}/explorer/observations#fq=#{o.linkuri}&q=*%3A*")

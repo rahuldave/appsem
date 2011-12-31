@@ -100,12 +100,14 @@ root.cleanFacetValue = (label) ->
 
 root.searchToText = (searchTerm, namemap) ->
   # lazy way to remove the trailing search term
+  console.log "searchTERM", searchTerm
   s = "&#{searchTerm}".replace '&q=*%3A*', ''
 
   # only decode after the initial split to protect against the
   # unlikely event that &fq= appears as part of a search term.
   terms = s.split /fq=/
   console.log terms
+  searchpage = terms[0][1...(terms[0].length-1)]
   terms.shift() # ignore the first entry as '' by construction
   
   console.log 'TERMS', terms
@@ -123,8 +125,8 @@ root.searchToText = (searchTerm, namemap) ->
       out[name].push value
     else
       out[name] = [value]
-
-  ("#{cleanFacetName n, namemap}=#{v.join ','}" for n,v of out)
+  rlist=[searchpage]
+  rlist.concat ("#{cleanFacetName n, namemap}=#{v.join ','}" for n,v of out)
 
 
 # Mapping between field name as used by Solr and the text we

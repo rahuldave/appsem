@@ -22,78 +22,123 @@ ifHaveEmail = (fname, req, res, cb, failopts = {}) ->
         else
             return ecb err, email
 
-
-_doSaveSearchToTag = (taggedBy, tagName, taggedhashlist, searchtype, callback) ->
+#notice that this dosent do all the saving in one transaction. this is a BUG. fix it in groups too.
+_doSaveSearchToTag = (taggedBy, tagName, toBeTaggedSearches, searchtype, callback) ->
     saveTime = new Date().getTime()
-    taggedtype="saved#{searchtype}"
-    margs=(['hexists', "savedby:#{fqGroupName}", savedhash[taggedtype]] for savedhash in taggedhashlist)
-    redis_client.multi(margs).exec (err2, replies) ->
-        if err2
-            return callback err2, replies
-        console.log 'REPLIES', replies, savedhashlist
-        counter=0
-        margs=[]
-        savedSearches=[]
-        for idx in [0...replies.length] when replies[idx] isnt 1
-            console.log "kkk", idx, replies[idx], savedhashlist[idx][savedtype]
-            counter=counter+1
-            savedSearch=savedhashlist[idx][savedtype]
-            savedSearches.push(savedSearch)
-            margsi = [
-              ['zadd', "tagged#{searchtype}:#{taggedBy}:#{tagName}", saveTime, savedSearch],
-              ['zadd', "tagged#{searchtype}:#{tagName}", saveTime, savedSearch],
-              ['hset', "savedby:#{fqGroupName}", savedSearch, savedBy],
-            ]
-            margs = margs.concat margsi
-        #console.log "MARGS", margs
-        if counter is 0
-            console.log "These all have already been saved"
-            return callback err2, replies
-        redis_client.multi(margs).exec (err3, reply) ->
-            console.log "3space", err3, reply
-            if err3
-                return callback err3, reply
-            margs2=(['hget', "savedInGroups:#{searchtype}", thesearch] for thesearch in savedSearches)
-            console.log "margs2", margs2
-            redis_client.multi(margs2).exec (err4, groupJSONList) ->
-                console.log "groupJSONList", groupJSONList, err4
+    taggedtype="tagged#{searchtype}"
+    allTagsHash = "tagged:#{taggedBy}:#{searchtype}"
+    tagsForUser = "tags:#{taggedBy}"
+    taggedAllSet="#{taggedtype}:#{tagName}"
+    taggedUserSet="#{taggedtype}:#{taggedBy}:#{tagName}"
+    savedUserSet="saved#{searchtype}:#{taggedBy}"
+    #Bug: check if user has saved stuff first. Same problem in save to groups.
+   
+    tobeTaggedSearchesToUse=tobeTaggedSearches
+    margs2=(['hget', allTagsHash, thesearch] for thesearch in toBeTaggedSearchesToUse)
+    console.log "margs2", margs2
+    redis_client.multi(margs2).exec (err4, tagJSONList) ->
+        console.log "tagJSONList", tagJSONList, err4
+        if err4
+            return callback err4, tagJSONList
+        #Should there be a condition here?    
+        outJSON=[]
+        outList=[]
+        for tagJSON in tagJSONList
+            if tagJSON is null
+                taglist=[tagName]
+            else
+                taglist = JSON.parse tagJSON
+                taglist.push(tagName) #we dont check for uniqueness, no sets in json 
+            outJSON.push JSON.stringify(taglist)
+            outList.push taglist
+        console.log "outjsom", outlist, outJSON
+        #outJSON is now COMPLETE set of tgs for these searches which I have ostensibly saved.
+        redis_client.smembers "memberof:#{taggedBy}", (errb, mygroups) ->
+            if errb
+                return callback errb, mygroups
+            #now we must figure which grouptaglists we must add to CONFUSING 
+            mygroupslength=mygroups.length
+            margs11=[]
+            for ele in tobeTaggedSearchesToUse
+                margs11=margs11.concat (['hget', "tagged:#{dagrp}:#{searchtype}", ele] for dagrp in mygroups)
+            redis_client.multi(margs11).exec (err11, grouptagJSONList) ->
+                console.log "tagJSONList", grouptagJSONList, err11
                 if err4
-                    return callback err4, groupJSONList
-                outJSON=[]
+                    return callback err11, grouptagJSONList
+                #Should there be a condition here?    
+                groupsearchList=({} for i in [0...toBeTaggedSearchesToUse.length])
+                for idx in [0...toBeTaggedSearchesToUse.length]
+                    #only do it if the search in question is in some groups
+                    for jdx in [0...mygroupslength]
+                        kdx=idx*mygroupslength+jdx
+                        if grouptagJSONList[kdx] is null
+                            taglist=[]
+                        else
+                            taglist = JSON.parse grouptagJSONList[kdx]
+                        groupsearchList[idx][mygroups[jdx]]=taglist
+
+                console.log "groupSearchList", groupSearchList    
+                margs22=[]
+                for ele in tobeTaggedSearchesToUse
+                    margs22=margs22.concat (['hget', "savedBy:#{dagrp}", ele] for dagrp in mygroups)        
+                console.log "<<<<<", margs22
                 
-                for groupJSON in groupJSONList
-                    if groupJSON is null
-                        grouplist=[fqGroupName]
-                    else
-                        grouplist = JSON.parse groupJSON
-                        grouplist.push(fqGroupName) #we dont check for uniqueness, no sets in json 
-                    outJSON.push JSON.stringify(grouplist)
-                console.log "outjsom", outJSON, savedSearches
-                margs3 = (['hset', "savedInGroups:#{searchtype}", savedSearches[i], outJSON[i]] for i in [0...savedSearches.length])
-                console.log "margs3", margs3
-                redis_client.multi(margs3).exec  callback             
+                redis_client.multi(margs22).exec (err22, usergroupjsonlist) ->
+                    if err22
+                        return callback err22, usergroupjsonlist
+                    margsgroupssetcmds=[]
+                    for idx in [0...toBeTaggedSearchesToUse.length]
+                        #only do it if the search in question is in some groups
+                        for jdx in [0...mygroupslength]
+                            kdx=idx*mygroupslength+jdx
+                            currentGroup=mygroups[jdx]
+                            currentSearchAndGroupList=groupSearchList[idx][currentGroup]
+                            currentSearchAndUserList=outList[idx]
+                            #Add user tags to group tags for this search and group combo..note only added if (a) this search was saved in this group and (b) u did it 
+                            #non null here means this search was saved in that group but not necessarily by us
+                            if usergroupjsonlist[kdx]
+                                #in combination JSON let there be duplicates. We'll eliminate in clients. If more people save with same tag, there is some info there.
+                                mergedList=currentSearchAndGroupList.concat currentSearchAndUserList
+                                mergedJSON=JSON.stringify mergedList
+                                parsedusers=JSON.parse usergroupjsonlist[kdx]
+                                cmds=(['sadd', "#{taggedtype}:#{mygroups[jdx]}:#{tagName}", tobeTaggedSearchesToUse[idx]] for user in parsedusers when user is taggedBy)
+                                tagscmds=(['sadd', "tags:#{mygroups[jdx]}", tagName] for user in parsedusers when user is taggedBy)
+                                hashcmds=(['hset', "tagged:#{mygroups[jdx]}:#{searchtype}", tobeTaggedSearchesToUse[idx], mergedJSON] for user in parsedusers when user is taggedBy)
+                                margsgroupssetcmds = margsgoupssetcmds.concat cmds
+                                margsgroupssetcmds = margsgoupssetcmds.concat tagscmds
+                                margsgroupssetcmds = margsgoupssetcmds.concat hashcmds
+                    
+                    margs3 = (['hset', allTagsHash, toBeTaggedSearches[i], outJSON[i]] for i in [0...toBeTaggedSearchesToUse.length])
+                    console.log "margs3", margs3
+                    margsi = (['sadd', taggedAllSet, savedSearch] for savedSearch in toBeTaggedSearchesToUse)
+                    margsj = (['sadd', taggedUserSet, savedSearch] for savedSearch in toBeTaggedSearchesToUse)
+                    margs = margs3.concat margsi
+                    margs = margs.concat margsj
+                    margs=margs.concat [['sadd', tagsForUser, tagName]]
+                    margs=margs.concat margsgroupssetcmds
+                    redis_client.multi(margs).exec  callback             
 
               
-saveSearchesToTag = ({fqGroupName, objectsToSave}, req, res, next) ->
-  console.log __fname="saveSearchestoGroup"
+saveSearchesToTag = ({tagName, toBeTaggedSearches}, req, res, next) ->
+  console.log __fname="saveSearchestoTag"
   ifHaveEmail __fname, req, res, (savedBy) ->
       # keep as a multi even though now a single addition
-      _doSaveSearchToGroup savedBy, fqGroupName, objectsToSave, 'search',  httpcallbackmaker(__fname, req, res, next)
+      _doSaveSearchToGroup savedBy, tagName, tobeTaggedSearches, 'search',  httpcallbackmaker(__fname, req, res, next)
 
       
 
 
-savePubsToTag = ({fqGroupName, objectsToSave}, req, res, next) ->
-  console.log __fname="savePubsToGroup"
+savePubsToTag = ({tagName, toBeTaggedSearches}, req, res, next) ->
+  console.log __fname="savePubsToTag"
   ifHaveEmail __fname, req, res, (savedBy) ->
-     _doSaveSearchToGroup savedBy, fqGroupName, objectsToSave, 'pub', httpcallbackmaker(__fname, req, res, next)
+     _doSaveSearchToGroup savedBy, tagName, toBeTaggedSearches, 'pub', httpcallbackmaker(__fname, req, res, next)
       
 
       
-saveObsvsToTag = ({fqGroupName, objectsToSave}, req, res, next) ->
-  console.log __fname="saveObsvToGroup"
+saveObsvsToTag = ({tagName, toBeTaggedSearches}, req, res, next) ->
+  console.log __fname="saveObsvToTag"
   ifHaveEmail __fname, req, res, (savedBy) ->
-      _doSaveSearchToGroup savedBy, fqGroupName, objectsToSave, 'obsv', httpcallbackmaker(__fname, req, res, next)
+      _doSaveSearchToGroup savedBy, tagName, tobeTaggedSearches, 'obsv', httpcallbackmaker(__fname, req, res, next)
             
 searchToText = (searchTerm) ->
     # lazy way to remove the trailing search term
@@ -153,7 +198,7 @@ timeToText = (nowDate, timeString) ->
 # views - hence the terminology - but the data is now passed
 # back to the client as JSON.
 #
-createSavedSearchTemplates = (nowDate, searchkeys, searchtimes, searchbys, groupsin) ->
+createSavedSearchTemplates = (nowDate, searchkeys, searchtimes, searchbys, groupsin, tagsin) ->
   view = {}
   #console.log "VIEW", view
   nsearch = searchkeys.length
@@ -172,6 +217,7 @@ createSavedSearchTemplates = (nowDate, searchkeys, searchtimes, searchbys, group
         searchuri: key
         searchby: searchbys[ctr]
         groupsin: groupsin[ctr]
+        tagsin: tagsin[ctr]
         searchtext: searchToText key
         searchtime: time
         searchtimestr: timeToText nowDate, time
@@ -182,7 +228,7 @@ createSavedSearchTemplates = (nowDate, searchkeys, searchtimes, searchbys, group
 
   return view
 
-createSavedPubTemplates = (nowDate, pubkeys, pubtimes, bibcodes, pubtitles, searchbys, groupsin) ->
+createSavedPubTemplates = (nowDate, pubkeys, pubtimes, bibcodes, pubtitles, searchbys, groupsin, tagsin) ->
   view = {}
   npub = pubkeys.length
 
@@ -200,6 +246,7 @@ createSavedPubTemplates = (nowDate, pubkeys, pubtimes, bibcodes, pubtitles, sear
         pubid: pubkeys[ctr]
         searchby: searchbys[ctr]
         groupsin: groupsin[ctr]
+        tagsin: tagsin[ctr]
         linktext: pubtitles[ctr]
         linkuri: linkuri
         pubtime: pubtimes[ctr]
@@ -212,7 +259,7 @@ createSavedPubTemplates = (nowDate, pubkeys, pubtimes, bibcodes, pubtitles, sear
 
   return view
 
-createSavedObsvTemplates = (nowDate, obsvkeys, obsvtimes, targets, obsvtitles, searchbys, groupsin) ->
+createSavedObsvTemplates = (nowDate, obsvkeys, obsvtimes, targets, obsvtitles, searchbys, groupsin, tagsin) ->
   view = {}
   nobsv = obsvkeys.length
 
@@ -231,6 +278,7 @@ createSavedObsvTemplates = (nowDate, obsvkeys, obsvtimes, targets, obsvtitles, s
         obsvid: obsvkeys[ctr]
         searchby: searchbys[ctr]
         groupsin: groupsin[ctr]
+        tagsin: tagsin[ctr]
         linktext: obsvkeys[ctr]
         linkuri: linkuri
         obsvtime: obsvtimes[ctr]
@@ -284,71 +332,91 @@ getSortedElementsAndScores = (flag, key, cb) ->
 
 
 #Current BUG: security issue--leaks all groups the item has been saved in, not just mine
-_doSearch = (email, searchtype, templateCreatorFunc, res, kword, callback, augmenthash=null) ->
+#seems the only thing that currently changes here is the initial set of searches.
+_doSearchForTag = (email, tagName, searchtype, templateCreatorFunc, res, kword, callback, augmenthash=null) ->
     nowDate = new Date().getTime()
+    taggedtype="tagged#{searchtype}"
+    allTagsHash = "tagged:#{email}:#{searchtype}"
+    taggedAllSet="#{taggedtype}:#{tagName}"
+    taggedUserSet="#{taggedtype}:#{email}:#{tagName}"
     redis_client.smembers "memberof:#{email}", (err, groups) ->
         if err
             return callback err, groups
-        getSortedElementsAndScores false, "saved#{searchtype}:#{email}", (err2, searches) ->
+        #get this to work with normal sets o use sorted sets for tags 
+        #out approach of intersecting all searches with searches by tag is not the best for large sets
+        #optimize later.   
+        redis_client.smembers taggedUserSet, (err2, searchreplies) ->
             if err2
-                return callback err2, searches
-            margs2=(['hget', "savedInGroups:#{searchtype}", ele] for ele in searches.elements)
-            console.log "<<<<<", margs2
-            redis_client.multi(margs2).exec (errg, groupjsonlist) ->
-                if errg
-                    return callback err, groupjsonlist
-                savedingroups=[]
-                for ele in groupjsonlist
-                    if not ele
-                        savedingroups.push([])
-                    else
-                        parsedgroups=JSON.parse ele
-                        groupstoadd = (ele for ele in parsedgroups when ele in groups)
-                        savedingroups.push(groupstoadd)
-                        
-                #savedingroups = (JSON.parse (ele ? '[]') for ele in groupjsonlist)
-                console.log "<<<<<<<<<<<<<<<<>", savedingroups
-                savedBys=(email for ele in searches.elements)
-                if augmenthash is null
-                    view = templateCreatorFunc nowDate, searches.elements, searches.scores, savedBys, savedingroups
-                    callback err, view
-                else
-                    if searches.elements.length == 0
-                        titles=[]
-                        names=[]
-                        view = templateCreatorFunc nowDate, searches.elements, searches.scores, names, titles, savedBys, savedingroups
-                        return callback err, view
-                    redis_client.hmget "saved#{augmenthash.titlefield}", searches.elements..., (err3, titles) ->
-                        if err3
-                            console.log "titlefield error"
-                            return callback err3, titles
-                        redis_client.hmget "saved#{augmenthash.namefield}", searches.elements..., (err4, names) ->
-                            if err4
-                                console.log "namefield error"
-                                return callback err4, names
-                            view = templateCreatorFunc nowDate, searches.elements, searches.scores, names, titles, savedBys, savedingroups
-                            callback err4, view
+                return callback err2, searchreplies
+            getSortedElementsAndScores false, "saved#{searchtype}:#{email}", (err22, allsearches) ->
+                if err22
+                    return callback err22, allsearches
+                searches={}
+                searches.scores=[]
+                searches.elements=[]
+                for idx in [0...allsearches.elements]
+                    if allsearches.elements[idx] in searchreplies
+                        searches.elements.push(allsearches.elements[idx])
+                        searches.scores.push(allsearches.scores[idx])
+                #At this point searches reflects the tag but has all the scores from the sorted set    
+                margs2=(['hget', "savedInGroups:#{searchtype}", ele] for ele in searches.elements)
+                console.log "<<<<<", margs2
+                redis_client.multi(margs2).exec (errg, groupjsonlist) ->
+                    if errg
+                        return callback errg, groupjsonlist
+                    savedingroups=[]
+                    for ele in groupjsonlist
+                        if not ele
+                            savedingroups.push([])
+                        else
+                            parsedgroups=JSON.parse ele
+                            groupstoadd = (ele for ele in parsedgroups when ele in groups)
+                            savedingroups.push(groupstoadd)
+                    margs22=(['hget', allTagsHash, ele] for ele in searches.elements)
+                    console.log "<<<<<", margs22
+                    redis_client.multi(margs22).exec (errg22, tagjsonlist) ->
+                        if errg22
+                            return callback errg22, tagjsonlist
+                        savedintags=[]
+                        for ele in tagjsonlist
+                            if not ele
+                                savedintags.push([])
+                            else
+                                parsedtags=JSON.parse ele
+                                tagstoadd = (ele for ele in parsedtags)
+                                savedintags.push(tagstoadd)
+                        #savedingroups = (JSON.parse (ele ? '[]') for ele in groupjsonlist)
+                        console.log "<<<<<<<<<<<<<<<<>", savedingroups, savedintags
+                        savedBys=(email for ele in searches.elements)
+                        if augmenthash is null
+                            view = templateCreatorFunc nowDate, searches.elements, searches.scores, savedBys, savedingroups, savedintags
+                            callback err, view
+                        else
+                            if searches.elements.length == 0
+                                titles=[]
+                                names=[]
+                                view = templateCreatorFunc nowDate, searches.elements, searches.scores, names, titles, savedBys, savedingroups, savedintags
+                                return callback err, view
+                            redis_client.hmget "saved#{augmenthash.titlefield}", searches.elements..., (err3, titles) ->
+                                if err3
+                                    console.log "titlefield error"
+                                    return callback err3, titles
+                                redis_client.hmget "saved#{augmenthash.namefield}", searches.elements..., (err4, names) ->
+                                    if err4
+                                        console.log "namefield error"
+                                        return callback err4, names
+                                    view = templateCreatorFunc nowDate, searches.elements, searches.scores, names, titles, savedBys, savedingroups, savedintags
+                                    callback err4, view
 
-getSavedPubs2 = (req, res, next) ->
-  kword = 'savedpubs'
-  __fname=kword
-  ifHaveEmail __fname, req, res, (email) ->
-      _doSearch email, 'pub', createSavedPubTemplates, res, kword, httpcallbackmaker(__fname, req, res, next), {titlefield:'titles', namefield:'bibcodes'}  
-      
-getSavedSearches2 = (req, res, next) ->
-  kword = 'savedsearches'
-  __fname=kword
-  ifHaveEmail __fname, req, res, (email) ->
-      _doSearch email, 'search', createSavedSearchTemplates, res, kword, httpcallbackmaker(__fname, req, res, next)
-      
-getSavedObsvs2 = (req, res, next) ->
-  kword = 'savedobsvs'
-  __fname=kword
-  ifHaveEmail __fname, req, res, (email) ->
-      _doSearch email, 'obsv', createSavedObsvTemplates, res, kword, httpcallbackmaker(__fname, req, res, next), {titlefield:'obsvtitles', namefield:'targets'}          
-   
-_doSearchForGroup = (email, fqGroupName, searchtype, templateCreatorFunc, res, kword, callback, augmenthash=null) ->
+
+_doSearchForTagInGroup = (email, tagName, fqGroupName, searchtype, templateCreatorFunc, res, kword, callback, augmenthash=null) ->
     nowDate = new Date().getTime()
+    taggedtype="tagged#{searchtype}"
+    allTagsHash = "tagged:#{email}:#{searchtype}"
+    allTagsGroupHash = "tagged:#{fqGroupName}:#{searchtype}"
+    taggedAllSet="#{taggedtype}:#{tagName}"
+    taggedUserSet="#{taggedtype}:#{email}:#{tagName}"
+    taggedGroupSet="#{taggedtype}:#{fqGroupName}:#{tagName}"
     redis_client.sismember "members:#{fqGroupName}", email, (erra, saved_p)->
             #should it be an error is user is not member of group? (thats what it is now)
             if erra
@@ -357,96 +425,155 @@ _doSearchForGroup = (email, fqGroupName, searchtype, templateCreatorFunc, res, k
                 redis_client.smembers "memberof:#{email}", (errb, groups) ->
                     if errb
                         return callback errb, groups
-                    getSortedElementsAndScores false, "saved#{searchtype}:#{fqGroupName}", (err2, searches) ->
-                        if err2
-                            console.log "*** getSaved#{searchtype}ForGroup2: failed for email=#{email} err=#{err2}"
-                            return callback err2, searches
-                        console.log searchtype, 'searches.elements', searches.elements
-                        margs=(['hget', "savedby:#{fqGroupName}", ele] for ele in searches.elements)
-                        redis_client.multi(margs).exec (errm, savedBys) ->
-                            if errm
-                                return callback errm, savedBys
-                            #searchbys=(reply for reply in replies)
-                            margs2=(['hget', "savedInGroups:#{searchtype}", ele] for ele in searches.elements)
-                            console.log "<<<<<#{searchtype}", margs2
-                            redis_client.multi(margs2).exec (err, groupjsonlist) ->
-                                if err
-                                    return callback err, groupjsonlist
-                                console.log ">>>>>>>#{searchtype}", searches.elements, groupjsonlist
-                                savedingroups=[]
-                                for ele in groupjsonlist
-                                    if not ele
-                                        savedingroups.push([])
-                                    else
-                                        parsedgroups=JSON.parse ele
-                                        groupstoadd = (ele for ele in parsedgroups when ele in groups)
-                                        savedingroups.push(groupstoadd)
-                                #savedingroups = (JSON.parse ele for ele in groupjsonlist)
-                                console.log "<<<<<<<<<<<<<<<<>", savedingroups
-                                if augmenthash is null
-                                    view = templateCreatorFunc nowDate, searches.elements, searches.scores, savedBys, savedingroups
-                                    callback err, view
-                                else
-                                    if searches.elements.length == 0
-                                        titles=[]
-                                        names=[]
-                                        view = templateCreatorFunc nowDate, searches.elements, searches.scores, names, titles, savedBys, savedingroups
-                                        return callback err, view
-                                    redis_client.hmget "saved#{augmenthash.titlefield}", searches.elements..., (err3, titles) ->
-                                        if err3
-                                            console.log "titlefield error"
-                                            return callback err3, titles
-                                        redis_client.hmget "saved#{augmenthash.namefield}", searches.elements..., (err4, names) ->
-                                            if err4
-                                                console.log "namefield error"
-                                                return callback err4, names
-                                            view = templateCreatorFunc nowDate, searches.elements, searches.scores, names, titles, savedBys, savedingroups
-                                            callback err4, view
+                    redis_client.smembers "members:#{fqGroupName}", (errc, users) ->
+                        if errc
+                            return callback errc, users
+                        redis_client.smembers taggedGroupSet  (err2, searchreplies) ->
+                            if err2
+                                return callback err2, searchreplies
+                            getSortedElementsAndScores false, "saved#{searchtype}:#{fqGroupName}", (err22, allsearches) ->
+                                if err22
+                                    return callback err22, allsearches
+                                searches={}
+                                searches.scores=[]
+                                searches.elements=[]
+                                for idx in [0...allsearches.elements]
+                                    if allsearches.elements[idx] in searchreplies
+                                        searches.elements.push(allsearches.elements[idx])
+                                        searches.scores.push(allsearches.scores[idx])
+                                console.log searchtype, 'searches.elements', searches.elements
+                                margs=(['hget', "savedby:#{fqGroupName}", ele] for ele in searches.elements)
+                                redis_client.multi(margs).exec (errm, savedBys) ->
+                                    if errm
+                                        return callback errm, savedBys
+                                    #searchbys=(reply for reply in replies)
+                                    margs2=(['hget', "savedInGroups:#{searchtype}", ele] for ele in searches.elements)
+                                    console.log "<<<<<#{searchtype}", margs2
+                                    redis_client.multi(margs2).exec (err, groupjsonlist) ->
+                                        if err
+                                            return callback err, groupjsonlist
+                                        console.log ">>>>>>>#{searchtype}", searches.elements, groupjsonlist
+                                        savedingroups=[]
+                                        for ele in groupjsonlist
+                                            if not ele
+                                                savedingroups.push([])
+                                            else
+                                                parsedgroups=JSON.parse ele
+                                                groupstoadd = (ele for ele in parsedgroups when ele in groups)
+                                                savedingroups.push(groupstoadd)
+                                        margs22=(['hget', allTagsGroupHash, ele] for ele in searches.elements)
+                                        console.log "<<<<<", margs22
+                                        redis_client.multi(margs22).exec (errg22, tagjsonlist) ->
+                                            if errg22
+                                                return callback errg22, tagjsonlist
+                                            savedintags=[]
+                                            for ele in tagjsonlist
+                                                if not ele
+                                                    savedintags.push([])
+                                                else
+                                                    parsedtags=JSON.parse ele
+                                                    tagstoadd = (ele for ele in parsedtags)
+                                                    savedintags.push(tagstoadd)
+                                            #savedingroups = (JSON.parse (ele ? '[]') for ele in groupjsonlist)
+                                            console.log "<<<<<<<<<<<<<<<<>", savedingroups, savedintags
+                                            if augmenthash is null
+                                                view = templateCreatorFunc nowDate, searches.elements, searches.scores, savedBys, savedingroups, savedintags
+                                                callback err, view
+                                            else
+                                                if searches.elements.length == 0
+                                                    titles=[]
+                                                    names=[]
+                                                    view = templateCreatorFunc nowDate, searches.elements, searches.scores, names, titles, savedBys, savedingroups, savedintags
+                                                    return callback err, view
+                                                redis_client.hmget "saved#{augmenthash.titlefield}", searches.elements..., (err3, titles) ->
+                                                    if err3
+                                                        console.log "titlefield error"
+                                                        return callback err3, titles
+                                                    redis_client.hmget "saved#{augmenthash.namefield}", searches.elements..., (err4, names) ->
+                                                        if err4
+                                                            console.log "namefield error"
+                                                            return callback err4, names
+                                                        view = templateCreatorFunc nowDate, searches.elements, searches.scores, names, titles, savedBys, savedingroups, savedintags
+                                                        callback err4, view
             else
               console.log "*** getSaved#{searchtype}ForGroup2: membership failed for email=#{email} err=#{erra}"
               return callback erra, saved_p
       
-getSavedSearchesForGroup2 = (req, res, next) ->
-  kword = 'savedsearchesforgroup'
+getSavedSearchesForTag = (req, res, next) ->
+  kword = 'savedsearchesfortag'
   __fname=kword
-  fqGroupName = req.query.fqGroupName
+  tagName = req.query.tagName
+  fqGroupName = req.query.fqGroupName ? 'default'
   ifHaveEmail __fname, req, res, (email) ->
-      _doSearchForGroup email, fqGroupName, 'search', createSavedSearchTemplates, res, kword, httpcallbackmaker(__fname, req, res, next)
-  
+      if fqGroupName is 'default'
+          _doSearchForTag email, tagName, 'search', createSavedSearchTemplates, res, kword, httpcallbackmaker(__fname, req, res, next)
+      else
+          _doSearchForTagInGroup email, tagName, fqGroupName, 'search', createSavedSearchTemplates, res, kword, httpcallbackmaker(__fname, req, res, next)
+        
   
 
 
   
-getSavedPubsForGroup2 = (req, res, next) ->
-  kword = 'savedpubsforgroup'
+getSavedPubsForTag = (req, res, next) ->
+  kword = 'savedpubsfortag'
   __fname=kword
-  fqGroupName = req.query.fqGroupName
+  tagName = req.query.tagName
+  fqGroupName = req.query.fqGroupName ? 'default'
   ifHaveEmail __fname, req, res, (email) ->
-        _doSearchForGroup email, fqGroupName, 'pub', createSavedPubTemplates, res, kword, 
+      if fqGroupName is 'default'
+            _doSearchForTag email, tagName, 'pub', createSavedPubTemplates, res, kword, 
+                httpcallbackmaker(__fname, req, res, next), {titlefield:'titles', namefield:'bibcodes'}
+      else
+            _doSearchForTagInGroup email, tagName, fqGroupName, 'pub', createSavedPubTemplates, res, kword, 
                 httpcallbackmaker(__fname, req, res, next), {titlefield:'titles', namefield:'bibcodes'}
 
 
 
-
   
   
-getSavedObsvsForGroup2 = (req, res, next) ->
-  kword = 'savedobsvsforgroup'
-  fqGroupName = req.query.fqGroupName
+getSavedObsvsForTag = (req, res, next) ->
+  kword = 'savedobsvsfortag'
+  tagName = req.query.tagName
+  fqGroupName = req.query.fqGroupName ? 'default'
   __fname=kword
   ifHaveEmail __fname, req, res, (email) ->
-        _doSearchForGroup email, fqGroupName, 'obsv', createSavedObsvTemplates, res, kword, httpcallbackmaker(__fname, req, res, next),
+      if fqGroupName is 'default'
+            _doSearchForTag email, tagName, 'obsv', createSavedObsvTemplates, res, kword, httpcallbackmaker(__fname, req, res, next),
+                    {titlefield:'obsvtitles', namefield:'targets'}
+      else
+            _doSearchForTagInGroup email, tagName, fqGroupName, 'obsv', createSavedObsvTemplates, res, kword, httpcallbackmaker(__fname, req, res, next),
                     {titlefield:'obsvtitles', namefield:'targets'}
 
-#BUG How about deletion from savedInGroups hash
-_doRemoveSearchesFromTag = (email, group, searchtype, searchids, callback) ->
-    keyemail = "saved#{searchtype}:#{email}"
-    keygroup = "saved#{searchtype}:#{group}"
-    keyemailgroup = "saved#{searchtype}:#{email}:#{group}"
-    keys4savedbyhash = "savedby:#{group}"
-    savedingroupshash = "savedInGroups:#{searchtype}"
+#GET
+getTagsForUser = (req, res, next) ->
+    kword='gettagsforuser'
+    __fname=kword
+    callback =  httpcallbackmaker(__fname, req, res, next)
+    ifHaveEmail __fname, req, res, (email) ->
+        redis_client.smembers "tags:#{email}", callback
+        
+getTagsForGroup = (req, res, next) ->
+    kword='gettagsforgroup'
+    __fname=kword
+    wantedGroup=req.query.fqGroupName
+    callback =  httpcallbackmaker(__fname, req, res, next)
+    ifHaveEmail __fname, req, res, (email) ->
+        redis_client.sismember "members:#{wantedGroup}", email, (err, reply) ->
+            if err
+                return callback err, reply
+            if reply    
+                redis_client.smembers "tags:#{wantedGroup}", callback
+            else
+                return callback err, reply
+            
+#BUG the bug where i can delete things of yours in a group (here in a tag) remains.
+_doRemoveSearchesFromTag = (email, tagName, searchtype, searchids, callback) ->
+    taggedtype="tagged#{searchtype}"
+    allTagsHash = "tagged:#{taggedBy}:#{searchtype}"
+    taggedAllSet="#{taggedtype}:#{tagName}"
+    taggedUserSet="#{taggedtype}:#{taggedBy}:#{tagName}"
 
-    margs=(['zrank', keyemailgroup, sid] for sid in searchids)
+    margs=(['sismember', taggedUserSet, sid] for sid in searchids)
 
     # What about the nested multis..how does this affect atomicity?
     hashkeystodelete=[]
@@ -454,56 +581,54 @@ _doRemoveSearchesFromTag = (email, group, searchtype, searchids, callback) ->
     redis_client.multi(margs).exec (err, replies) ->
         if err
             return callback err, replies
-        ranks=(rank for rank in replies when rank isnt null)
-        sididxs=(sididx for sididx in [0...replies.length] when replies[sididx] isnt null)
+        #ranks=(rank for rank in replies when rank isnt 0)
+        sididxs=(sididx for sididx in [0...replies.length] when replies[sididx] isnt 0)
         console.log "sididxs", sididxs
         mysidstodelete=(searchids[idx] for idx in sididxs)
         #Should error out here if null so that we can use that in UI to say you are not owner, or should we?
-        margs2=(['hget', savedingroupshash, searchids[idx]] for idx in sididxs)
-        redis_client.multi(margs2).exec (errj, groupjsonlist) ->
+        margs2=(['hget', allTagsHash, searchids[idx]] for idx in sididxs)
+        redis_client.multi(margs2).exec (errj, tagjsonlist) ->
             if errj
-                return callback errj, groupjsonlist
-            console.log "o>>>>>>>", searchids, groupjsonlist
-            savedingroups = (JSON.parse ele for ele in groupjsonlist)
-            console.log "savedingroups", savedingroups
-            newsavedgroups=[]
-            for grouplist in savedingroups
-                console.log 'grouplist', grouplist
-                newgrouplist=[]
-                newgrouplist.push(ele) for ele in grouplist when ele isnt group
-                console.log 'newgrouplist', newgrouplist
-                newsavedgroups.push(newgrouplist)
+                return callback errj, tagjsonlist
+            console.log "o>>>>>>>", searchids, tagjsonlist
+            savedintags = (JSON.parse ele for ele in tagjsonlist)
+            console.log "savedintags", savedintags
+            newsavedtags=[]
+            for taglist in savedintags
+                console.log 'taglist', taglist
+                newtaglist=[]
+                newtaglist.push(ele) for ele in taglist when ele isnt tagName
+                console.log 'newtaglist', newtaglist
+                newsavedtags.push(newtaglist)
             
-            newgroupjsonlist = (JSON.stringify glist for glist in newsavedgroups)
+            newtagjsonlist = (JSON.stringify tlist for tlist in newsavedtags)
             #BUG if empty json array should we delete key in hash? (above and below this line)
-            savedingroupshashcmds=(['hset', savedingroupshash, searchids[i], newgroupjsonlist[i]] for i in sididxs)
+            savedintagshashcmds=(['hset', allTagsHash, searchids[i], newtagjsonlist[i]] for i in sididxs)
             #Get those added by user to group from the given sids. I have substituted null for nil
-            console.log "savedingroupshashcmds", savedingroupshashcmds
+            console.log "savedintagshashcmds", savedintagshashcmds
             
             
-            margsgroup = (['zremrangebyrank', keygroup, rid, rid] for rid in ranks)
-            margsemailgroup = (['zremrangebyrank', keyemailgroup, rid, rid] for rid in ranks)
-            hashkeystodelete = (['hdel', keys4savedbyhash, ele] for ele in mysidstodelete)
-            margsi=margsgroup.concat margsemailgroup
-            margs3=margsi.concat hashkeystodelete
-            margs4=margs3.concat savedingroupshashcmds
+            margsuser = (['srem', taggedAllSet, sid] for sid in mysidstodelete)
+            margsall = (['srem', taggedUserSet, sid] for sid in mysidstodelete)
+            margsi=margsuser.concat margsall
+            margs4=margsi.concat savedingroupshashcmds
             #Doing all the multis here together preserves atomicity since these are destructive
             #they should all be done or not at all
             console.log 'margs4',margs4
             redis_client.multi(margs4).exec callback
                     
-removeSearchesTag = (email, group, searchids, callback) ->
-    _doRemoveSearchesFromGroup(email, group, 'search', searchids, callback)
+removeSearchesFromTag = (email, tagName, searchids, callback) ->
+    _doRemoveSearchesFromTag(email, tagName, 'search', searchids, callback)
     #if savedBy is you, you must be a menber of the group so dont test membership of group
     #shortcircuit by getting those searchids which the user herself has saved
     
 
-removePubsFromTag = (email, group, docids, callback) ->
-    _doRemoveSearchesFromGroup(email, group, 'pub', docids, callback)
+removePubsFromTag = (email, tagName, docids, callback) ->
+    _doRemoveSearchesFromGroup(email, tagName, 'pub', docids, callback)
 
       
-removeObsvsFromTag = (email, group, obsids, callback) ->
-   _doRemoveSearchesFromGroup(email, group, 'obsv', obsids, callback)
+removeObsvsFromTag = (email, tagName, obsids, callback) ->
+   _doRemoveSearchesFromGroup(email, tagName, 'obsv', obsids, callback)
 
 
 isArray = `function (o) {
@@ -524,34 +649,32 @@ deleteItemsWithJSON = (funcname, idname, delItems) ->
     console.log ">> In #{funcname}"
     ifHaveEmail funcname, req, res, (email) ->
       action = terms.action
-      group=terms.fqGroupName ? 'default'
+      tag=terms.tagName ? 'default'
       delids = if isArray terms.items then terms.items else [terms.items]
 
       if action is "delete" and delids.length > 0
-        delItems email, group, delids, httpcallbackmaker(funcname, req, res, next)
+        delItems email, tag, delids, httpcallbackmaker(funcname, req, res, next)
       else
         failedRequest res
 
 
 
 
+#Currently, no delete tags from search, but thats another way to do it
+exports.deleteSearchesFromTag = deleteItemsWithJSON "deleteSearchesFromTag", "searches", removeSearchesFromTag
+exports.deletePubsFromTag     = deleteItemsWithJSON "deletePubsFromTag",     "pubs",    removePubsFromTag
+exports.deleteObsvsFromTag     = deleteItemsWithJSON "deleteObsvsFromTag",     "obsvs",    removeObsvsFromTag
 
-exports.deleteSearchesFromGroup = deleteItemsWithJSON "deleteSearchesFromGroup", "searches", removeSearchesFromGroup
-exports.deletePubsFromGroup     = deleteItemsWithJSON "deletePubsFromGroup",     "pubs",    removePubsFromGroup
-exports.deleteObsvsFromGroup     = deleteItemsWithJSON "deleteObsvsFromGroup",     "obsvs",    removeObsvsFromGroup
+#Currently, no saveTagsToSearch, another way to do it, perhaps more intuitive
+exports.saveSearchesToTag = saveSearchesToTag
+exports.savePubsToTag = savePubsToTag
+exports.saveObsvsToGroup = saveObsvsToTag
 
+#For reporting functions, want (a) tags for a search (b) searches for a tag (of different kinds)
+#(a) must be insinuated in via saved.coffee, like its done with groups. Later it could be made an api function.
+exports.getSavedSearchesForTag = getSavedSearchesForTag
 
-exports.saveSearchesToGroup = saveSearchesToGroup
-exports.savePubsToGroup = savePubsToGroup
-exports.saveObsvsToGroup = saveObsvsToGroup
+exports.getSavedPubsForTag = getSavedPubsForTag
 
-
-exports.getSavedSearches2 = getSavedSearches2
-exports.getSavedSearchesForGroup2 = getSavedSearchesForGroup2
-
-exports.getSavedPubs2 = getSavedPubs2
-exports.getSavedPubsForGroup2 = getSavedPubsForGroup2
-
-exports.getSavedObsvs2 = getSavedObsvs2
-exports.getSavedObsvsForGroup2 = getSavedObsvsForGroup2
+exports.getSavedObsvsForTag = getSavedObsvsForTag
 

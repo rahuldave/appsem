@@ -1,6 +1,19 @@
 (function() {
-  var $, createSavedObservationSection, createSavedObservations, createSavedPublicationSection, createSavedPublications, createSavedSearchSection, createSavedSearches, doADSProxy, getBibTexFromADS, handleObservations, handlePublications, handleSearches, makeObsvRow, makePubRow, makeSearchRow, makeSearchText, noSavedObservations, noSavedPublications, noSavedSearches, saveToMyADS, submitDeleteAction, tsortopts;
+  var $, createSavedObservationSection, createSavedObservations, createSavedPublicationSection, createSavedPublications, createSavedSearchSection, createSavedSearches, createTagsList, doADSProxy, getBibTexFromADS, handleObservations, handlePublications, handleSearches, makeObsvRow, makePubRow, makeSearchRow, makeSearchText, noSavedObservations, noSavedPublications, noSavedSearches, saveToMyADS, submitDeleteAction, tsortopts;
   $ = jQuery;
+  Array.prototype.unique = function() {
+    var key, output, value, _ref, _results;
+    output = {};
+    for (key = 0, _ref = this.length; 0 <= _ref ? key < _ref : key > _ref; 0 <= _ref ? key++ : key--) {
+      output[this[key]] = this[key];
+    }
+    _results = [];
+    for (key in output) {
+      value = output[key];
+      _results.push(value);
+    }
+    return _results;
+  };
   doADSProxy = function(urlpath, callback) {
     return $.post("" + SITEPREFIX + "/adsproxy", JSON.stringify({
       urlpath: urlpath
@@ -163,16 +176,46 @@
       return val != null ? val : $(node).text();
     }
   };
-  createSavedSearches = function() {
+  createTagsList = function() {
+    $('div#tagslist').empty();
+    return $.getJSON(SITEPREFIX + ("/gettagsforgroup?fqGroupName=" + dagroup), function(data) {
+      var ele, tags, tagsintext;
+      tags = data.gettagsforgroup;
+      tagsintext = (function() {
+        var _i, _len, _results;
+        _results = [];
+        for (_i = 0, _len = tags.length; _i < _len; _i++) {
+          ele = tags[_i];
+          _results.push('<li><a href="' + ("" + SITEPREFIX + "/explorer/group?fqGroupName=" + dagroup + "&tagName=" + ele) + '">' + ele.split('/').pop() + '</a></li>');
+        }
+        return _results;
+      })();
+      console.log("tagsintext", tagsintext);
+      return $('div#tagslist').append('<h3>Tags:</h3>').append('<ul/>').append(tagsintext.join(''));
+    });
+  };
+  createSavedSearches = function(tagsbool) {
+    var url;
+    if (tagsbool == null) {
+      tagsbool = null;
+    }
     $('div#saved-searches').empty();
-    return $.getJSON(SITEPREFIX + '/savedsearchesforgroup2?fqGroupName=' + dagroup, function(data) {
-      var searches;
+    if (datag === 'default') {
+      url = "/savedsearchesforgroup2?fqGroupName=" + dagroup;
+    } else {
+      url = "/savedsearchesfortag?tagName=" + datag + "&fqGroupName=" + dagroup;
+    }
+    return $.getJSON(SITEPREFIX + url, function(data) {
+      var searches, _ref;
       console.log("DATA IS", data);
-      searches = data.savedsearchesforgroup;
+      searches = (_ref = data.savedsearchesfortag) != null ? _ref : data.savedsearchesforgroup;
       if (searches.hassearches) {
-        return createSavedSearchSection(searches.savedsearches);
+        createSavedSearchSection(searches.savedsearches);
       } else {
-        return noSavedSearches();
+        noSavedSearches();
+      }
+      if (!tagsbool) {
+        return createTagsList();
       }
     });
   };
@@ -192,7 +235,7 @@
     return $search;
   };
   makeSearchRow = function(s) {
-    var gin, groupsintext, idx, sby, scpts;
+    var ele, gin, groupsintext, idx, sby, scpts, tagsintext;
     gin = s.groupsin;
     sby = s.searchby;
     console.log(s, gin, sby);
@@ -204,9 +247,19 @@
       }
       return _results;
     })();
+    tagsintext = (function() {
+      var _i, _len, _ref, _results;
+      _ref = s.tagsin.unique();
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        ele = _ref[_i];
+        _results.push('<a href="' + ("" + SITEPREFIX + "/explorer/group?fqGroupName=" + dagroup + "&tagName=" + ele) + '">' + ele.split('/').pop() + '</a>');
+      }
+      return _results;
+    })();
     scpts = searchToText(s.searchuri, fieldname_map);
     console.log(s.searchtext, s.searchuri, scpts);
-    return [$('<input type="checkbox" name="searchid"/>').attr('value', s.searchuri), $('<span/>').attr('value', s.searchtime).text(s.searchtimestr), $('<a/>').attr('href', "" + SITEPREFIX + "/explorer/" + s.searchuri).text(scpts.join(" | ")), $('<span/>').html(groupsintext.join(', '))];
+    return [$('<input type="checkbox" name="searchid"/>').attr('value', s.searchuri), $('<span/>').attr('value', s.searchtime).text(s.searchtimestr), $('<a/>').attr('href', "" + SITEPREFIX + "/explorer/" + s.searchuri).text(scpts.join(" | ")), $('<span/>').html(groupsintext.join(', ')), $('<span/>').html(tagsintext.join(', '))];
   };
   createSavedSearchSection = function(searches) {
     var $div, nsearch, rows, s;
@@ -222,24 +275,36 @@
     })();
     $div = $('div#saved-searches');
     $div.append(AjaxSolr.theme('saved_title', 'Saved Searches'));
-    $div.append(AjaxSolr.theme('saved_items', 'searches', ['Date saved', 'Search terms', 'Groups'], rows, null, null));
+    $div.append(AjaxSolr.theme('saved_items', 'searches', ['Date saved', 'Search terms', 'Groups', 'Tags'], rows, null, null));
     $('#saved-searches-form').submit(submitDeleteAction('/deletesearchesfromgroup', 'searches', createSavedSearches, dagroup));
     return $('#saved-searches-table').tablesorter(tsortopts);
   };
-  createSavedPublications = function() {
+  createSavedPublications = function(tagsbool) {
+    var url;
+    if (tagsbool == null) {
+      tagsbool = null;
+    }
     $('div#saved-pubs').empty();
-    return $.getJSON(SITEPREFIX + '/savedpubsforgroup2?fqGroupName=' + dagroup, function(data) {
-      var pubs;
-      pubs = data.savedpubsforgroup;
+    if (datag === 'default') {
+      url = "/savedpubsforgroup2?fqGroupName=" + dagroup;
+    } else {
+      url = "/savedpubsfortag?tagName=" + datag + "&fqGroupName=" + dagroup;
+    }
+    return $.getJSON(SITEPREFIX + url, function(data) {
+      var pubs, _ref;
+      pubs = (_ref = data.savedpubsfortag) != null ? _ref : data.savedpubsforgroup;
       if (pubs.haspubs) {
-        return createSavedPublicationSection(pubs.savedpubs);
+        createSavedPublicationSection(pubs.savedpubs);
       } else {
-        return noSavedPublications();
+        noSavedPublications();
+      }
+      if (!tagsbool) {
+        return createTagsList();
       }
     });
   };
   makePubRow = function(p) {
-    var gin, groupsintext, idx, sby;
+    var ele, gin, groupsintext, idx, sby, tagsintext;
     gin = p.groupsin;
     sby = p.searchby;
     groupsintext = (function() {
@@ -250,7 +315,17 @@
       }
       return _results;
     })();
-    return [$('<input type="checkbox" name="pubid"/>').attr('value', p.pubid), $('<span/>').attr('value', p.pubtime).text(p.pubtimestr), $('<a/>').attr('href', "" + SITEPREFIX + "/explorer/publications#fq=" + p.linkuri + "&q=*%3A*").text(p.linktext), $('<span class="bibcode"/>').text(p.bibcode), $('<span/>').html(groupsintext.join(', '))];
+    tagsintext = (function() {
+      var _i, _len, _ref, _results;
+      _ref = p.tagsin.unique();
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        ele = _ref[_i];
+        _results.push('<a href="' + ("" + SITEPREFIX + "/explorer/group?fqGroupName=" + dagroup + "&tagName=" + ele) + '">' + ele.split('/').pop() + '</a>');
+      }
+      return _results;
+    })();
+    return [$('<input type="checkbox" name="pubid"/>').attr('value', p.pubid), $('<span/>').attr('value', p.pubtime).text(p.pubtimestr), $('<a/>').attr('href', "" + SITEPREFIX + "/explorer/publications#fq=" + p.linkuri + "&q=*%3A*").text(p.linktext), $('<span class="bibcode"/>').text(p.bibcode), $('<span/>').html(groupsintext.join(', ')), $('<span/>').html(tagsintext.join(', '))];
   };
   createSavedPublicationSection = function(pubs) {
     var $div, npubs, pub, rows;
@@ -266,27 +341,39 @@
     })();
     $div = $('div#saved-pubs');
     $div.append(AjaxSolr.theme('saved_title', 'Saved Publications'));
-    $div.append(AjaxSolr.theme('saved_items', 'pubs', ['Date saved', 'Title', 'Bibcode', 'Groups'], rows, handlePublications(getBibTexFromADS), handlePublications(saveToMyADS)));
+    $div.append(AjaxSolr.theme('saved_items', 'pubs', ['Date saved', 'Title', 'Bibcode', 'Groups', 'Tags'], rows, handlePublications(getBibTexFromADS), handlePublications(saveToMyADS)));
     $('#saved-pubs-form').submit(submitDeleteAction('/deletepubsfromgroup', 'pubs', createSavedPublications, dagroup));
     return $('#saved-pubs-table').tablesorter(tsortopts);
   };
-  createSavedObservations = function() {
-    $('div#saved-obsvs').empty();
-    return $.getJSON(SITEPREFIX + '/savedobsvsforgroup2?fqGroupName=' + dagroup, function(data) {
-      var obsvs;
-      obsvs = data.savedobsvsforgroup;
+  createSavedObservations = function(tagsbool) {
+    var url;
+    if (tagsbool == null) {
+      tagsbool = null;
+    }
+    $('div#saved-obsvs').empty;
+    if (datag === 'default') {
+      url = "/savedobsvsforgroup2?fqGroupName=" + dagroup;
+    } else {
+      url = "/savedobsvsfortag?tagName=" + datag + "&fqGroupName=" + dagroup;
+    }
+    return $.getJSON(SITEPREFIX + url, function(data) {
+      var obsvs, _ref;
+      obsvs = (_ref = data.savedobsvsfortag) != null ? _ref : data.savedobsvsforgroup;
       if (obsvs.hasobsvs) {
-        return createSavedObservationSection(obsvs.savedobsvs);
+        createSavedObservationSection(obsvs.savedobsvs);
       } else {
-        return noSavedObservations();
+        noSavedObservations();
+      }
+      if (!tagsbool) {
+        return createTagsList();
       }
     });
   };
   makeObsvRow = function(o) {
-    var gin, groupsintext, idx, sby;
+    var ele, gin, groupsintext, idx, sby, tagsintext;
     gin = o.groupsin;
     sby = o.searchby;
-    console.log(o, gin, sby);
+    console.log(o.tagsin, gin, sby);
     groupsintext = (function() {
       var _ref, _results;
       _results = [];
@@ -295,7 +382,17 @@
       }
       return _results;
     })();
-    return [$('<input type="checkbox" name="obsvid"/>').attr('value', o.obsvid), $('<span/>').attr('value', o.obsvtime).text(o.obsvtimestr), $('<a/>').attr('href', "" + SITEPREFIX + "/explorer/observations#fq=" + o.linkuri + "&q=*%3A*").text(o.linktext), $('<span class="bibcode"/>').text(o.target), $('<span/>').html(groupsintext.join(', '))];
+    tagsintext = (function() {
+      var _i, _len, _ref, _results;
+      _ref = o.tagsin.unique();
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        ele = _ref[_i];
+        _results.push('<a href="' + ("" + SITEPREFIX + "/explorer/group?fqGroupName=" + dagroup + "&tagName=" + ele) + '">' + ele.split('/').pop() + '</a>');
+      }
+      return _results;
+    })();
+    return [$('<input type="checkbox" name="obsvid"/>').attr('value', o.obsvid), $('<span/>').attr('value', o.obsvtime).text(o.obsvtimestr), $('<a/>').attr('href', "" + SITEPREFIX + "/explorer/observations#fq=" + o.linkuri + "&q=*%3A*").text(o.linktext), $('<span class="bibcode"/>').text(o.target), $('<span/>').html(groupsintext.join(', ')), $('<span/>').html(tagsintext.join(', '))];
   };
   createSavedObservationSection = function(obsvs) {
     var $div, nobsvs, obsv, rows;
@@ -311,7 +408,7 @@
     })();
     $div = $('div#saved-obsvs');
     $div.append(AjaxSolr.theme('saved_title', 'Saved Observations'));
-    $div.append(AjaxSolr.theme('saved_items', 'obsvs', ['Date Observed', 'Obsid', 'Target', 'Groups'], rows, null, null));
+    $div.append(AjaxSolr.theme('saved_items', 'obsvs', ['Date Observed', 'Obsid', 'Target', 'Groups', 'Tags'], rows, null, null));
     $('#saved-obsvs-form').submit(submitDeleteAction('/deleteobsvsfromgroup', 'obsvs', createSavedObservations, dagroup));
     return $('#saved-obsvs-table').tablesorter(tsortopts);
   };
@@ -328,8 +425,9 @@
     return true;
   };
   mediator.subscribe('user/login', function(email) {
-    createSavedSearches();
-    createSavedPublications();
-    return createSavedObservations();
+    createSavedSearches(true);
+    createSavedPublications(true);
+    createSavedObservations(true);
+    return createTagsList();
   });
 }).call(this);

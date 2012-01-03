@@ -28,20 +28,36 @@
   bodybodyuser = getTemplate('bodybody_user.html');
   doView = function(name, body, view) {
     return function(req, res, next) {
-      var camefrom, group, lpartials, user, _ref, _ref2;
+      var camefrom, group, isgroup, istag, isuser, lpartials, tag, user, _ref, _ref2, _ref3;
       console.log("== doView: name=" + name + " url=" + req.url + " referer=" + req.headers.referer + " originalUrl=" + req.originalUrl);
       camefrom = url.parse(req.url, true).query.camefrom;
       console.log("== request from: " + camefrom + " Query  " + req.query);
       group = (_ref = req.query.fqGroupName) != null ? _ref : 'default';
       user = (_ref2 = req.query.fqUserName) != null ? _ref2 : 'default';
+      tag = (_ref3 = req.query.tagName) != null ? _ref3 : 'default';
       console.log("GROUP", group, name, user);
       view.bodyhead.current_url = req.url;
+      isgroup = group !== 'default';
+      istag = tag !== 'default';
+      isuser = user !== 'default';
       view.pagehead.group = group;
       view.bodyhead.group = group;
       view.bodybody.group = group;
+      view.pagehead.isgroup = isgroup;
+      view.bodyhead.isgroup = isgroup;
+      view.bodybody.isgroup = isgroup;
       view.pagehead.user = user;
       view.bodyhead.user = user;
       view.bodybody.user = user;
+      view.pagehead.isuser = isuser;
+      view.bodyhead.isuseris = user;
+      view.bodybody.isuser = isuser;
+      view.pagehead.tag = tag;
+      view.bodyhead.tag = tag;
+      view.bodybody.tag = tag;
+      view.pagehead.istag = istag;
+      view.bodyhead.istag = istag;
+      view.bodybody.istag = istag;
       lpartials = JSON.parse(globpartialsjson);
       lpartials.bodybody = body;
       res.writeHead(200, {

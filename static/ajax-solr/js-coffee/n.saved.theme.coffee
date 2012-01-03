@@ -16,7 +16,7 @@ changeAllButtons = (newstate) ->
 
 # Create the form actions for the saved-item form.
 
-AjaxSolr.theme.prototype.saved_formactions = (saveingrouphandler, bibtexHandler=null, myADSHandler=null) ->
+AjaxSolr.theme.prototype.saved_formactions = (saveingrouphandler, savetotagshandler, bibtexHandler=null, myADSHandler=null) ->
   unless bibtexHandler is null and myADSHandler is null
       return $('<div class="formactions"/>')
         .append($('<input class="btn small" type="button" value="Mark all"/>').click(changeAllButtons true))
@@ -24,6 +24,8 @@ AjaxSolr.theme.prototype.saved_formactions = (saveingrouphandler, bibtexHandler=
         .append($('<input class="btn danger small" type="submit" value="Delete" name="action"/>'))
         .append($('<select class="groupselect"/>').append(("<option>#{ele}</option>" for ele in mygroups).join('')))
         .append($('<input class="btn primary small" type="button" value="Save to Group" name="action"/>').click(saveingrouphandler))
+        .append($('<input class="medium tagstext" type="text"/>'))
+        .append($('<input type="button" class="btn small info" value="Add Tags" name="Tag"/>').click(savetotagshandler))
         .append($('<input class="btn info small" type="button" value="Get as BibTex"/>').click(bibtexHandler))
         .append($('<button type="button" name="myads" value="Send to myADS"/>')
           .click(myADSHandler)
@@ -35,6 +37,8 @@ AjaxSolr.theme.prototype.saved_formactions = (saveingrouphandler, bibtexHandler=
     .append($('<input class="btn danger small" type="submit" value="Delete" name="action"/>'))
     .append($('<select class="groupselect"/>').append(("<option>#{ele}</option>" for ele in mygroups).join('')))
     .append($('<input class="btn primary small" type="button" value="Save to Group" name="action"/>').click(saveingrouphandler))
+    .append($('<input class="medium tagstext" type="text"/>'))
+    .append($('<input type="button" class="btn small info" value="Add Tags" name="Tag"/>').click(savetotagshandler))
 
         
 
@@ -74,9 +78,9 @@ AjaxSolr.theme.prototype.saved_tablerow = (row) ->
 #   bibtexHandler is the click handler for the 'export as BibTex' button
 #   myADSHandler is the click handler for the 'export to myADS' button
 
-AjaxSolr.theme.prototype.saved_items = (idfrag, cols, rows, saveingrouphandler, bibtexHandler, myADSHandler) ->
+AjaxSolr.theme.prototype.saved_items = (idfrag, cols, rows, saveingrouphandler, savetotagshandler, bibtexHandler, myADSHandler) ->
   $out = $('<form action="#"/>').attr 'id', "saved-#{idfrag}-form"
-  $actions = AjaxSolr.theme 'saved_formactions', saveingrouphandler, bibtexHandler, myADSHandler
+  $actions = AjaxSolr.theme 'saved_formactions', saveingrouphandler, savetotagshandler, bibtexHandler, myADSHandler
 
   $table = $('<table class="tablesorter"/>')
     .attr('id', "saved-#{idfrag}-table")

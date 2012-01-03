@@ -16,7 +16,7 @@
       return true;
     };
   };
-  AjaxSolr.theme.prototype.saved_formactions = function(saveingrouphandler, bibtexHandler, myADSHandler) {
+  AjaxSolr.theme.prototype.saved_formactions = function(saveingrouphandler, savetotagshandler, bibtexHandler, myADSHandler) {
     var ele;
     if (bibtexHandler == null) {
       bibtexHandler = null;
@@ -33,7 +33,7 @@
           _results.push("<option>" + ele + "</option>");
         }
         return _results;
-      })()).join(''))).append($('<input class="btn primary small" type="button" value="Save to Group" name="action"/>').click(saveingrouphandler)).append($('<input class="btn info small" type="button" value="Get as BibTex"/>').click(bibtexHandler)).append($('<button type="button" name="myads" value="Send to myADS"/>').click(myADSHandler).append($('<img alt="[myADS logo]"/>').attr('src', "" + SITEPREFIX + "/static/images/ADSlabs-button.png")));
+      })()).join(''))).append($('<input class="btn primary small" type="button" value="Save to Group" name="action"/>').click(saveingrouphandler)).append($('<input class="medium tagstext" type="text"/>')).append($('<input type="button" class="btn small info" value="Add Tags" name="Tag"/>').click(savetotagshandler)).append($('<input class="btn info small" type="button" value="Get as BibTex"/>').click(bibtexHandler)).append($('<button type="button" name="myads" value="Send to myADS"/>').click(myADSHandler).append($('<img alt="[myADS logo]"/>').attr('src', "" + SITEPREFIX + "/static/images/ADSlabs-button.png")));
     }
     return $('<div class="formactions"/>').append($('<input class="btn small" type="button" value="Mark all"/>').click(changeAllButtons(true))).append($('<input class="btn small" type="button" value="Clear all"/>').click(changeAllButtons(false))).append($('<input class="btn danger small" type="submit" value="Delete" name="action"/>')).append($('<select class="groupselect"/>').append(((function() {
       var _i, _len, _results;
@@ -43,7 +43,7 @@
         _results.push("<option>" + ele + "</option>");
       }
       return _results;
-    })()).join(''))).append($('<input class="btn primary small" type="button" value="Save to Group" name="action"/>').click(saveingrouphandler));
+    })()).join(''))).append($('<input class="btn primary small" type="button" value="Save to Group" name="action"/>').click(saveingrouphandler)).append($('<input class="medium tagstext" type="text"/>')).append($('<input type="button" class="btn small info" value="Add Tags" name="Tag"/>').click(savetotagshandler));
   };
   AjaxSolr.theme.prototype.saved_tablehead = function(cols) {
     var $tr, name, _i, _len;
@@ -63,10 +63,10 @@
     }
     return $out;
   };
-  AjaxSolr.theme.prototype.saved_items = function(idfrag, cols, rows, saveingrouphandler, bibtexHandler, myADSHandler) {
+  AjaxSolr.theme.prototype.saved_items = function(idfrag, cols, rows, saveingrouphandler, savetotagshandler, bibtexHandler, myADSHandler) {
     var $actions, $out, $table, $tbody, value, _i, _len;
     $out = $('<form action="#"/>').attr('id', "saved-" + idfrag + "-form");
-    $actions = AjaxSolr.theme('saved_formactions', saveingrouphandler, bibtexHandler, myADSHandler);
+    $actions = AjaxSolr.theme('saved_formactions', saveingrouphandler, savetotagshandler, bibtexHandler, myADSHandler);
     $table = $('<table class="tablesorter"/>').attr('id', "saved-" + idfrag + "-table").append(AjaxSolr.theme('saved_tablehead', cols));
     $tbody = $('<tbody/>');
     for (_i = 0, _len = rows.length; _i < _len; _i++) {

@@ -35,16 +35,25 @@
       });
     });
   };
-  _doSaveSearchToTag = function(taggedBy, tagName, toBeTaggedSearches, searchtype, callback) {
-    var allTagsHash, margs2, saveTime, savedUserSet, taggedAllSet, taggedUserSet, taggedtype, tagsForUser, thesearch, tobeTaggedSearchesToUse;
+  _doSaveSearchToTag = function(taggedBy, tagName, savedhashlist, searchtype, callback) {
+    var allTagsHash, idx, margs2, saveTime, savedSearches, savedUserSet, savedtype, taggedAllSet, taggedUserSet, taggedtype, tagsForUser, thesearch, toBeTaggedSearchesToUse;
     saveTime = new Date().getTime();
+    savedtype = "saved" + searchtype;
     taggedtype = "tagged" + searchtype;
     allTagsHash = "tagged:" + taggedBy + ":" + searchtype;
     tagsForUser = "tags:" + taggedBy;
     taggedAllSet = "" + taggedtype + ":" + tagName;
     taggedUserSet = "" + taggedtype + ":" + taggedBy + ":" + tagName;
     savedUserSet = "saved" + searchtype + ":" + taggedBy;
-    tobeTaggedSearchesToUse = tobeTaggedSearches;
+    savedSearches = (function() {
+      var _ref, _results;
+      _results = [];
+      for (idx = 0, _ref = savedhashlist.length; 0 <= _ref ? idx < _ref : idx > _ref; 0 <= _ref ? idx++ : idx--) {
+        _results.push(savedhashlist[idx][savedtype]);
+      }
+      return _results;
+    })();
+    toBeTaggedSearchesToUse = savedSearches;
     margs2 = (function() {
       var _i, _len, _results;
       _results = [];
@@ -74,7 +83,7 @@
         outJSON.push(JSON.stringify(taglist));
         outList.push(taglist);
       }
-      console.log("outjsom", outlist, outJSON);
+      console.log("outjsom", outList, outJSON);
       return redis_client.smembers("memberof:" + taggedBy, function(errb, mygroups) {
         var dagrp, ele, margs11, mygroupslength, _j, _len2;
         if (errb) {
@@ -82,8 +91,8 @@
         }
         mygroupslength = mygroups.length;
         margs11 = [];
-        for (_j = 0, _len2 = tobeTaggedSearchesToUse.length; _j < _len2; _j++) {
-          ele = tobeTaggedSearchesToUse[_j];
+        for (_j = 0, _len2 = toBeTaggedSearchesToUse.length; _j < _len2; _j++) {
+          ele = toBeTaggedSearchesToUse[_j];
           margs11 = margs11.concat((function() {
             var _k, _len3, _results;
             _results = [];
@@ -95,12 +104,12 @@
           })());
         }
         return redis_client.multi(margs11).exec(function(err11, grouptagJSONList) {
-          var dagrp, ele, groupsearchList, i, idx, jdx, kdx, margs22, _k, _len3, _ref;
+          var dagrp, ele, groupSearchList, i, idx, jdx, kdx, margs22, _k, _len3, _ref;
           console.log("tagJSONList", grouptagJSONList, err11);
           if (err4) {
             return callback(err11, grouptagJSONList);
           }
-          groupsearchList = (function() {
+          groupSearchList = (function() {
             var _ref, _results;
             _results = [];
             for (i = 0, _ref = toBeTaggedSearchesToUse.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
@@ -116,19 +125,19 @@
               } else {
                 taglist = JSON.parse(grouptagJSONList[kdx]);
               }
-              groupsearchList[idx][mygroups[jdx]] = taglist;
+              groupSearchList[idx][mygroups[jdx]] = taglist;
             }
           }
           console.log("groupSearchList", groupSearchList);
           margs22 = [];
-          for (_k = 0, _len3 = tobeTaggedSearchesToUse.length; _k < _len3; _k++) {
-            ele = tobeTaggedSearchesToUse[_k];
+          for (_k = 0, _len3 = toBeTaggedSearchesToUse.length; _k < _len3; _k++) {
+            ele = toBeTaggedSearchesToUse[_k];
             margs22 = margs22.concat((function() {
               var _l, _len4, _results;
               _results = [];
               for (_l = 0, _len4 = mygroups.length; _l < _len4; _l++) {
                 dagrp = mygroups[_l];
-                _results.push(['hget', "savedBy:" + dagrp, ele]);
+                _results.push(['hget', "savedby:" + dagrp, ele]);
               }
               return _results;
             })());
@@ -139,6 +148,7 @@
             if (err22) {
               return callback(err22, usergroupjsonlist);
             }
+            console.log("usrgroupjsonlist", usergroupjsonlist, mygroupslength, groupSearchList, mygroups);
             margsgroupssetcmds = [];
             for (idx = 0, _ref2 = toBeTaggedSearchesToUse.length; 0 <= _ref2 ? idx < _ref2 : idx > _ref2; 0 <= _ref2 ? idx++ : idx--) {
               for (jdx = 0; 0 <= mygroupslength ? jdx < mygroupslength : jdx > mygroupslength; 0 <= mygroupslength ? jdx++ : jdx--) {
@@ -156,7 +166,7 @@
                     for (_l = 0, _len4 = parsedusers.length; _l < _len4; _l++) {
                       user = parsedusers[_l];
                       if (user === taggedBy) {
-                        _results.push(['sadd', "" + taggedtype + ":" + mygroups[jdx] + ":" + tagName, tobeTaggedSearchesToUse[idx]]);
+                        _results.push(['sadd', "" + taggedtype + ":" + mygroups[jdx] + ":" + tagName, toBeTaggedSearchesToUse[idx]]);
                       }
                     }
                     return _results;
@@ -178,14 +188,15 @@
                     for (_l = 0, _len4 = parsedusers.length; _l < _len4; _l++) {
                       user = parsedusers[_l];
                       if (user === taggedBy) {
-                        _results.push(['hset', "tagged:" + mygroups[jdx] + ":" + searchtype, tobeTaggedSearchesToUse[idx], mergedJSON]);
+                        _results.push(['hset', "tagged:" + mygroups[jdx] + ":" + searchtype, toBeTaggedSearchesToUse[idx], mergedJSON]);
                       }
                     }
                     return _results;
                   })();
-                  margsgroupssetcmds = margsgoupssetcmds.concat(cmds);
-                  margsgroupssetcmds = margsgoupssetcmds.concat(tagscmds);
-                  margsgroupssetcmds = margsgoupssetcmds.concat(hashcmds);
+                  console.log("CMDS", cmds, tagscmds, hashcmds);
+                  margsgroupssetcmds = margsgroupssetcmds.concat(cmds);
+                  margsgroupssetcmds = margsgroupssetcmds.concat(tagscmds);
+                  margsgroupssetcmds = margsgroupssetcmds.concat(hashcmds);
                 }
               }
             }
@@ -193,7 +204,7 @@
               var _ref3, _results;
               _results = [];
               for (i = 0, _ref3 = toBeTaggedSearchesToUse.length; 0 <= _ref3 ? i < _ref3 : i > _ref3; 0 <= _ref3 ? i++ : i--) {
-                _results.push(['hset', allTagsHash, toBeTaggedSearches[i], outJSON[i]]);
+                _results.push(['hset', allTagsHash, toBeTaggedSearchesToUse[i], outJSON[i]]);
               }
               return _results;
             })();
@@ -227,27 +238,27 @@
     });
   };
   saveSearchesToTag = function(_arg, req, res, next) {
-    var tagName, toBeTaggedSearches, __fname;
-    tagName = _arg.tagName, toBeTaggedSearches = _arg.toBeTaggedSearches;
+    var objectsToSave, tagName, __fname;
+    tagName = _arg.tagName, objectsToSave = _arg.objectsToSave;
     console.log(__fname = "saveSearchestoTag");
     return ifHaveEmail(__fname, req, res, function(savedBy) {
-      return _doSaveSearchToGroup(savedBy, tagName, tobeTaggedSearches, 'search', httpcallbackmaker(__fname, req, res, next));
+      return _doSaveSearchToTag(savedBy, tagName, objectsToSave, 'search', httpcallbackmaker(__fname, req, res, next));
     });
   };
   savePubsToTag = function(_arg, req, res, next) {
-    var tagName, toBeTaggedSearches, __fname;
-    tagName = _arg.tagName, toBeTaggedSearches = _arg.toBeTaggedSearches;
+    var objectsToSave, tagName, __fname;
+    tagName = _arg.tagName, objectsToSave = _arg.objectsToSave;
     console.log(__fname = "savePubsToTag");
     return ifHaveEmail(__fname, req, res, function(savedBy) {
-      return _doSaveSearchToGroup(savedBy, tagName, toBeTaggedSearches, 'pub', httpcallbackmaker(__fname, req, res, next));
+      return _doSaveSearchToTag(savedBy, tagName, objectsToSave, 'pub', httpcallbackmaker(__fname, req, res, next));
     });
   };
   saveObsvsToTag = function(_arg, req, res, next) {
-    var tagName, toBeTaggedSearches, __fname;
-    tagName = _arg.tagName, toBeTaggedSearches = _arg.toBeTaggedSearches;
-    console.log(__fname = "saveObsvToTag");
+    var objectsToSave, tagName, __fname;
+    tagName = _arg.tagName, objectsToSave = _arg.objectsToSave;
+    console.log(__fname = "saveObsvsToTag");
     return ifHaveEmail(__fname, req, res, function(savedBy) {
-      return _doSaveSearchToGroup(savedBy, tagName, tobeTaggedSearches, 'obsv', httpcallbackmaker(__fname, req, res, next));
+      return _doSaveSearchToTag(savedBy, tagName, objectsToSave, 'obsv', httpcallbackmaker(__fname, req, res, next));
     });
   };
   searchToText = function(searchTerm) {
@@ -469,24 +480,29 @@
       if (err) {
         return callback(err, groups);
       }
+      console.log("groups", groups);
       return redis_client.smembers(taggedUserSet, function(err2, searchreplies) {
         if (err2) {
           return callback(err2, searchreplies);
         }
+        console.log("searchreplies", searchreplies);
         return getSortedElementsAndScores(false, "saved" + searchtype + ":" + email, function(err22, allsearches) {
           var ele, idx, margs2, searches, _ref, _ref2;
           if (err22) {
             return callback(err22, allsearches);
           }
+          console.log("allsearches", allsearches, allsearches.elements.length);
           searches = {};
           searches.scores = [];
           searches.elements = [];
-          for (idx = 0, _ref = allsearches.elements; 0 <= _ref ? idx < _ref : idx > _ref; 0 <= _ref ? idx++ : idx--) {
+          for (idx = 0, _ref = allsearches.elements.length; 0 <= _ref ? idx < _ref : idx > _ref; 0 <= _ref ? idx++ : idx--) {
+            console.log("BLARG", allsearches.elements[idx], searchreplies);
             if (_ref2 = allsearches.elements[idx], __indexOf.call(searchreplies, _ref2) >= 0) {
               searches.elements.push(allsearches.elements[idx]);
               searches.scores.push(allsearches.scores[idx]);
             }
           }
+          console.log("s.e, s.s", searches.elements, searches.scores);
           margs2 = (function() {
             var _i, _len, _ref3, _results;
             _ref3 = searches.elements;
@@ -626,7 +642,7 @@
             if (errc) {
               return callback(errc, users);
             }
-            return redis_client.smembers(taggedGroupSet(function(err2, searchreplies) {
+            return redis_client.smembers(taggedGroupSet, function(err2, searchreplies) {
               if (err2) {
                 return callback(err2, searchreplies);
               }
@@ -638,7 +654,7 @@
                 searches = {};
                 searches.scores = [];
                 searches.elements = [];
-                for (idx = 0, _ref = allsearches.elements; 0 <= _ref ? idx < _ref : idx > _ref; 0 <= _ref ? idx++ : idx--) {
+                for (idx = 0, _ref = allsearches.elements.length; 0 <= _ref ? idx < _ref : idx > _ref; 0 <= _ref ? idx++ : idx--) {
                   if (_ref2 = allsearches.elements[idx], __indexOf.call(searchreplies, _ref2) >= 0) {
                     searches.elements.push(allsearches.elements[idx]);
                     searches.scores.push(allsearches.scores[idx]);
@@ -763,7 +779,7 @@
                   });
                 });
               });
-            }));
+            });
           });
         });
       } else {
@@ -792,6 +808,7 @@
     __fname = kword;
     tagName = req.query.tagName;
     fqGroupName = (_ref = req.query.fqGroupName) != null ? _ref : 'default';
+    console.log('-----', fqGroupName, tagName);
     return ifHaveEmail(__fname, req, res, function(email) {
       if (fqGroupName === 'default') {
         return _doSearchForTag(email, tagName, 'pub', createSavedPubTemplates, res, kword, httpcallbackmaker(__fname, req, res, next), {
@@ -1012,8 +1029,10 @@
   exports.deleteObsvsFromTag = deleteItemsWithJSON("deleteObsvsFromTag", "obsvs", removeObsvsFromTag);
   exports.saveSearchesToTag = saveSearchesToTag;
   exports.savePubsToTag = savePubsToTag;
-  exports.saveObsvsToGroup = saveObsvsToTag;
+  exports.saveObsvsToTag = saveObsvsToTag;
   exports.getSavedSearchesForTag = getSavedSearchesForTag;
   exports.getSavedPubsForTag = getSavedPubsForTag;
   exports.getSavedObsvsForTag = getSavedObsvsForTag;
+  exports.getTagsForUser = getTagsForUser;
+  exports.getTagsForGroup = getTagsForGroup;
 }).call(this);

@@ -176,7 +176,7 @@
                   return _results;
                 })();
                 return redis_client.multi(margs33).exec(function(err33, tagGroupJSONList) {
-                  var ele, grptadd1, grtptadd2, grtptadd3, idx, margstagcmds, mergedJSON, mergedtaglist, searchgrouplist, taggrouplist, taglist, _ref2, _ref3;
+                  var ele, grptadd1, grptadd2, grptadd3, idx, margstagcmds, mergedJSON, mergedtaglist, searchgrouplist, taggrouplist, taglist, _ref2, _ref3;
                   console.log("tagGroupJSONList", tagGroupJSONList, err33);
                   if (err33) {
                     return callback(err33, tagGroupJSONList);
@@ -206,7 +206,7 @@
                         }
                         return _results;
                       })();
-                      grtptadd2 = (function() {
+                      grptadd2 = (function() {
                         var _j, _len2, _results;
                         _results = [];
                         for (_j = 0, _len2 = taglist.length; _j < _len2; _j++) {
@@ -215,7 +215,7 @@
                         }
                         return _results;
                       })();
-                      grtptadd3 = [['hset', "tagged:" + fqGroupName + ":" + searchtype, savedSearches[idx], mergedJSON]];
+                      grptadd3 = [['hset', "tagged:" + fqGroupName + ":" + searchtype, savedSearches[idx], mergedJSON]];
                       margstagcmds = margstagcmds.concat(grptadd1);
                       margstagcmds = margstagcmds.concat(grptadd2);
                       margstagcmds = margstagcmds.concat(grptadd3);

@@ -175,6 +175,10 @@ server.use SITEPREFIX+'/deleteobsvsfromtag', doPostWithJSON tags.deleteObsvsFrom
 server.use SITEPREFIX+'/savedsearchesfortag', tags.getSavedSearchesForTag
 server.use SITEPREFIX+'/savedpubsfortag', tags.getSavedPubsForTag
 server.use SITEPREFIX+'/savedobsvsfortag', tags.getSavedObsvsForTag
+
+server.use SITEPREFIX+'/gettagsforuser', tags.getTagsForUser
+server.use SITEPREFIX+'/gettagsforgroup', tags.getTagsForGroup
+
 server.use SITEPREFIX+'/savesearchestotag', doPostWithJSON tags.saveSearchesToTag
 server.use SITEPREFIX+'/savepubstotag', doPostWithJSON tags.savePubsToTag
 server.use SITEPREFIX+'/saveobsvstotag', doPostWithJSON tags.saveObsvsToTag

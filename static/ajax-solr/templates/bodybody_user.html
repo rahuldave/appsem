@@ -24,7 +24,7 @@
 	</div>
 </div>
 <div class="content"> 
-<h2> User {{ user }} </h2>
+{{#isuser}} <h2>User {{ user }}</h2> {{/isuser}}
 <hr/>
 <div style="display: none;" class="userloggedout">
  Please <a class="userlogin" href="#">log in</a> to see your home page.

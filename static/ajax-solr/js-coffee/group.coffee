@@ -4,6 +4,12 @@
 
 $ = jQuery
 
+Array::unique = ->
+  output = {}
+  output[@[key]] = @[key] for key in [0...@length]
+  value for key, value of output
+  
+  
 # Make a POST request to the ADS servers using the given
 # URL path and apply the given callback to the response.
 
@@ -129,18 +135,31 @@ tsortopts =
     val = $(node).find('span').attr('value')
     val ? $(node).text()
 
+
+createTagsList = () ->
+    $('div#tagslist').empty()
+    $.getJSON SITEPREFIX + "/gettagsforgroup?fqGroupName=#{dagroup}", (data) ->
+        tags=data.gettagsforgroup
+        tagsintext = ('<li><a href="'+"#{SITEPREFIX}/explorer/group?fqGroupName=#{dagroup}&tagName=#{ele}"+'">'+ele.split('/').pop()+'</a></li>' for ele in tags)
+        console.log "tagsintext", tagsintext
+        $('div#tagslist').append('<h3>Tags:</h3>').append('<ul/>').append(tagsintext.join(''))
 # Get the list of saved searches (if any) and create the
 # appropriate elements in the page.
 
-createSavedSearches = () ->
+createSavedSearches = (tagsbool=null) ->
   $('div#saved-searches').empty()
-  $.getJSON SITEPREFIX + '/savedsearchesforgroup2?fqGroupName='+dagroup, (data) ->
+  if datag is 'default'
+        url = "/savedsearchesforgroup2?fqGroupName=#{dagroup}"
+  else
+        url = "/savedsearchesfortag?tagName=#{datag}&fqGroupName=#{dagroup}"
+  $.getJSON SITEPREFIX + url, (data) ->
     console.log "DATA IS", data
-    searches = data.savedsearchesforgroup
+    searches = data.savedsearchesfortag ? data.savedsearchesforgroup
     if searches.hassearches
       createSavedSearchSection searches.savedsearches
     else
-      noSavedSearches()
+      noSavedSearches() 
+    createTagsList() unless tagsbool
 
 # Get the list of saved publications (if any) and create the
 # appropriate elements in the page.
@@ -164,13 +183,16 @@ makeSearchRow = (s) ->
   sby=s.searchby
   console.log s, gin, sby
   groupsintext = ('by '+sby[idx].split('@')[0]+' in <a href="'+"#{SITEPREFIX}/explorer/group?fqGroupName=#{gin[idx]}"+'">'+gin[idx].split('/').pop()+'</a>' for idx in [0...gin.length])
+  tagsintext = ('<a href="'+"#{SITEPREFIX}/explorer/group?fqGroupName=#{dagroup}&tagName=#{ele}"+'">'+ele.split('/').pop()+'</a>' for ele in s.tagsin.unique())
+  
   scpts=searchToText s.searchuri, fieldname_map
   console.log s.searchtext, s.searchuri, scpts
   [$('<input type="checkbox" name="searchid"/>').attr('value', s.searchuri),
    $('<span/>').attr('value', s.searchtime).text(s.searchtimestr),
    $('<a/>').attr('href', "#{SITEPREFIX}/explorer/#{s.searchuri}")
      .text(scpts.join " | "),
-   $('<span/>').html(groupsintext.join(', '))]
+   $('<span/>').html(groupsintext.join(', ')),
+   $('<span/>').html(tagsintext.join(', '))]
 
 #makeSearchText s.searchuri]
 
@@ -181,7 +203,7 @@ createSavedSearchSection = (searches) ->
   $div = $('div#saved-searches')
   $div.append AjaxSolr.theme('saved_title', 'Saved Searches')
   $div.append AjaxSolr.theme('saved_items', 'searches',
-    ['Date saved', 'Search terms', 'Groups'], rows,
+    ['Date saved', 'Search terms', 'Groups', 'Tags'], rows,
     null,
     null)
     #handleSearches(getBibTexFromADS),
@@ -200,25 +222,33 @@ createSavedSearchSection = (searches) ->
 #   bibcode:     "2004ApJ...606.1174B"
 #   pubctr:      22
 
-createSavedPublications = () ->
+createSavedPublications = (tagsbool=null) ->
   $('div#saved-pubs').empty()
-  $.getJSON SITEPREFIX + '/savedpubsforgroup2?fqGroupName='+dagroup, (data) ->
-    pubs = data.savedpubsforgroup
+  if datag is 'default'
+          url = "/savedpubsforgroup2?fqGroupName=#{dagroup}"
+    else
+          url = "/savedpubsfortag?tagName=#{datag}&fqGroupName=#{dagroup}"
+  $.getJSON SITEPREFIX + url, (data) ->
+    pubs = data.savedpubsfortag ? data.savedpubsforgroup
     if pubs.haspubs
       createSavedPublicationSection pubs.savedpubs
     else
       noSavedPublications()
+    createTagsList() unless tagsbool
 
 makePubRow = (p) ->
   gin=p.groupsin
   sby=p.searchby
   groupsintext = ('by '+sby[idx].split('@')[0]+' in <a href="'+"#{SITEPREFIX}/explorer/group?fqGroupName=#{gin[idx]}"+'">'+gin[idx].split('/').pop()+'</a>' for idx in [0...gin.length])
+  tagsintext = ('<a href="'+"#{SITEPREFIX}/explorer/group?fqGroupName=#{dagroup}&tagName=#{ele}"+'">'+ele.split('/').pop()+'</a>' for ele in p.tagsin.unique())
+  
   [$('<input type="checkbox" name="pubid"/>').attr('value', p.pubid),
    $('<span/>').attr('value', p.pubtime).text(p.pubtimestr),
    $('<a/>').attr('href', "#{SITEPREFIX}/explorer/publications#fq=#{p.linkuri}&q=*%3A*")
      .text(p.linktext),
    $('<span class="bibcode"/>').text(p.bibcode),
-   $('<span/>').html(groupsintext.join(', '))]
+   $('<span/>').html(groupsintext.join(', ')),
+   $('<span/>').html(tagsintext.join(', '))]
 
 createSavedPublicationSection = (pubs) ->
   npubs = pubs.length
@@ -227,7 +257,7 @@ createSavedPublicationSection = (pubs) ->
   $div = $('div#saved-pubs')
   $div.append AjaxSolr.theme('saved_title', 'Saved Publications')
   $div.append AjaxSolr.theme('saved_items', 'pubs',
-    ['Date saved', 'Title', 'Bibcode', 'Groups'], rows,
+    ['Date saved', 'Title', 'Bibcode', 'Groups', 'Tags'], rows,
     handlePublications(getBibTexFromADS),
     handlePublications(saveToMyADS))
 
@@ -235,26 +265,33 @@ createSavedPublicationSection = (pubs) ->
   $('#saved-pubs-table').tablesorter tsortopts
 
 
-createSavedObservations = () ->
-  $('div#saved-obsvs').empty()
-  $.getJSON SITEPREFIX + '/savedobsvsforgroup2?fqGroupName='+dagroup, (data) ->
-    obsvs = data.savedobsvsforgroup
+createSavedObservations = (tagsbool=null) ->
+  $('div#saved-obsvs').empty
+  if datag is 'default'
+          url = "/savedobsvsforgroup2?fqGroupName=#{dagroup}"
+    else
+          url = "/savedobsvsfortag?tagName=#{datag}&fqGroupName=#{dagroup}"
+  $.getJSON SITEPREFIX + url, (data) ->
+    obsvs = data.savedobsvsfortag ? data.savedobsvsforgroup
     if obsvs.hasobsvs
       createSavedObservationSection obsvs.savedobsvs
     else
       noSavedObservations()
+    createTagsList() unless tagsbool
 
 makeObsvRow = (o) ->
   gin=o.groupsin
   sby=o.searchby
-  console.log o, gin, sby
+  console.log o.tagsin, gin, sby
   groupsintext = ('by '+sby[idx].split('@')[0]+' in <a href="'+"#{SITEPREFIX}/explorer/group?fqGroupName=#{gin[idx]}"+'">'+gin[idx].split('/').pop()+'</a>' for idx in [0...gin.length])
+  tagsintext = ('<a href="'+"#{SITEPREFIX}/explorer/group?fqGroupName=#{dagroup}&tagName=#{ele}"+'">'+ele.split('/').pop()+'</a>' for ele in o.tagsin.unique())
   [$('<input type="checkbox" name="obsvid"/>').attr('value', o.obsvid),
    $('<span/>').attr('value', o.obsvtime).text(o.obsvtimestr),
    $('<a/>').attr('href', "#{SITEPREFIX}/explorer/observations#fq=#{o.linkuri}&q=*%3A*")
      .text(o.linktext),
    $('<span class="bibcode"/>').text(o.target),
-   $('<span/>').html(groupsintext.join(', '))]
+   $('<span/>').html(groupsintext.join(', ')),
+   $('<span/>').html(tagsintext.join(', '))]
 
 createSavedObservationSection = (obsvs) ->
   nobsvs = obsvs.length
@@ -263,7 +300,7 @@ createSavedObservationSection = (obsvs) ->
   $div = $('div#saved-obsvs')
   $div.append AjaxSolr.theme('saved_title', 'Saved Observations')
   $div.append AjaxSolr.theme('saved_items', 'obsvs',
-    ['Date Observed', 'Obsid', 'Target', 'Groups'], rows,
+    ['Date Observed', 'Obsid', 'Target', 'Groups', 'Tags'], rows,
     null,
     null)
 
@@ -290,9 +327,10 @@ noSavedObservations = () ->
 #  TODO: synchronization on the showing of the tables?
 
 mediator.subscribe 'user/login', (email) ->
-  createSavedSearches()
-  createSavedPublications()
-  createSavedObservations()
+  createSavedSearches(true)
+  createSavedPublications(true)
+  createSavedObservations(true)
+  createTagsList()
 
 # We do not need to hide/display things since this is handled by
 #	the generic userloggedin/out classes, although we may decide that

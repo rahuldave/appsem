@@ -1,5 +1,13 @@
+<div class="sidebar">
+	<div class="well">
+		<div id="tagslist">
+		</div>
+	</div>
+</div>
+
 <div class="content"> 
-<h2> Group {{ group }} </h2>
+<h2> Group {{ group }}</h2>
+{{#istag}} <h3>Tag {{ tag }}</h3> {{/istag}}
 <hr/>
 <div style="display: none;" class="userloggedout">
  Please <a class="userlogin" href="#">log in</a> to see your saved items.

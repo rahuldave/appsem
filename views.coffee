@@ -44,18 +44,36 @@ doView = (name, body, view) ->
     #An application page may be group specific
     group=req.query.fqGroupName ? 'default'
     user=req.query.fqUserName ? 'default'
+    tag = req.query.tagName ? 'default'
     console.log "GROUP", group, name, user
     # Add in current URL to the view
     # (could be conditional on presence of bodyhead)
     #
     view.bodyhead.current_url = req.url
+    
+    isgroup=(group isnt 'default')
+    istag=(tag isnt 'default')
+    isuser=(user isnt 'default')
     view.pagehead.group=group
     view.bodyhead.group=group
     view.bodybody.group=group
+    view.pagehead.isgroup=isgroup
+    view.bodyhead.isgroup=isgroup
+    view.bodybody.isgroup=isgroup
     
     view.pagehead.user=user
     view.bodyhead.user=user
     view.bodybody.user=user
+    view.pagehead.isuser=isuser
+    view.bodyhead.isuseris=user
+    view.bodybody.isuser=isuser
+    
+    view.pagehead.tag=tag
+    view.bodyhead.tag=tag
+    view.bodybody.tag=tag
+    view.pagehead.istag=istag
+    view.bodyhead.istag=istag
+    view.bodybody.istag=istag
     #view.bodybody.bodyright.group=group
     
     lpartials = JSON.parse globpartialsjson

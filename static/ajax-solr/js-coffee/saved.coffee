@@ -77,9 +77,9 @@ handlePublications = (handler) ->
     $.fancybox.showActivity()
     handler data
 
-handleItemsWithPK = (handler, itemstype, recreate) ->
+handleItemsWithPK = (widgetname, handler, itemstype, recreate) ->
     () ->
-        console.log 'in stgh', itemstype, $(this.form)
+        console.log 'in stgh', widgetname, itemstype, $(this.form)
         items = (item.value for item in $(this.form).find('input[type=checkbox][checked|=true]'))
         if items.length is 0
           alert "No items have been selected."
@@ -90,12 +90,15 @@ handleItemsWithPK = (handler, itemstype, recreate) ->
             ihash={}
             ihash[thetype]=ele
             objectsToSave.push(ihash)
-        console.log items, objectsToSave, $(this.form).find('.groupselect option:selected')
-        fqGroupName=$(this.form).find('.groupselect option:selected')[0].text;
+        if widgetname is "groups"
+            fqGroupName=$(this.form).find('.groupselect option:selected')[0].text;
+            data = {fqGroupName, objectsToSave}
+        else if widgetname is 'tags'
+            tagName=$($(this.form).find('.tagstext')[0]).val();
+            data = {tagName, objectsToSave}
         if objectsToSave.length is 0
             alert "No #{itemstype} have been selected."
             return false
-        data = {fqGroupName, objectsToSave}
         handler itemstype, data, recreate
 
 saveToGroup = (itemstype, map, recreate) ->
@@ -105,6 +108,14 @@ saveToGroup = (itemstype, map, recreate) ->
         recreate()
         return false
     return false
+    
+saveToTag = (itemstype, map, recreate) ->
+    console.log "inwith", map, "#{SITEPREFIX}/save#{itemstype}totag"
+    $.post "#{SITEPREFIX}/save#{itemstype}totag", JSON.stringify(map), (data) ->
+        console.log "save rets", data
+        recreate()
+        return false
+    return false    
         
 handleObservations = (handler) ->
   () ->
@@ -169,14 +180,28 @@ tsortopts =
 # Get the list of saved searches (if any) and create the
 # appropriate elements in the page.
 
-createSavedSearches = () ->
+createTagsList = () ->
+    $('div#tagslist').empty()
+    $.getJSON SITEPREFIX + '/gettagsforuser', (data) ->
+        tags=data.gettagsforuser
+        tagsintext = ('<li><a href="'+"#{SITEPREFIX}/explorer/saved?tagName=#{ele}"+'">'+ele.split('/').pop()+'</a></li>' for ele in tags)
+        console.log "tagsintext", tagsintext
+        $('div#tagslist').append('<h3>Tags:</h3>').append('<ul/>').append(tagsintext.join(''))
+        
+        
+createSavedSearches = (tagbool=null) ->
   $('div#saved-searches').empty()
-  $.getJSON SITEPREFIX + '/savedsearches2', (data) ->
-    searches = data.savedsearches
+  if datag is 'default'
+      url = '/savedsearches2'
+  else
+      url = "/savedsearchesfortag?tagName=#{datag}"
+  $.getJSON SITEPREFIX + url, (data) ->
+    searches = data.savedsearchesfortag ? data.savedsearches
     if searches.hassearches
       createSavedSearchSection searches.savedsearches
     else
       noSavedSearches()
+    createTagsList() unless tagbool
 
 # Get the list of saved publications (if any) and create the
 # appropriate elements in the page.
@@ -197,13 +222,15 @@ makeSearchText = (urifrag) ->
 
 makeSearchRow = (s) ->
   groupsintext = ('<a href="'+"#{SITEPREFIX}/explorer/group?fqGroupName=#{ele}"+'">'+ele.split('/').pop()+'</a>' for ele in s.groupsin.unique())
+  tagsintext = ('<a href="'+"#{SITEPREFIX}/explorer/saved?tagName=#{ele}"+'">'+ele.split('/').pop()+'</a>' for ele in s.tagsin.unique())
   scpts=searchToText s.searchuri, fieldname_map
   console.log s.searchtext, s.searchuri, scpts
   [$('<input type="checkbox" name="searchid"/>').attr('value', s.searchuri),
    $('<span/>').attr('value', s.searchtime).text(s.searchtimestr),
    $('<a/>').attr('href', "#{SITEPREFIX}/explorer/#{s.searchuri}")
      .text(scpts.join " | "),
-   $('<span/>').html(groupsintext.join(', '))]
+   $('<span/>').html(groupsintext.join(', ')),
+   $('<span/>').html(tagsintext.join(', '))]
 
 #makeSearchText s.searchuri]
 
@@ -213,7 +240,8 @@ createSavedSearchSection = (searches) ->
   $div = $('div#saved-searches')
   $div.append AjaxSolr.theme('saved_title', 'Saved Searches')
   $div.append AjaxSolr.theme('saved_items', 'searches',
-    ['Date saved', 'Search terms', 'Groups'], rows, handleItemsWithPK(saveToGroup, 'searches', createSavedSearches),
+    ['Date saved', 'Search terms', 'Groups', 'Tags'], rows, handleItemsWithPK('groups', saveToGroup, 'searches', createSavedSearches),
+    handleItemsWithPK('tags', saveToTag, 'searches', createSavedSearches),
     null,
     null)
     #handleSearches(getBibTexFromADS),
@@ -232,24 +260,31 @@ createSavedSearchSection = (searches) ->
 #   bibcode:     "2004ApJ...606.1174B"
 #   pubctr:      22
 
-createSavedPublications = () ->
+createSavedPublications = (tagbool=null) ->
   $('div#saved-pubs').empty()
-  $.getJSON SITEPREFIX + '/savedpubs2', (data) ->
+  if datag is 'default'
+        url = '/savedpubs2'
+    else
+        url = "/savedpubsfortag?tagName=#{datag}"
+  $.getJSON SITEPREFIX + url, (data) ->
     console.log "DATA", data
-    pubs = data.savedpubs
+    pubs = data.savedpubsfortag ? data.savedpubs
     if pubs.haspubs
       createSavedPublicationSection pubs.savedpubs
     else
       noSavedPublications()
+    createTagsList() unless tagbool
 
 makePubRow = (p) ->
   groupsintext = ('<a href="'+"#{SITEPREFIX}/explorer/group?fqGroupName=#{ele}"+'">'+ele.split('/').pop()+'</a>' for ele in p.groupsin.unique())
+  tagsintext = ('<a href="'+"#{SITEPREFIX}/explorer/saved?tagName=#{ele}"+'">'+ele.split('/').pop()+'</a>' for ele in p.tagsin.unique())
   [$('<input type="checkbox" name="pubid"/>').attr('value', p.pubid),
    $('<span/>').attr('value', p.pubtime).text(p.pubtimestr),
    $('<a/>').attr('href', "#{SITEPREFIX}/explorer/publications#fq=#{p.linkuri}&q=*%3A*")
      .text(p.linktext),
    $('<span class="bibcode"/>').text(p.bibcode),
-   $('<span/>').html(groupsintext.join(', '))]
+   $('<span/>').html(groupsintext.join(', ')),
+   $('<span/>').html(tagsintext.join(', '))]
 
 createSavedPublicationSection = (pubs) ->
   npubs = pubs.length
@@ -258,7 +293,8 @@ createSavedPublicationSection = (pubs) ->
   $div = $('div#saved-pubs')
   $div.append AjaxSolr.theme('saved_title', 'Saved Publications')
   $div.append AjaxSolr.theme('saved_items', 'pubs',
-    ['Date saved', 'Title', 'Bibcode', 'Groups'], rows, handleItemsWithPK(saveToGroup, 'pubs', createSavedPublications),
+    ['Date saved', 'Title', 'Bibcode', 'Groups', 'Tags'], rows, handleItemsWithPK('groups', saveToGroup, 'pubs', createSavedPublications),
+    handleItemsWithPK('tags', saveToTag, 'pubs', createSavedPublications),
     handlePublications(getBibTexFromADS),
     handlePublications(saveToMyADS))
 
@@ -266,23 +302,31 @@ createSavedPublicationSection = (pubs) ->
   $('#saved-pubs-table').tablesorter tsortopts
 
 
-createSavedObservations = () ->
+createSavedObservations = (tagbool=null) ->
   $('div#saved-obsvs').empty()
-  $.getJSON SITEPREFIX + '/savedobsvs2', (data) ->
-    obsvs = data.savedobsvs
+  if datag is 'default'
+        url = '/savedobsvs2'
+    else
+        url = "/savedobsvsfortag?tagName=#{datag}"
+  $.getJSON SITEPREFIX + url, (data) ->
+    obsvs = data.savedobsvsfortag ? data.savedobsvs
     if obsvs.hasobsvs
       createSavedObservationSection obsvs.savedobsvs
     else
       noSavedObservations()
+    createTagsList() unless tagbool
 
 makeObsvRow = (o) ->
+  console.log o.tagsin
   groupsintext = ('<a href="'+"#{SITEPREFIX}/explorer/group?fqGroupName=#{ele}"+'">'+ele.split('/').pop()+'</a>' for ele in o.groupsin.unique())
+  tagsintext = ('<a href="'+"#{SITEPREFIX}/explorer/saved?tagName=#{ele}"+'">'+ele.split('/').pop()+'</a>' for ele in o.tagsin.unique())
   [$('<input type="checkbox" name="obsvid"/>').attr('value', o.obsvid),
    $('<span/>').attr('value', o.obsvtime).text(o.obsvtimestr),
    $('<a/>').attr('href', "#{SITEPREFIX}/explorer/observations#fq=#{o.linkuri}&q=*%3A*")
      .text(o.linktext),
    $('<span class="bibcode"/>').text(o.target),
-   $('<span/>').html(groupsintext.join(', '))]
+   $('<span/>').html(groupsintext.join(', ')),
+   $('<span/>').html(tagsintext.join(', '))]
 
 createSavedObservationSection = (obsvs) ->
   nobsvs = obsvs.length
@@ -291,7 +335,8 @@ createSavedObservationSection = (obsvs) ->
   $div = $('div#saved-obsvs')
   $div.append AjaxSolr.theme('saved_title', 'Saved Observations')
   $div.append AjaxSolr.theme('saved_items', 'obsvs',
-    ['Date Observed', 'Obsid', 'Target', 'Groups'], rows, handleItemsWithPK(saveToGroup, 'obsvs', createSavedObservations),
+    ['Date Observed', 'Obsid', 'Target', 'Groups', 'Tags'], rows, handleItemsWithPK('groups', saveToGroup, 'obsvs', createSavedObservations),
+    handleItemsWithPK('tags', saveToTag, 'obsvs', createSavedObservations),
     null,
     null)
 
@@ -318,9 +363,10 @@ noSavedObservations = () ->
 #  TODO: synchronization on the showing of the tables?
 
 mediator.subscribe 'user/login', (email) ->
-  createSavedSearches()
-  createSavedPublications()
-  createSavedObservations()
+  createSavedSearches(true)
+  createSavedPublications(true)
+  createSavedObservations(true)
+  createTagsList()
 
 # We do not need to hide/display things since this is handled by
 #	the generic userloggedin/out classes, although we may decide that

@@ -25,7 +25,7 @@ function encodeObsuri(obsuri){
             //alert("AA"+this.model.nobj)
             var npub=this.model.npub;
             this.collectionexpanded=false;
-            $(this.el).append(AjaxSolr.theme("publicationpreamble", npub));
+            $(this.el).append(AjaxSolr.theme("publicationpreamble", npub, this.model));
         },
         addOne: function(publicationmodel){
             var view=new PublicationView({model:publicationmodel});
@@ -184,7 +184,7 @@ function encodeObsuri(obsuri){
        render: function() {
            //alert(this.el);
            var doc=this.model.toJSON();
-           console.log("OBSIDS_S", doc.obsids_s);
+           //console.log("OBSIDS_S", doc.obsids_s);
            var obsvtime_d=doc.obsvtime_d;
            var emdomains = this.facetLinks("emdomains_s", doc.emdomains_s);
 
@@ -295,7 +295,7 @@ AjaxSolr.ResultWidget = AjaxSolr.AbstractWidget.extend({
       docids.push(encodeObsuri(doc.obsids_s));
     }
     */
-    console.log("DOCIDS", docids);
+    //console.log("DOCIDS", docids);
     // Find out which papers have been saved so that we can change the 
     // Saved text/icon to delete.
     

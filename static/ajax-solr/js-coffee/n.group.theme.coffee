@@ -15,25 +15,30 @@ changeAllButtons = (newstate) ->
 
 # Create the form actions for the saved-item form.
 
-AjaxSolr.theme.prototype.saved_formactions = (bibtexHandler=null, myADSHandler=null) ->
+AjaxSolr.theme.prototype.saved_formactions = (throwhandler=null, bibtexHandler=null, myADSHandler=null) ->
   unless bibtexHandler is null and myADSHandler is null
       return $('<div class="formactions"/>')
         .append($('<input class="btn small" type="button" value="Mark all"/>').click(changeAllButtons true))
         .append($('<input class="btn small" type="button" value="Clear all"/>').click(changeAllButtons false))
-        .append($('<span>&nbsp;<span class="label success"/>&nbsp;</span>'))
+        .append($('<span>&nbsp;<span class="label"/>&nbsp;</span>'))
         .append($('<input class="btn danger small" type="submit" value="Remove" name="action"/>'))
-        .append($('<span>&nbsp;<span class="label success"/>&nbsp;</span>'))
+        .append($('<span>&nbsp;<span class="label"/>&nbsp;</span>'))
+        .append($('<input class="btn info small" type="button" value="Facet"/>').click(throwhandler))
+        .append($('<span>&nbsp;<span class="label"/>&nbsp;</span>'))
         .append($('<input class="btn info small" type="button" value="Get as BibTex"/>').click(bibtexHandler))
         .append($('<button type="button" name="myads" value="Send to myADS"/>')
           .click(myADSHandler)
           .append($('<img alt="[myADS logo]"/>')
             .attr('src', "#{SITEPREFIX}/static/images/ADSlabs-button.png")))
-  return $('<div class="formactions"/>')
+  $thediv =  $('<div class="formactions"/>')
     .append($('<input class="btn small" type="button" value="Mark all"/>').click(changeAllButtons true))
     .append($('<input class="btn small" type="button" value="Clear all"/>').click(changeAllButtons false))
-    .append($('<span>&nbsp;<span class="label success"/>&nbsp;</span>'))
+    .append($('<span>&nbsp;<span class="label"/>&nbsp;</span>'))
     .append($('<input class="btn danger small" type="submit" value="Remove" name="action"/>'))
-
+  if throwhandler isnt null
+    $thediv.append($('<span>&nbsp;<span class="label"/>&nbsp;</span>'))
+    $thediv.append($('<input class="btn info small" type="button" value="Facet"/>').click(throwhandler))
+  return $thediv
         
 
 # Create the THEAD block for the saved-item table.
@@ -63,7 +68,7 @@ AjaxSolr.theme.prototype.saved_tablerow = (row) ->
 # Create the list of saved items.
 #
 #  idfrag is used to create the various names - e.g.
-#      an id of 'saved-' + idfrag + '-form' for the form
+#      an id of 'saved-' + idfrag + '-form' for thlabele form
 #   cols is an array of column headers (not including the
 #     first column which is empty/the selection column)
 #   rows is an array of rows, where each item is an
@@ -72,9 +77,9 @@ AjaxSolr.theme.prototype.saved_tablerow = (row) ->
 #   bibtexHandler is the click handler for the 'export as BibTex' button
 #   myADSHandler is the click handler for the 'export to myADS' button
 
-AjaxSolr.theme.prototype.saved_items = (idfrag, cols, rows, bibtexHandler, myADSHandler) ->
+AjaxSolr.theme.prototype.saved_items = (idfrag, cols, rows, throwhandler, bibtexHandler, myADSHandler) ->
   $out = $('<form action="#"/>').attr 'id', "saved-#{idfrag}-form"
-  $actions = AjaxSolr.theme 'saved_formactions', bibtexHandler, myADSHandler
+  $actions = AjaxSolr.theme 'saved_formactions', throwhandler, bibtexHandler, myADSHandler
 
   $table = $('<table class="tablesorter"/>')
     .attr('id', "saved-#{idfrag}-table")

@@ -39,7 +39,6 @@
       fq = self.manager.store.values('fq');
       order = [];
       store = {};
-      console.log('fq in here is', fq);
       _ref = (function() {
         var _j, _len, _results;
         _results = [];
@@ -55,7 +54,6 @@
         $span = $('<span/>');
         if ((lp = c.label.search(/OR/)) !== -1) {
           labeltext = c.label.slice(0, lp * 2) + '...';
-          console.log(lp, c.label);
           $sspan = $('<span class="facetvalue"/>').html("" + labeltext + " ").twipsy({
             fallback: c.label,
             placement: 'below'

@@ -52,20 +52,20 @@ var PublicationsManager;
 		if (PublicationsManager.store.values('fq').length == 0) {
 		    $('#save-search').hide();
 		} else {
-		    console.log('FQVALS', PublicationsManager.store.values('fq'))
+		    //console.log('FQVALS', PublicationsManager.store.values('fq'))
 		    $('#save-search').show();
 		}
-		console.log("IN THE MIDDLE OF RENDERHEADER");
+		//console.log("IN THE MIDDLE OF RENDERHEADER");
 		//this gets called all the time. How to avoid this?
 		$.getJSON(SITEPREFIX+'/savedsearches', function(data){
 		    var thissearchurl='publications#'+location.href.split("#")[1];
-		    console.log("THISSEARCHURL", thissearchurl, data['savedsearches']);
+		    //console.log("THISSEARCHURL", thissearchurl, data['savedsearches']);
 		    //alert(thissearchurl);
 		    if (data['savedsearches']!='undefined'){
 			    var savedsearcharray=data['savedsearches'];
     			//console.log("SAVEDSEARCHARRAY", savedsearcharray);
     			if (_.indexOf(savedsearcharray, thissearchurl)!=-1){
-    			    console.log("ELE",thissearchurl);
+    			    //console.log("ELE",thissearchurl);
     			    $('#save-search').hide();
     			    $('#delete-search').show();
     			} else {
@@ -81,7 +81,7 @@ var PublicationsManager;
     		if (PublicationsManager.store.values('fq').length == 0) {
 		        $('#save-search').hide();
 		    } else {
-		        console.log('FQVALS', PublicationsManager.store.values('fq'))
+		        //console.log('FQVALS', PublicationsManager.store.values('fq'))
 		        $('#save-search').show();
 		    }
 		});

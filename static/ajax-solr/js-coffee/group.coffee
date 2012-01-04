@@ -8,8 +8,11 @@ Array::unique = ->
   output = {}
   output[@[key]] = @[key] for key in [0...@length]
   value for key, value of output
-  
-  
+
+savemap=
+  obsvs:'obsv'
+  searches:'search'
+  pubs:'pub'  
 # Make a POST request to the ADS servers using the given
 # URL path and apply the given callback to the response.
 
@@ -75,6 +78,44 @@ handlePublications = (handler) ->
     $.fancybox.showActivity()
     handler data
 
+handleItemsWithPK = (widgetname, handler, itemstype, recreate) ->
+    () ->
+        console.log 'in stgh', widgetname, itemstype, $(this.form)
+        items = (item.value for item in $(this.form).find('input[type=checkbox][checked|=true]'))
+        if items.length is 0
+          alert "No items have been selected."
+          return false
+        thetype="saved#{savemap[itemstype]}"
+        objectsToSave=[]
+        for ele in items
+            ihash={}
+            ihash[thetype]=ele
+            objectsToSave.push(ihash)
+        if widgetname is "groups"
+            fqGroupName=$(this.form).find('.groupselect option:selected')[0].text;
+            data = {fqGroupName, objectsToSave}
+        else if widgetname is 'tags'
+            tagName=$($(this.form).find('.tagstext')[0]).val();
+            data = {tagName, objectsToSave}
+        else if widgetname is 'observations'
+            faceter='obsids_s'
+            throwurlist=("#{encodeURIComponent ele}" for ele in items)
+            throwhref="#{SITEPREFIX}/explorer/#{widgetname}#fq=#{faceter}%3A#{throwurlist.join '%20OR%20'}"
+            window.location.href=throwhref
+        else if widgetname is 'publications'
+            faceter='bibcode'
+            bcodes = ($(item).attr('bibcode') for item in $(this.form).find('input[type=checkbox][checked|=true]'))
+            throwurlist=("#{encodeURIComponent ele}" for ele in bcodes)
+            throwhref="#{SITEPREFIX}/explorer/#{widgetname}#fq=#{faceter}%3A#{throwurlist.join '%20OR%20'}"
+            window.location.href=throwhref
+        if objectsToSave.length is 0
+            alert "No #{itemstype} have been selected."
+            return false
+        handler itemstype, data, recreate
+
+doThrow = ()->
+    return false
+            
 handleObservations = (handler) ->
   () ->
     data = ($(item).text() for item in $(this.form).find('input[type=checkbox][checked|=true]').parent().nextAll('td').find('span.bibcode'))
@@ -203,7 +244,7 @@ createSavedSearchSection = (searches) ->
   $div = $('div#saved-searches')
   $div.append AjaxSolr.theme('section_title', 'Saved Searches')
   $div.append AjaxSolr.theme('saved_items', 'searches',
-    ['Date saved', 'Search terms', 'Collaborations', 'Tags'], rows,
+    ['Date saved', 'Search terms', 'Collaborations', 'Tags'], rows, null,
     null,
     null)
     #handleSearches(getBibTexFromADS),
@@ -242,7 +283,7 @@ makePubRow = (p) ->
   groupsintext = ('by '+sby[idx].split('@')[0]+' in <a href="'+"#{SITEPREFIX}/explorer/group?fqGroupName=#{gin[idx]}"+'">'+gin[idx].split('/').pop()+'</a>' for idx in [0...gin.length])
   tagsintext = ('<a href="'+"#{SITEPREFIX}/explorer/group?fqGroupName=#{dagroup}&tagName=#{ele}"+'">'+ele.split('/').pop()+'</a>' for ele in p.tagsin.unique())
   
-  [$('<input type="checkbox" name="pubid"/>').attr('value', p.pubid),
+  [$('<input type="checkbox" name="pubid"/>').attr('value', p.pubid).attr('bibcode', p.bibcode),
    $('<span/>').attr('value', p.pubtime).text(p.pubtimestr),
    $('<a/>').attr('href', "#{SITEPREFIX}/explorer/publications#fq=#{p.linkuri}&q=*%3A*")
      .text(p.linktext),
@@ -257,7 +298,7 @@ createSavedPublicationSection = (pubs) ->
   $div = $('div#saved-pubs')
   $div.append AjaxSolr.theme('section_title', 'Saved Publications')
   $div.append AjaxSolr.theme('saved_items', 'pubs',
-    ['Date saved', 'Title', 'Bibcode', 'Collaborations', 'Tags'], rows,
+    ['Date saved', 'Title', 'Bibcode', 'Collaborations', 'Tags'], rows, handleItemsWithPK('publications', doThrow, 'pubs', createSavedPublications),
     handlePublications(getBibTexFromADS),
     handlePublications(saveToMyADS))
 
@@ -300,7 +341,7 @@ createSavedObservationSection = (obsvs) ->
   $div = $('div#saved-obsvs')
   $div.append AjaxSolr.theme('section_title', 'Saved Observations')
   $div.append AjaxSolr.theme('saved_items', 'obsvs',
-    ['Date Observed', 'Obsid', 'Target', 'Collaborations', 'Tags'], rows,
+    ['Date Observed', 'Obsid', 'Target', 'Collaborations', 'Tags'], rows, handleItemsWithPK('observations', doThrow, 'obsvs', createSavedObservations),
     null,
     null)
 

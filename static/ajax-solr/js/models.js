@@ -173,7 +173,7 @@
             if (this.doc.objectnames_s !== undefined){
                 this.nobj=this.doc.objectnames_s.length;
             }
-            console.log("Hello"+this.nobj);
+            //console.log("Hello"+this.nobj);
         },
         initialize: function(models, options){
             this.froms=_.clone(FROMS);
@@ -262,6 +262,7 @@
         initialize: function(models, options){
             this.froms=_.clone(FROMS);
             this.docids=[];
+            this.bibcodes=[];
             this.manager=options.ajaxsolrmanager;
             //this.passed_options=options;
             this.passed_options={};
@@ -326,6 +327,7 @@
               this.add(result)
               //this.add(doc, {from_publications:this.froms.from_publications})
               this.docids.push(doc.id);
+              this.bibcodes.push(doc.bibcode);
             }
         }
     });

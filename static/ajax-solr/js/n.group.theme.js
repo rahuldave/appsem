@@ -15,7 +15,11 @@
       return true;
     };
   };
-  AjaxSolr.theme.prototype.saved_formactions = function(bibtexHandler, myADSHandler) {
+  AjaxSolr.theme.prototype.saved_formactions = function(throwhandler, bibtexHandler, myADSHandler) {
+    var $thediv;
+    if (throwhandler == null) {
+      throwhandler = null;
+    }
     if (bibtexHandler == null) {
       bibtexHandler = null;
     }
@@ -23,9 +27,14 @@
       myADSHandler = null;
     }
     if (!(bibtexHandler === null && myADSHandler === null)) {
-      return $('<div class="formactions"/>').append($('<input class="btn small" type="button" value="Mark all"/>').click(changeAllButtons(true))).append($('<input class="btn small" type="button" value="Clear all"/>').click(changeAllButtons(false))).append($('<span>&nbsp;<span class="label success"/>&nbsp;</span>')).append($('<input class="btn danger small" type="submit" value="Remove" name="action"/>')).append($('<span>&nbsp;<span class="label success"/>&nbsp;</span>')).append($('<input class="btn info small" type="button" value="Get as BibTex"/>').click(bibtexHandler)).append($('<button type="button" name="myads" value="Send to myADS"/>').click(myADSHandler).append($('<img alt="[myADS logo]"/>').attr('src', "" + SITEPREFIX + "/static/images/ADSlabs-button.png")));
+      return $('<div class="formactions"/>').append($('<input class="btn small" type="button" value="Mark all"/>').click(changeAllButtons(true))).append($('<input class="btn small" type="button" value="Clear all"/>').click(changeAllButtons(false))).append($('<span>&nbsp;<span class="label"/>&nbsp;</span>')).append($('<input class="btn danger small" type="submit" value="Remove" name="action"/>')).append($('<span>&nbsp;<span class="label"/>&nbsp;</span>')).append($('<input class="btn info small" type="button" value="Facet"/>').click(throwhandler)).append($('<span>&nbsp;<span class="label"/>&nbsp;</span>')).append($('<input class="btn info small" type="button" value="Get as BibTex"/>').click(bibtexHandler)).append($('<button type="button" name="myads" value="Send to myADS"/>').click(myADSHandler).append($('<img alt="[myADS logo]"/>').attr('src', "" + SITEPREFIX + "/static/images/ADSlabs-button.png")));
     }
-    return $('<div class="formactions"/>').append($('<input class="btn small" type="button" value="Mark all"/>').click(changeAllButtons(true))).append($('<input class="btn small" type="button" value="Clear all"/>').click(changeAllButtons(false))).append($('<span>&nbsp;<span class="label success"/>&nbsp;</span>')).append($('<input class="btn danger small" type="submit" value="Remove" name="action"/>'));
+    $thediv = $('<div class="formactions"/>').append($('<input class="btn small" type="button" value="Mark all"/>').click(changeAllButtons(true))).append($('<input class="btn small" type="button" value="Clear all"/>').click(changeAllButtons(false))).append($('<span>&nbsp;<span class="label"/>&nbsp;</span>')).append($('<input class="btn danger small" type="submit" value="Remove" name="action"/>'));
+    if (throwhandler !== null) {
+      $thediv.append($('<span>&nbsp;<span class="label"/>&nbsp;</span>'));
+      $thediv.append($('<input class="btn info small" type="button" value="Facet"/>').click(throwhandler));
+    }
+    return $thediv;
   };
   AjaxSolr.theme.prototype.saved_tablehead = function(cols) {
     var $tr, name, _i, _len;
@@ -45,10 +54,10 @@
     }
     return $out;
   };
-  AjaxSolr.theme.prototype.saved_items = function(idfrag, cols, rows, bibtexHandler, myADSHandler) {
+  AjaxSolr.theme.prototype.saved_items = function(idfrag, cols, rows, throwhandler, bibtexHandler, myADSHandler) {
     var $actions, $out, $table, $tbody, value, _i, _len;
     $out = $('<form action="#"/>').attr('id', "saved-" + idfrag + "-form");
-    $actions = AjaxSolr.theme('saved_formactions', bibtexHandler, myADSHandler);
+    $actions = AjaxSolr.theme('saved_formactions', throwhandler, bibtexHandler, myADSHandler);
     $table = $('<table class="tablesorter"/>').attr('id', "saved-" + idfrag + "-table").append(AjaxSolr.theme('saved_tablehead', cols));
     $tbody = $('<tbody/>');
     for (_i = 0, _len = rows.length; _i < _len; _i++) {

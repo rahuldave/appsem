@@ -71,14 +71,14 @@ AjaxSolr.CurrentSearchWidget = AjaxSolr.AbstractWidget.extend
     # think that is acceptable. .text("(x) #{c.label} ")
     order = []
     store = {}
-    console.log 'fq in here is', fq
+    #console.log 'fq in here is', fq
     for c in (self.splitConstraint(cstr) for cstr in fq)
       labeltext=c.label
       #console.log ';;;', c.label
       $span=$('<span/>')
       if (lp=c.label.search /OR/) isnt -1
           labeltext=c.label[0...lp*2]+'...'
-          console.log lp, c.label
+          #console.log lp, c.label
           $sspan = $('<span class="facetvalue"/>').html("#{labeltext} ").twipsy({fallback:c.label, placement:'below'})
       else
           $sspan = $('<span class="facetvalue"/>').html("#{labeltext} ")

@@ -1,12 +1,24 @@
 (function() {
-  var $, root;
+  var $, doADSProxy2, root;
   root = typeof exports !== "undefined" && exports !== null ? exports : this;
   $ = jQuery;
+  doADSProxy2 = function(urlpath, datastring, callback) {
+    return $.post("" + SITEPREFIX + "/adsproxy2", JSON.stringify({
+      urlpath: urlpath,
+      method: 'POST',
+      data: {
+        bibcode: datastring,
+        data_type: 'HTML'
+      }
+    }), callback);
+  };
   AjaxSolr.AutocompleteWidget = AjaxSolr.AbstractFacetWidget.extend({
     fieldmap: {},
     afterRequest: function() {
       var callback, field, getjsonstring, params, self, _i, _len, _ref;
       $('#thrower').hide();
+      $('#metricsthrower').hide();
+      $('#numpubs').hide();
       $(this.target).find('input').val('');
       self = this;
       $(this.target).find('input').unbind().bind('keydown', function(e) {
@@ -20,7 +32,7 @@
         }
       });
       callback = function(response) {
-        var ele, facet, faceter, facetfields, field, fieldname, list, listuse, obsvs, othertab, pubs, resHandler, throwhref, throwurlist, val, _i, _len, _ref, _ref2, _ref3;
+        var ele, facet, faceter, facetfields, fbhandler, field, fieldname, list, listuse, nobsvs, npubs, obsvs, othertab, pubs, resHandler, shownpubs, throwhref, throwurlist, val, _i, _len, _ref, _ref2, _ref3;
         list = [];
         obsvs = [];
         pubs = [];
@@ -45,7 +57,9 @@
             });
           }
         }
-        console.log(self.tab, pubs.length, obsvs.length);
+        npubs = pubs.length;
+        nobsvs = obsvs.length;
+        console.log("INAUTOWIDGET", self.tab, 'pubs', npubs, 'obsvs', nobsvs);
         self.requestSent = false;
         if (self.tab === 'publications') {
           othertab = 'observations';
@@ -56,6 +70,29 @@
           othertab = 'publications';
           faceter = 'bibcode';
           listuse = pubs;
+        }
+        shownpubs = false;
+        if (npubs < 200) {
+          fbhandler = function() {
+            var poststring;
+            poststring = pubs.join("\n");
+            $.fancybox.showActivity();
+            doADSProxy2('/tools/metrics', poststring, function(data) {
+              data = data.replace(/\/tools/g, 'http://adsabs.harvard.edu/tools');
+              data = data.replace('<img src="http://doc.adsabs.harvard.edu/figs/newlogo.gif" alt="ADS" /> <br>', '');
+              return $.fancybox({
+                content: data,
+                'autoDimensions': false,
+                'width': 1024,
+                'height': 768
+              });
+            });
+            return false;
+          };
+          $('#metricsthrower').attr('href', '#').bind('click', fbhandler);
+          $('#metricsthrower').show();
+          $('#numpubs').text("(" + npubs + " pubs)");
+          shownpubs = true;
         }
         if (listuse.length > 0) {
           throwurlist = (function() {
@@ -68,11 +105,18 @@
             return _results;
           })();
           throwhref = "" + root.dasiteprefix + "/explorer/" + othertab + "#fq=" + faceter + "%3A" + (throwurlist.join('%20OR%20'));
-          console.log(throwhref.length);
+          console.log("THROWHREFLENGTH", throwhref.length);
           if (throwhref.length < 3750) {
             $('#thrower').attr('href', throwhref);
             $('#thrower').show();
+            if (!shownpubs) {
+              $('#numpubs').text("(" + npubs + " pubs)");
+            }
+            shownpubs = true;
           }
+        }
+        if (self.tab !== 'publications' && shownpubs) {
+          $('#numpubs').show();
         }
         resHandler = function(err, facet) {
           var nval;

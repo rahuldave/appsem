@@ -4,6 +4,14 @@
 root = exports ? this
 $ = jQuery
 
+doADSProxy2 = (urlpath, datastring, callback) -> 
+  return $.post("#{SITEPREFIX}/adsproxy2", JSON.stringify({
+    urlpath: urlpath,
+    method: 'POST',
+    data: {bibcode: datastring, data_type: 'HTML'}
+  }), callback)
+
+
 AjaxSolr.AutocompleteWidget = AjaxSolr.AbstractFacetWidget.extend
 
   # A mapping from the field names for each facet (as used by Solr)
@@ -16,7 +24,10 @@ AjaxSolr.AutocompleteWidget = AjaxSolr.AbstractFacetWidget.extend
 
     fieldmap: {}
     afterRequest: () ->
+        #scope these by a div to reduce DOM lookups BUG
         $('#thrower').hide()
+        $('#metricsthrower').hide()
+        $('#numpubs').hide()
         $(this.target).find('input').val('')
         self = this
 
@@ -44,24 +55,47 @@ AjaxSolr.AutocompleteWidget = AjaxSolr.AbstractFacetWidget.extend
                     value: facet
                     text: "#{facet} (#{val}) - #{fieldname}"
               #console.log "LIST", pubs, obsvs
-              console.log self.tab, pubs.length, obsvs.length
+              npubs=pubs.length
+              nobsvs=obsvs.length
+              console.log "INAUTOWIDGET", self.tab, 'pubs', npubs, 'obsvs', nobsvs
               self.requestSent = false
+
               if self.tab is 'publications'
                   othertab='observations'
                   faceter='obsids_s'
                   listuse=obsvs
+                  
               if self.tab is 'observations'
                   othertab='publications'
                   faceter='bibcode'
                   listuse=pubs
+              shownpubs=false  
+              if npubs < 200
+                  fbhandler = () ->
+                    poststring=pubs.join "\n"
+                    $.fancybox.showActivity()
+                    doADSProxy2 '/tools/metrics', poststring, (data) ->
+                          #console.log data
+                          data=data.replace(/\/tools/g, 'http://adsabs.harvard.edu/tools');
+                          data=data.replace('<img src="http://doc.adsabs.harvard.edu/figs/newlogo.gif" alt="ADS" /> <br>','');
+                          $.fancybox({content: data, 'autoDimensions': false, 'width': 1024, 'height': 768});
+                    return false
+                  $('#metricsthrower').attr('href', '#').bind('click', fbhandler)
+                  $('#metricsthrower').show()
+                  $('#numpubs').text("(#{npubs} pubs)")
+                  shownpubs=true
               if listuse.length > 0
                   #does and: throwurlist=("fq=#{faceter}%3A#{encodeURIComponent ele}" for ele in listuse)
                   throwurlist=("#{encodeURIComponent ele}" for ele in listuse)
                   throwhref="#{root.dasiteprefix}/explorer/#{othertab}#fq=#{faceter}%3A#{throwurlist.join '%20OR%20'}"
-                  console.log throwhref.length
+                  console.log "THROWHREFLENGTH", throwhref.length
                   if throwhref.length < 3750
                       $('#thrower').attr('href', throwhref);
                       $('#thrower').show()
+                      $('#numpubs').text("(#{npubs} pubs)") unless shownpubs
+                      shownpubs=true
+              if self.tab isnt 'publications' and shownpubs
+                  $('#numpubs').show()
               resHandler = (err, facet) ->
                     self.requestSent = true
                     console.log "in RESHANDLER", facet

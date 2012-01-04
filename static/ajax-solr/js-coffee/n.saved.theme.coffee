@@ -16,36 +16,43 @@ changeAllButtons = (newstate) ->
 
 # Create the form actions for the saved-item form.
 
-AjaxSolr.theme.prototype.saved_formactions = (saveingrouphandler, savetotagshandler, bibtexHandler=null, myADSHandler=null) ->
+AjaxSolr.theme.prototype.saved_formactions = (saveingrouphandler, savetotagshandler, throwhandler=null, bibtexHandler=null, myADSHandler=null) ->
   unless bibtexHandler is null and myADSHandler is null
       return $('<div class="formactions"/>')
         .append($('<input class="btn small" type="button" value="Mark all"/>').click(changeAllButtons true))
         .append($('<input class="btn small" type="button" value="Clear all"/>').click(changeAllButtons false))
-        .append($('<span>&nbsp;<span class="label success"/>&nbsp;</span>'))
+        .append($('<span>&nbsp;<span class="label"/>&nbsp;</span>'))
         .append($('<input class="btn danger small" type="submit" value="Delete" name="action"/>'))
-        .append($('<span>&nbsp;<span class="label success"/>&nbsp;</span>'))
+        .append($('<span>&nbsp;<span class="label"/>&nbsp;</span>'))
         .append($('<select class="groupselect"/>').append(("<option>#{ele}</option>" for ele in mygroups).join('')))
-        .append($('<input class="btn primary small" type="button" value="Save to Collaboration" name="action"/>').click(saveingrouphandler))
-        .append($('<span>&nbsp;<span class="label success"/>&nbsp;</span>'))
+        .append($('<input class="btn primary small" type="button" value="Save to Collabs" name="action"/>').click(saveingrouphandler))
+        .append($('<span>&nbsp;<span class="label"/>&nbsp;</span>'))
         .append($('<input class="medium tagstext" type="text"/>'))
         .append($('<input type="button" class="btn small info" value="Add Tags" name="Tag"/>').click(savetotagshandler)) 
-        .append($('<span>&nbsp;<span class="label success"/>&nbsp;</span>'))
+        .append($('<span>&nbsp;<span class="label"/>&nbsp;</span>'))
+        .append($('<input class="btn info small" type="button" value="Facet"/>').click(throwhandler))
+        .append($('<span>&nbsp;<span class="label"/>&nbsp;</span>'))        
         .append($('<input class="btn info small" type="button" value="Get as BibTex"/>').click(bibtexHandler))
         .append($('<button type="button" name="myads" value="Send to myADS"/>')
           .click(myADSHandler)
           .append($('<img alt="[myADS logo]"/>')
             .attr('src', "#{SITEPREFIX}/static/images/ADSlabs-button.png")))
-  return $('<div class="formactions"/>')
+  $thediv = $('<div class="formactions"/>')
     .append($('<input class="btn small" type="button" value="Mark all"/>').click(changeAllButtons true))
     .append($('<input class="btn small" type="button" value="Clear all"/>').click(changeAllButtons false))
-    .append($('<span>&nbsp;<span class="label success"/>&nbsp;</span>'))
+    .append($('<span>&nbsp;<span class="label"/>&nbsp;</span>'))
     .append($('<input class="btn danger small" type="submit" value="Delete" name="action"/>'))
-    .append($('<span>&nbsp;<span class="label success"/>&nbsp;</span>'))
+    .append($('<span>&nbsp;<span class="label"/>&nbsp;</span>'))
     .append($('<select class="groupselect"/>').append(("<option>#{ele}</option>" for ele in mygroups).join('')))
-    .append($('<input class="btn primary small" type="button" value="Save to Collaboration" name="action"/>').click(saveingrouphandler))
-    .append($('<span>&nbsp;<span class="label success"/>&nbsp;</span>'))
+    .append($('<input class="btn primary small" type="button" value="Save to Collabs" name="action"/>').click(saveingrouphandler))
+    .append($('<span>&nbsp;<span class="label"/>&nbsp;</span>'))
     .append($('<input class="medium tagstext" type="text"/>'))
     .append($('<input type="button" class="btn small info" value="Add Tags" name="Tag"/>').click(savetotagshandler))
+  if throwhandler isnt null
+      $thediv.append($('<span>&nbsp;<span class="label"/>&nbsp;</span>'))
+      $thediv.append($('<input class="btn info small" type="button" value="Facet"/>').click(throwhandler))
+  return $thediv    
+      
 
         
 
@@ -85,9 +92,9 @@ AjaxSolr.theme.prototype.saved_tablerow = (row) ->
 #   bibtexHandler is the click handler for the 'export as BibTex' button
 #   myADSHandler is the click handler for the 'export to myADS' button
 
-AjaxSolr.theme.prototype.saved_items = (idfrag, cols, rows, saveingrouphandler, savetotagshandler, bibtexHandler, myADSHandler) ->
+AjaxSolr.theme.prototype.saved_items = (idfrag, cols, rows, saveingrouphandler, savetotagshandler, throwhandler, bibtexHandler, myADSHandler) ->
   $out = $('<form action="#"/>').attr 'id', "saved-#{idfrag}-form"
-  $actions = AjaxSolr.theme 'saved_formactions', saveingrouphandler, savetotagshandler, bibtexHandler, myADSHandler
+  $actions = AjaxSolr.theme 'saved_formactions', saveingrouphandler, savetotagshandler, throwhandler, bibtexHandler, myADSHandler
 
   $table = $('<table class="tablesorter"/>')
     .attr('id', "saved-#{idfrag}-table")

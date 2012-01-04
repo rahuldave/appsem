@@ -96,11 +96,25 @@ handleItemsWithPK = (widgetname, handler, itemstype, recreate) ->
         else if widgetname is 'tags'
             tagName=$($(this.form).find('.tagstext')[0]).val();
             data = {tagName, objectsToSave}
+        else if widgetname is 'observations'
+            faceter='obsids_s'
+            throwurlist=("#{encodeURIComponent ele}" for ele in items)
+            throwhref="#{SITEPREFIX}/explorer/#{widgetname}#fq=#{faceter}%3A#{throwurlist.join '%20OR%20'}"
+            window.location.href=throwhref
+        else if widgetname is 'publications'
+            faceter='bibcode'
+            bcodes = ($(item).attr('bibcode') for item in $(this.form).find('input[type=checkbox][checked|=true]'))
+            throwurlist=("#{encodeURIComponent ele}" for ele in bcodes)
+            throwhref="#{SITEPREFIX}/explorer/#{widgetname}#fq=#{faceter}%3A#{throwurlist.join '%20OR%20'}"
+            window.location.href=throwhref
         if objectsToSave.length is 0
             alert "No #{itemstype} have been selected."
             return false
         handler itemstype, data, recreate
 
+doThrow = ()->
+    return false
+    
 saveToGroup = (itemstype, map, recreate) ->
     console.log "inwith", map, "#{SITEPREFIX}/save#{itemstype}togroup"
     $.post "#{SITEPREFIX}/save#{itemstype}togroup", JSON.stringify(map), (data) ->
@@ -241,7 +255,7 @@ createSavedSearchSection = (searches) ->
   $div.append AjaxSolr.theme('section_title', 'Saved Searches')
   $div.append AjaxSolr.theme('saved_items', 'searches',
     ['Date saved', 'Search terms', 'Collaborations', 'Tags'], rows, handleItemsWithPK('groups', saveToGroup, 'searches', createSavedSearches),
-    handleItemsWithPK('tags', saveToTag, 'searches', createSavedSearches),
+    handleItemsWithPK('tags', saveToTag, 'searches', createSavedSearches), null,
     null,
     null)
     #handleSearches(getBibTexFromADS),
@@ -278,7 +292,7 @@ createSavedPublications = (tagbool=null) ->
 makePubRow = (p) ->
   groupsintext = ('<a href="'+"#{SITEPREFIX}/explorer/group?fqGroupName=#{ele}"+'">'+ele.split('/').pop()+'</a>' for ele in p.groupsin.unique())
   tagsintext = ('<a href="'+"#{SITEPREFIX}/explorer/saved?tagName=#{ele}"+'">'+ele.split('/').pop()+'</a>' for ele in p.tagsin.unique())
-  [$('<input type="checkbox" name="pubid"/>').attr('value', p.pubid),
+  [$('<input type="checkbox" name="pubid"/>').attr('value', p.pubid).attr('bibcode', p.bibcode),
    $('<span/>').attr('value', p.pubtime).text(p.pubtimestr),
    $('<a/>').attr('href', "#{SITEPREFIX}/explorer/publications#fq=#{p.linkuri}&q=*%3A*")
      .text(p.linktext),
@@ -294,7 +308,7 @@ createSavedPublicationSection = (pubs) ->
   $div.append AjaxSolr.theme('section_title', 'Saved Publications')
   $div.append AjaxSolr.theme('saved_items', 'pubs',
     ['Date saved', 'Title', 'Bibcode', 'Collaborations', 'Tags'], rows, handleItemsWithPK('groups', saveToGroup, 'pubs', createSavedPublications),
-    handleItemsWithPK('tags', saveToTag, 'pubs', createSavedPublications),
+    handleItemsWithPK('tags', saveToTag, 'pubs', createSavedPublications), handleItemsWithPK('publications', doThrow, 'pubs', createSavedPublications),
     handlePublications(getBibTexFromADS),
     handlePublications(saveToMyADS))
 
@@ -336,7 +350,7 @@ createSavedObservationSection = (obsvs) ->
   $div.append AjaxSolr.theme('section_title', 'Saved Observations')
   $div.append AjaxSolr.theme('saved_items', 'obsvs',
     ['Date Observed', 'Obsid', 'Target', 'Collaborations', 'Tags'], rows, handleItemsWithPK('groups', saveToGroup, 'obsvs', createSavedObservations),
-    handleItemsWithPK('tags', saveToTag, 'obsvs', createSavedObservations),
+    handleItemsWithPK('tags', saveToTag, 'obsvs', createSavedObservations),handleItemsWithPK('observations', doThrow, 'obsvs', createSavedObservations),
     null,
     null)
 

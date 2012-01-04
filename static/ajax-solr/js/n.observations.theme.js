@@ -14,9 +14,9 @@ function encodeObsuri(obsuri){
 
 
     AjaxSolr.theme.prototype.result2 = function (doc, $thetitlestuff, $keywordstuff, $additional, $lessmore, thedocthis) {
-	    var $morea = $('<a href="#" class="morelink" id="am_'+encodeObsuri(doc.obsids_s)+'">more</a>');
+	    var $morea = $('<a href="#" class="morelink label" id="am_'+encodeObsuri(doc.obsids_s)+'">more</a>');
 	        //.click(thedocthis.moreHandler(doc));
-	    var $lessa = $('<a href="#" class="lesslink" id="al_'+encodeObsuri(doc.obsids_s)+'" style="display:none">less</a>');
+	    var $lessa = $('<a href="#" class="lesslink label" id="al_'+encodeObsuri(doc.obsids_s)+'" style="display:none">less</a>');
 	        //.click(thedocthis.lessHandler(doc));
 	    var $bookmark = $('<a href="#" class="savelink" id="savepub_'+encodeObsuri(doc.obsids_s)+'">save</a>');
 	        //.click(thedocthis.saveHandler(doc));
@@ -83,10 +83,17 @@ function encodeObsuri(obsuri){
 	    return $output2;
 
     }; // Ajax.theme.prototype.snippet
-    
-    AjaxSolr.theme.prototype.publicationpreamble=function(npub){
+    var doADSProxy2 = function(urlpath, datastring, callback) {
+      console.log(urlpath, datastring);    
+      return $.post("" + SITEPREFIX + "/adsproxy2", JSON.stringify({
+        urlpath: urlpath,
+        method: 'POST',
+        data: {bibcode: datastring, data_type: 'HTML'}
+      }), callback);
+    };
+    AjaxSolr.theme.prototype.publicationpreamble=function(npub, pubcollection){
         //alert(nobj);
-        console.log("npub is", npub);
+        //console.log("npub is", npub);
         var $start=$('<div class="insidepublicationarea"/>').append(pubLabel('Papers')).append('<p class="extrapara"/>').append(' ');
         if (npub===0){
             $start.append('None');
@@ -99,7 +106,22 @@ function encodeObsuri(obsuri){
 		var $obody = $('<tbody class="publicationtbody"/>');
 	    $otable.append($obody);
 	    //$otable.tablesorter();
-
+        if (npub < 200) {
+            var fbhandler = function() {
+                //console.log(pubcollection, pubcollection.docids, pubcollection.bibcodes);
+                poststring=pubcollection.doc.bibcode.join("\n");
+                //$.fancybox({content:'http://adsabs.harvard.edu/tools/metrics', type:'iframe', 'autoDimensions': false, 'width': 1024, 'height': 768});
+                doADSProxy2('/tools/metrics', poststring, function(data){
+                    data=data.replace(/\/tools/g, 'http://adsabs.harvard.edu/tools');
+                    data=data.replace('<img src="http://doc.adsabs.harvard.edu/figs/newlogo.gif" alt="ADS" /> <br>','');
+                    //console.log("databack", data);
+                    $.fancybox({content: data, 'autoDimensions': false, 'width': 1024, 'height': 768});
+                })
+                return false;
+                //alert("Hi"+doc.bibcode);
+            };
+            $start.append($('<a class="label"/>').text("Metrics").bind('click', fbhandler));
+        }
 	    //$dataarea.append($('<div class="missiondata"/>').append($mtable));
 	    $start.append($otable);
 	    return $start.append($('<br/>'));
@@ -121,7 +143,7 @@ function encodeObsuri(obsuri){
       };
 
     AjaxSolr.theme.prototype.objectpreamble=function(nobj){
-        console.log("World"+nobj);
+        //console.log("World"+nobj);
         var $start=$('<div class="insideobjectarea"/>').append(pubLabel('Objects')).append('<p class="extrapara"/>').append(' ');
         if (nobj===0){
             $start.append('None');
@@ -182,7 +204,7 @@ AjaxSolr.theme.prototype.title2 = function (doc) {
     var splitobsid=doc.obsv_mission_s.split('/');
     var missionname=splitobsid[splitobsid.length -1];
     var obsidwithoutmission=doc.obsids_s.split('/');
-    console.log(splitobsid, missionname, obsidwithoutmission);
+    //console.log(splitobsid, missionname, obsidwithoutmission);
     var titlehref=getObslink(missionname,obsidwithoutmission[obsidwithoutmission.length -1]);
     var $titlelink=$('<a class="iframe"/>').text('(Link)')
             .attr('href', titlehref)

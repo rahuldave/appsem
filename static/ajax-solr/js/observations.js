@@ -49,7 +49,7 @@ var SOLRURL2 = SITEPREFIX + '/solr2/';
 
 		$.getJSON(SITEPREFIX+'/savedsearches', function(data){
 		    var thissearchurl='observations#'+location.href.split("#")[1];
-		    console.log("THISSEARCHURL", thissearchurl);
+		    //console.log("THISSEARCHURL", thissearchurl);
 		    //alert(thissearchurl);
 		    if (data['savedsearches']!='undefined'){
 			    var savedsearcharray=data['savedsearches'];
@@ -71,7 +71,7 @@ var SOLRURL2 = SITEPREFIX + '/solr2/';
 		    if (ObservationsManager.store.values('fq').length == 0) {
 		        $('#save-search').hide();
 		    } else {
-		        console.log('FQVALS', ObservationsManager.store.values('fq'))
+		        //console.log('FQVALS', ObservationsManager.store.values('fq'))
 		        $('#save-search').show();
 		    }
 		});

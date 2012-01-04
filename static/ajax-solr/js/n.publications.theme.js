@@ -10,9 +10,9 @@
     };
     //HANDLER
     AjaxSolr.theme.prototype.result = function (doc, $thetitlestuff, $keywordstuff, $additional, $lessmore, thedocthis) {
-	    var $morea = $('<a href="#" class="morelink" id="am_'+doc.id+'">more</a>');
+	    var $morea = $('<a href="#" class="morelink label" id="am_'+doc.id+'">more</a>');
 	        //.click(thedocthis.moreHandler(doc));
-	    var $lessa = $('<a href="#" class="lesslink" id="al_'+doc.id+'" style="display:none">less</a>');
+	    var $lessa = $('<a href="#" class="lesslink label" id="al_'+doc.id+'" style="display:none">less</a>');
 	        //.click(thedocthis.lessHandler(doc));
 	    var $bookmark = $('<a href="#" class="savelink" id="savepub_'+doc.id+'">save</a>');
 	        //.click(thedocthis.saveHandler(doc));

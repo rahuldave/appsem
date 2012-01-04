@@ -4,7 +4,7 @@ $ = jQuery
 
 # Create a title for a saved item (e.g. searches or publications) area.
 
-AjaxSolr.theme.prototype.saved_title = (text) -> $('<h3/>').text text
+AjaxSolr.theme.prototype.section_title = (text) -> $('<h4/>').text text
 
 # Set or unset all the buttons in the table.
 
@@ -20,7 +20,9 @@ AjaxSolr.theme.prototype.saved_formactions = (bibtexHandler=null, myADSHandler=n
       return $('<div class="formactions"/>')
         .append($('<input class="btn small" type="button" value="Mark all"/>').click(changeAllButtons true))
         .append($('<input class="btn small" type="button" value="Clear all"/>').click(changeAllButtons false))
+        .append($('<span>&nbsp;<span class="label success"/>&nbsp;</span>'))
         .append($('<input class="btn danger small" type="submit" value="Remove" name="action"/>'))
+        .append($('<span>&nbsp;<span class="label success"/>&nbsp;</span>'))
         .append($('<input class="btn info small" type="button" value="Get as BibTex"/>').click(bibtexHandler))
         .append($('<button type="button" name="myads" value="Send to myADS"/>')
           .click(myADSHandler)
@@ -29,6 +31,7 @@ AjaxSolr.theme.prototype.saved_formactions = (bibtexHandler=null, myADSHandler=n
   return $('<div class="formactions"/>')
     .append($('<input class="btn small" type="button" value="Mark all"/>').click(changeAllButtons true))
     .append($('<input class="btn small" type="button" value="Clear all"/>').click(changeAllButtons false))
+    .append($('<span>&nbsp;<span class="label success"/>&nbsp;</span>'))
     .append($('<input class="btn danger small" type="submit" value="Remove" name="action"/>'))
 
         

@@ -118,6 +118,8 @@ doObservations = doView "Observations", bodybodyobsv,
     staticprefix: STATICPREFIX
 
   bodybody:
+    siteprefix: SITEPREFIX
+    staticprefix: STATICPREFIX
     bodyright:
       siteprefix: SITEPREFIX
       staticprefix: STATICPREFIX
@@ -156,13 +158,15 @@ doHelp = doView "Help", bodybodyhelp,
       staticprefix: STATICPREFIX
 
     bodybody:
+      siteprefix: SITEPREFIX
+      staticprefix: STATICPREFIX
       bodyright:
         siteprefix: SITEPREFIX
         staticprefix: STATICPREFIX
             
-doGroup = doView "Group", bodybodygroup,
+doGroup = doView "Collaboration", bodybodygroup,
         pagehead:
-          pagetitle: 'Group'
+          pagetitle: 'Collaboration'
           pageclass: 'group'
           haswidgets: false
           siteprefix: SITEPREFIX
@@ -175,6 +179,8 @@ doGroup = doView "Group", bodybodygroup,
           staticprefix: STATICPREFIX
 
         bodybody:
+          siteprefix: SITEPREFIX
+          staticprefix: STATICPREFIX
           bodyright:
             siteprefix: SITEPREFIX
             staticprefix: STATICPREFIX
@@ -194,6 +200,8 @@ doUser = doView "User", bodybodyuser,
           staticprefix: STATICPREFIX
 
         bodybody:
+          siteprefix: SITEPREFIX
+          staticprefix: STATICPREFIX
           bodyright:
             siteprefix: SITEPREFIX
             staticprefix: STATICPREFIX            

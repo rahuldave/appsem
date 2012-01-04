@@ -3,10 +3,11 @@
   A NodeJS server that statically serves javascript out, proxies solr requests,
   and handles authentication through the ADS
   */
-  var SITEPREFIX, STATICPREFIX, addUser, completeRequest, config, connect, connectutils, doADSProxy, doADSProxy2, doADSProxyHandler, doADSProxyHandler2, doPost, doPostWithJSON, explorouter, failedRequest, fs, getUser, groups, http, ifLoggedIn, loginUser, logoutUser, makeADSJSONPCall, migration, mustache, postHandler, postHandlerWithJSON, proxy, quickRedirect, redis_client, requests, runServer, saved, server, solrrouter, solrrouter2, successfulRequest, tags, url, user, views;
+  var SITEPREFIX, STATICPREFIX, addUser, completeRequest, config, connect, connectutils, doADSProxy, doADSProxy2, doADSProxyHandler, doADSProxyHandler2, doPost, doPostWithJSON, explorouter, failedRequest, fs, getUser, groups, http, ifLoggedIn, loginUser, logoutUser, makeADSJSONPCall, migration, mustache, postHandler, postHandlerWithJSON, proxy, querystring, quickRedirect, redis_client, requests, runServer, saved, server, solrrouter, solrrouter2, successfulRequest, tags, url, user, views;
   connect = require('connect');
   connectutils = connect.utils;
   http = require('http');
+  querystring = require('querystring');
   url = require('url');
   mustache = require('mustache');
   fs = require('fs');
@@ -103,21 +104,30 @@
     });
   };
   doADSProxyHandler2 = function(payload, req, res, next) {
-    var args, data, method, opts, urlpath, _ref;
+    var args, data, method, opts, poststring, urlpath, _ref;
     console.log('>> In doADSProxyHandler2');
     console.log(">>    cookies=" + (JSON.stringify(req.cookies)));
     console.log(">>    payload=" + payload);
     args = JSON.parse(payload);
+    console.log("ARGS", args);
     urlpath = args.urlpath;
     method = (_ref = args.method) != null ? _ref : 'GET';
     data = args.data;
     console.log(">>   proxying request: " + urlpath);
+    poststring = querystring.stringify(data);
     opts = {
       host: config.ADSHOST,
       port: 80,
-      path: urlpath
+      method: method,
+      path: urlpath,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Length': poststring.length
+      }
     };
-    return proxy.doProxyPost(opts, data, req, res);
+    console.log(opts);
+    console.log(poststring);
+    return proxy.doProxyPost(opts, poststring, req, res);
   };
   doADSProxy = doPost(doADSProxyHandler);
   doADSProxy2 = doPost(doADSProxyHandler2);

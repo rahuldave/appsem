@@ -104,6 +104,8 @@
       staticprefix: STATICPREFIX
     },
     bodybody: {
+      siteprefix: SITEPREFIX,
+      staticprefix: STATICPREFIX,
       bodyright: {
         siteprefix: SITEPREFIX,
         staticprefix: STATICPREFIX
@@ -146,15 +148,17 @@
       staticprefix: STATICPREFIX
     },
     bodybody: {
+      siteprefix: SITEPREFIX,
+      staticprefix: STATICPREFIX,
       bodyright: {
         siteprefix: SITEPREFIX,
         staticprefix: STATICPREFIX
       }
     }
   });
-  doGroup = doView("Group", bodybodygroup, {
+  doGroup = doView("Collaboration", bodybodygroup, {
     pagehead: {
-      pagetitle: 'Group',
+      pagetitle: 'Collaboration',
       pageclass: 'group',
       haswidgets: false,
       siteprefix: SITEPREFIX,
@@ -167,6 +171,8 @@
       staticprefix: STATICPREFIX
     },
     bodybody: {
+      siteprefix: SITEPREFIX,
+      staticprefix: STATICPREFIX,
       bodyright: {
         siteprefix: SITEPREFIX,
         staticprefix: STATICPREFIX
@@ -188,6 +194,8 @@
       staticprefix: STATICPREFIX
     },
     bodybody: {
+      siteprefix: SITEPREFIX,
+      staticprefix: STATICPREFIX,
       bodyright: {
         siteprefix: SITEPREFIX,
         staticprefix: STATICPREFIX

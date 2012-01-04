@@ -201,9 +201,9 @@ createSavedSearchSection = (searches) ->
 
   rows = (makeSearchRow s for s in searches)
   $div = $('div#saved-searches')
-  $div.append AjaxSolr.theme('saved_title', 'Saved Searches')
+  $div.append AjaxSolr.theme('section_title', 'Saved Searches')
   $div.append AjaxSolr.theme('saved_items', 'searches',
-    ['Date saved', 'Search terms', 'Groups', 'Tags'], rows,
+    ['Date saved', 'Search terms', 'Collaborations', 'Tags'], rows,
     null,
     null)
     #handleSearches(getBibTexFromADS),
@@ -255,9 +255,9 @@ createSavedPublicationSection = (pubs) ->
 
   rows = (makePubRow pub for pub in pubs)
   $div = $('div#saved-pubs')
-  $div.append AjaxSolr.theme('saved_title', 'Saved Publications')
+  $div.append AjaxSolr.theme('section_title', 'Saved Publications')
   $div.append AjaxSolr.theme('saved_items', 'pubs',
-    ['Date saved', 'Title', 'Bibcode', 'Groups', 'Tags'], rows,
+    ['Date saved', 'Title', 'Bibcode', 'Collaborations', 'Tags'], rows,
     handlePublications(getBibTexFromADS),
     handlePublications(saveToMyADS))
 
@@ -298,9 +298,9 @@ createSavedObservationSection = (obsvs) ->
 
   rows = (makeObsvRow obsv for obsv in obsvs)
   $div = $('div#saved-obsvs')
-  $div.append AjaxSolr.theme('saved_title', 'Saved Observations')
+  $div.append AjaxSolr.theme('section_title', 'Saved Observations')
   $div.append AjaxSolr.theme('saved_items', 'obsvs',
-    ['Date Observed', 'Obsid', 'Target', 'Groups', 'Tags'], rows,
+    ['Date Observed', 'Obsid', 'Target', 'Collaborations', 'Tags'], rows,
     null,
     null)
 
@@ -309,17 +309,17 @@ createSavedObservationSection = (obsvs) ->
 # The user has no saved searches.
 
 noSavedSearches = () ->
-  $('div#saved-searches').append AjaxSolr.theme('saved_title', 'No saved searches')
+  $('div#saved-searches').append AjaxSolr.theme('section_title', 'No saved searches')
   return true
 
 # The user has no saved publications.
 
 noSavedPublications = () ->
-  $('div#saved-pubs').append AjaxSolr.theme('saved_title', 'No saved publications')
+  $('div#saved-pubs').append AjaxSolr.theme('section_title', 'No saved publications')
   return true
 
 noSavedObservations = () ->
-  $('div#saved-obsvs').append AjaxSolr.theme('saved_title', 'No saved observations')
+  $('div#saved-obsvs').append AjaxSolr.theme('section_title', 'No saved observations')
   return true
 # When a user logs in we need to create the saved search and publication
 # tables.

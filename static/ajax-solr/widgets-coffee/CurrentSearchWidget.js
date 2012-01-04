@@ -70,7 +70,7 @@
           order.push(c.display);
           store[c.display] = [];
         }
-        console.log("&&&&&&", c.field, c.display, self.allowmulti, store[c.display]);
+        console.log("&&&&&&", c.field, c.display, self.allowmulti);
         if ((_ref3 = c.field, __indexOf.call(self.allowmulti, _ref3) >= 0) || store[c.display].length === 0) {
           store[c.display].push($span);
           console.log("LLL", c);

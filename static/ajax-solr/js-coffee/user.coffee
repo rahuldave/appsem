@@ -82,9 +82,9 @@ createMemberOfGroupsSection = (groups) ->
 
   rows = (makeMemberOfGroupsSectionRow s for s in groups)
   $div = $('div#member_groups')
-  $div.append AjaxSolr.theme('section_title', 'Groups you are a member of:')
+  $div.append AjaxSolr.theme('section_title', 'Collaborations you are a member of:')
   $div.append AjaxSolr.theme('section_items', 'member_groups',
-    ['Group Name', 'Members'], rows)
+    ['Collaboration Name', 'Members'], rows)
     #handleSearches(getBibTexFromADS),
     #handleSearches(saveToMyADS))
 
@@ -100,7 +100,7 @@ createMemberOfGroupsSection = (groups) ->
 
 
 noMemberOfGroups = () ->
-  $('div#member_groups').append AjaxSolr.theme('section_title', 'No Groups you are a member of')
+  $('div#member_groups').append AjaxSolr.theme('section_title', 'No Collaborations you are a member of')
   return true      
   
 
@@ -145,9 +145,9 @@ createPendingInvitationsSection = (groups) ->
   ngroup = groups.length
   rows = (makePendingInvitationsSectionRow s for s in groups)
   $div = $('div#pending_invitations')
-  $div.append AjaxSolr.theme('section_title', 'Groups you are invited to:')
+  $div.append AjaxSolr.theme('section_title', 'Collaborations you are invited to:')
   $div.append AjaxSolr.theme('section_items', 'pending_invitations',
-    ['Group Name', 'Creator'], rows, null, handleAccepts(refreshAll))
+    ['Collaboration Name', 'Creator'], rows, null, handleAccepts(refreshAll))
     #handleSearches(getBibTexFromADS),
     #handleSearches(saveToMyADS))
   $('#pending_invitations-form').submit submitDeleteActionInvitations('/declineinvitationtogroup', 'fqGroupName', createPendingInvitations)
@@ -164,7 +164,7 @@ createPendingInvitationsSection = (groups) ->
 
 
 noPendingInvitations = () ->
-  $('div#pending_invitations').append AjaxSolr.theme('section_title', 'No Pending Invitations To Groups')
+  $('div#pending_invitations').append AjaxSolr.theme('section_title', 'No Pending Invitations To Collaborations')
   return true  
 
 submitDeleteActionOwnerGroups = (path, idname, recreate) ->
@@ -209,9 +209,9 @@ createOwnerOfGroupsSection = (groups) ->
 
     rows = (makeOwnerOfGroupsSectionRow s for s in groups)
     $div = $('div#owner_groups')
-    $div.append AjaxSolr.theme('section_title', 'Groups you are the owner of:')
+    $div.append AjaxSolr.theme('section_title', 'Collaborations you are the owner of:')
     $div.append AjaxSolr.theme('section_items', 'owner_groups',
-      ['Group Name', 'Other Members', 'Invitations'], rows, handleInvites(refreshAll))
+      ['Collaboration Name', 'Other Members', 'Invitations'], rows, handleInvites(refreshAll))
       #handleSearches(getBibTexFromADS),
       #handleSearches(saveToMyADS))
 
@@ -260,7 +260,7 @@ createOwnerOfGroupsSection = (groups) ->
 
 
 noOwnerOfGroups = () ->
-    $('div#owner_groups').append AjaxSolr.theme('section_title', 'No Groups you are a owner of')
+    $('div#owner_groups').append AjaxSolr.theme('section_title', 'No Collaborations you are a owner of')
     return true
 
 refreshAll = () ->

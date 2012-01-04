@@ -340,8 +340,8 @@
       return _results;
     })();
     $div = $('div#saved-searches');
-    $div.append(AjaxSolr.theme('saved_title', 'Saved Searches'));
-    $div.append(AjaxSolr.theme('saved_items', 'searches', ['Date saved', 'Search terms', 'Groups', 'Tags'], rows, handleItemsWithPK('groups', saveToGroup, 'searches', createSavedSearches), handleItemsWithPK('tags', saveToTag, 'searches', createSavedSearches), null, null));
+    $div.append(AjaxSolr.theme('section_title', 'Saved Searches'));
+    $div.append(AjaxSolr.theme('saved_items', 'searches', ['Date saved', 'Search terms', 'Collaborations', 'Tags'], rows, handleItemsWithPK('groups', saveToGroup, 'searches', createSavedSearches), handleItemsWithPK('tags', saveToTag, 'searches', createSavedSearches), null, null));
     $('#saved-searches-form').submit(submitDeleteAction('/deletesearches', 'searchid', createSavedSearches));
     return $('#saved-searches-table').tablesorter(tsortopts);
   };
@@ -407,8 +407,8 @@
       return _results;
     })();
     $div = $('div#saved-pubs');
-    $div.append(AjaxSolr.theme('saved_title', 'Saved Publications'));
-    $div.append(AjaxSolr.theme('saved_items', 'pubs', ['Date saved', 'Title', 'Bibcode', 'Groups', 'Tags'], rows, handleItemsWithPK('groups', saveToGroup, 'pubs', createSavedPublications), handleItemsWithPK('tags', saveToTag, 'pubs', createSavedPublications), handlePublications(getBibTexFromADS), handlePublications(saveToMyADS)));
+    $div.append(AjaxSolr.theme('section_title', 'Saved Publications'));
+    $div.append(AjaxSolr.theme('saved_items', 'pubs', ['Date saved', 'Title', 'Bibcode', 'Collaborations', 'Tags'], rows, handleItemsWithPK('groups', saveToGroup, 'pubs', createSavedPublications), handleItemsWithPK('tags', saveToTag, 'pubs', createSavedPublications), handlePublications(getBibTexFromADS), handlePublications(saveToMyADS)));
     $('#saved-pubs-form').submit(submitDeleteAction('/deletepubs', 'pubid', createSavedPublications));
     return $('#saved-pubs-table').tablesorter(tsortopts);
   };
@@ -474,21 +474,21 @@
       return _results;
     })();
     $div = $('div#saved-obsvs');
-    $div.append(AjaxSolr.theme('saved_title', 'Saved Observations'));
-    $div.append(AjaxSolr.theme('saved_items', 'obsvs', ['Date Observed', 'Obsid', 'Target', 'Groups', 'Tags'], rows, handleItemsWithPK('groups', saveToGroup, 'obsvs', createSavedObservations), handleItemsWithPK('tags', saveToTag, 'obsvs', createSavedObservations), null, null));
+    $div.append(AjaxSolr.theme('section_title', 'Saved Observations'));
+    $div.append(AjaxSolr.theme('saved_items', 'obsvs', ['Date Observed', 'Obsid', 'Target', 'Collaborations', 'Tags'], rows, handleItemsWithPK('groups', saveToGroup, 'obsvs', createSavedObservations), handleItemsWithPK('tags', saveToTag, 'obsvs', createSavedObservations), null, null));
     $('#saved-obsvs-form').submit(submitDeleteAction('/deleteobsvs', 'obsvid', createSavedObservations));
     return $('#saved-obsvs-table').tablesorter(tsortopts);
   };
   noSavedSearches = function() {
-    $('div#saved-searches').append(AjaxSolr.theme('saved_title', 'No saved searches'));
+    $('div#saved-searches').append(AjaxSolr.theme('section_title', 'No saved searches'));
     return true;
   };
   noSavedPublications = function() {
-    $('div#saved-pubs').append(AjaxSolr.theme('saved_title', 'No saved publications'));
+    $('div#saved-pubs').append(AjaxSolr.theme('section_title', 'No saved publications'));
     return true;
   };
   noSavedObservations = function() {
-    $('div#saved-obsvs').append(AjaxSolr.theme('saved_title', 'No saved observations'));
+    $('div#saved-obsvs').append(AjaxSolr.theme('section_title', 'No saved observations'));
     return true;
   };
   mediator.subscribe('user/login', function(email) {

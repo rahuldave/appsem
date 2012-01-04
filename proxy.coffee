@@ -28,14 +28,22 @@ doProxyPost = (proxyoptions, data, req, res) ->
     console.log "--- proxy request #{req.method} #{req.url}"
 
     proxy_request = http.request(proxyoptions, (proxy_response) ->
-      proxy_response.addListener 'data', (chunk) -> res.write chunk, 'binary'
-      proxy_response.addListener 'end', () -> res.end()
+      proxy_response.addListener 'data', (chunk) -> 
+        #console.log "DATA", chunk
+        res.write chunk, 'binary'
+      proxy_response.addListener 'end', () -> 
+        console.log 'PREND'
+        res.end()
       res.writeHead proxy_response.statusCode, proxy_response.headers
     ).on 'error', (e) -> console.log "ERROR during proxy: #{e.message}"
     
     # Is this needed? Original comment said "BELOW is not needed. presumably helps in POST"
-    req.addListener 'data', (chunk) -> proxy_request.write chunk, 'binary'
-    req.addListener 'end', () -> proxy_request.end()
+    req.addListener 'data', (chunk) -> 
+        console.log "CHUNK", chunk
+        proxy_request.write chunk, 'binary'
+    req.addListener 'end', () ->
+        console.log "END" 
+        proxy_request.end()
     console.log proxyoptions, data
     proxy_request.write(data)
     proxy_request.end()

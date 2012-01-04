@@ -154,8 +154,8 @@
       return _results;
     })();
     $div = $('div#member_groups');
-    $div.append(AjaxSolr.theme('section_title', 'Groups you are a member of:'));
-    $div.append(AjaxSolr.theme('section_items', 'member_groups', ['Group Name', 'Members'], rows));
+    $div.append(AjaxSolr.theme('section_title', 'Collaborations you are a member of:'));
+    $div.append(AjaxSolr.theme('section_items', 'member_groups', ['Collaboration Name', 'Members'], rows));
     $('#member_groups-form').submit(submitUnsubscribeGroupAction('/removeoneselffromgroup', 'fqGroupName', createMemberOfGroups));
     _results = [];
     for (idx = 0, _ref = groups.length; 0 <= _ref ? idx < _ref : idx > _ref; 0 <= _ref ? idx++ : idx--) {
@@ -174,7 +174,7 @@
     return _results;
   };
   noMemberOfGroups = function() {
-    $('div#member_groups').append(AjaxSolr.theme('section_title', 'No Groups you are a member of'));
+    $('div#member_groups').append(AjaxSolr.theme('section_title', 'No Collaborations you are a member of'));
     return true;
   };
   submitDeleteActionInvitations = function(path, idname, recreate) {
@@ -251,8 +251,8 @@
       return _results;
     })();
     $div = $('div#pending_invitations');
-    $div.append(AjaxSolr.theme('section_title', 'Groups you are invited to:'));
-    $div.append(AjaxSolr.theme('section_items', 'pending_invitations', ['Group Name', 'Creator'], rows, null, handleAccepts(refreshAll)));
+    $div.append(AjaxSolr.theme('section_title', 'Collaborations you are invited to:'));
+    $div.append(AjaxSolr.theme('section_items', 'pending_invitations', ['Collaboration Name', 'Creator'], rows, null, handleAccepts(refreshAll)));
     $('#pending_invitations-form').submit(submitDeleteActionInvitations('/declineinvitationtogroup', 'fqGroupName', createPendingInvitations));
     _results = [];
     for (idx = 0, _ref = groups.length; 0 <= _ref ? idx < _ref : idx > _ref; 0 <= _ref ? idx++ : idx--) {
@@ -272,7 +272,7 @@
     return _results;
   };
   noPendingInvitations = function() {
-    $('div#pending_invitations').append(AjaxSolr.theme('section_title', 'No Pending Invitations To Groups'));
+    $('div#pending_invitations').append(AjaxSolr.theme('section_title', 'No Pending Invitations To Collaborations'));
     return true;
   };
   submitDeleteActionOwnerGroups = function(path, idname, recreate) {
@@ -347,8 +347,8 @@
       return _results;
     })();
     $div = $('div#owner_groups');
-    $div.append(AjaxSolr.theme('section_title', 'Groups you are the owner of:'));
-    $div.append(AjaxSolr.theme('section_items', 'owner_groups', ['Group Name', 'Other Members', 'Invitations'], rows, handleInvites(refreshAll)));
+    $div.append(AjaxSolr.theme('section_title', 'Collaborations you are the owner of:'));
+    $div.append(AjaxSolr.theme('section_items', 'owner_groups', ['Collaboration Name', 'Other Members', 'Invitations'], rows, handleInvites(refreshAll)));
     $('#owner_groups-form').submit(submitDeleteActionOwnerGroups('/deletegroup', 'fqGroupName', refreshAll));
     console.log("grpus", groups);
     inviteremovehandler = function() {
@@ -433,7 +433,7 @@
     return _results;
   };
   noOwnerOfGroups = function() {
-    $('div#owner_groups').append(AjaxSolr.theme('section_title', 'No Groups you are a owner of'));
+    $('div#owner_groups').append(AjaxSolr.theme('section_title', 'No Collaborations you are a owner of'));
     return true;
   };
   refreshAll = function() {

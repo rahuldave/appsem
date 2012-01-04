@@ -39,11 +39,11 @@
       return $.post("" + SITEPREFIX + "/adsproxy2", JSON.stringify({
         urlpath: urlpath,
         method: 'POST',
-        data: datastring
+        data: {bibcode: datastring, data_type: 'HTML'}
       }), callback);
     };
     AjaxSolr.theme.prototype.title = function (doc) {
-        var $titlelink=$('<a class="iframe"/>').text('(Link)')
+        var $titlelink=$('<a class="iframe" href="#"/>').text('(Link)')
             .attr('href', "http://labs.adsabs.harvard.edu/ui/abs/"+doc.bibcode)
             .fancybox(fancyboxOpts);
         var $titlepivot=AjaxSolr.theme.prototype.pivot('bibcode');
@@ -51,16 +51,18 @@
             poststring=doc.bibcode
             //$.fancybox({content:'http://adsabs.harvard.edu/tools/metrics', type:'iframe', 'autoDimensions': false, 'width': 1024, 'height': 768});
             doADSProxy2('/tools/metrics', poststring, function(data){
-                console.log("return data", data);
-                $.fancybox({content:data, type:'iframe', 'autoDimensions': false, 'width': 1024, 'height': 768});
+                data=data.replace(/\/tools/g, 'http://adsabs.harvard.edu/tools');
+                data=data.replace('<img src="http://doc.adsabs.harvard.edu/figs/newlogo.gif" alt="ADS" /> <br>','');
+                //console.log("databack", data);
+                $.fancybox({content: data, 'autoDimensions': false, 'width': 1024, 'height': 768});
             })
+            return false;
             //alert("Hi"+doc.bibcode);
         };
         return $('<h5/>').append(doc.title + " ")
                          .append($titlelink)
                          .append($titlepivot)
-                         .append($('<a class="iframe fbman"/>').text("woo").bind('click', fbhandler))
-                         ;
+                         .append($('<a class="label"/>').text("Metrics").bind('click', fbhandler));
     }
 
 
@@ -362,6 +364,7 @@
 		    .append($('<td/>')
 			          .append(AjaxSolr.theme.prototype.mission_link(doc.mission, doc.obsids_s))
 			          .append(AjaxSolr.theme.prototype.facet_link('[P]', 'obsids_s', doc.mission + '/' + doc.obsids_s))
+			          .append($('<a class="label" href="'+SITEPREFIX+'/explorer/observations#fq=obsids_s%3A'+doc.mission+'%2F'+doc.obsids_s+'&q=*%3A*"/>').text('Go'))
 			)
 		    .append($('<td/>').text(doc.exptime_f))
 		    .append($('<td/>').text(doc.obsvtime_d))

@@ -109,7 +109,10 @@ function encodeObsuri(obsuri){
         var bcode=doc.bibcode;
         var byear=doc.year;
         $obody.append($('<td/>')
-				      .append(AjaxSolr.theme.prototype.facet_link2(bcode, 'bibcode', bcode))
+                      .append(AjaxSolr.theme.prototype.bibcode_link(bcode))
+				      .append(AjaxSolr.theme.prototype.facet_link2('[P]', 'bibcode', bcode))
+				      .append($('<a class="label" href="'+SITEPREFIX+'/explorer/publications#fq=bibcode%3A'+encodeURIComponent(bcode)+'&q=*%3A*"/>').text('Go'))
+			          
 				  )
 			      .append($('<td/>')
 				      .append(AjaxSolr.theme.prototype.facet_link2(byear, 'pubyear_i', '['+byear+' TO ' + byear +']'))
@@ -136,6 +139,12 @@ function encodeObsuri(obsuri){
 	    $start.append($otable);
 	    return $start.append($('<br/>'));
      };
+     AjaxSolr.theme.prototype.bibcode_link = function(ele){
+          return $('<a class="iframe"></a>')
+  	        .text(ele)
+  	        .attr('href', "http://labs.adsabs.harvard.edu/ui/abs/"+ele)
+  	        .fancybox(fancyboxOpts);
+      }
      AjaxSolr.theme.prototype.simbad_link = function(ele){
          return $('<a class="iframe"></a>')
  	        .text(ele)
@@ -179,11 +188,12 @@ AjaxSolr.theme.prototype.title2 = function (doc) {
             .attr('href', titlehref)
             .fancybox(fancyboxOpts);
 
-   
+//http://archive.stsci.edu/load_specview.php?name=iue/lwp31915mxlo_vo.fits   
     var $titlepivot=AjaxSolr.theme.prototype.pivot2('obsids_s');
     return $('<h5/>').append(doc.obsv_mission_s + ": "+obsidwithoutmission[obsidwithoutmission.length -1])
                          .append($titlelink)
-                         .append($titlepivot);
+                         .append($titlepivot)
+                         .append($('<a class="label" href="'+doc.data_url_s+'"/>').text("Download"));
 }
 
     AjaxSolr.theme.prototype.pivot2 = function (pivotclass){

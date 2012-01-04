@@ -40,6 +40,7 @@
         return res.write(chunk, 'binary');
       });
       proxy_response.addListener('end', function() {
+        console.log('PREND');
         return res.end();
       });
       return res.writeHead(proxy_response.statusCode, proxy_response.headers);
@@ -47,9 +48,11 @@
       return console.log("ERROR during proxy: " + e.message);
     });
     req.addListener('data', function(chunk) {
+      console.log("CHUNK", chunk);
       return proxy_request.write(chunk, 'binary');
     });
     req.addListener('end', function() {
+      console.log("END");
       return proxy_request.end();
     });
     console.log(proxyoptions, data);

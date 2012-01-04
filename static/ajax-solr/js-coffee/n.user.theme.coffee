@@ -18,20 +18,25 @@ AjaxSolr.theme.prototype.owner_groups_formactions = (invitehandler, accepthandle
   return $('<div class="formactions"/>')
     .append($('<input type="button" class="btn small" value="Mark all"/>').click(changeAllButtons true))
     .append($('<input type="button" class="btn small" value="Clear all"/>').click(changeAllButtons false))
-    .append($('<input type="submit" class="btn small danger" value="Delete Groups" name="action"/>'))
+    .append($('<span>&nbsp;<span class="label success"/>&nbsp;</span>'))
+    .append($('<input type="submit" class="btn small danger" value="Delete Collaborations" name="action"/>'))
+    .append($('<span>&nbsp;<span class="label success"/>&nbsp;</span>'))
     .append($('<input class="medium invitetext" type="text"/>'))
     .append($('<input type="button" class="btn small info" value="Invite" name="Invite"/>').click(invitehandler))
 AjaxSolr.theme.prototype.member_groups_formactions = (invitehandler, accepthandler) ->
   return $('<div class="formactions"/>')
     .append($('<input type="button" class="btn small" value="Mark all"/>').click(changeAllButtons true))
     .append($('<input type="button" class="btn small" value="Clear all"/>').click(changeAllButtons false))
+    .append($('<span>&nbsp;<span class="label success"/>&nbsp;</span>'))
     .append($('<input type="submit" class="btn small danger" value="Unsubscribe" name="action"/>'))
 
 AjaxSolr.theme.prototype.pending_invitations_formactions = (invitehandler, accepthandler) ->
   return $('<div class="formactions"/>')
     .append($('<input type="button" class="btn small" value="Mark all"/>').click(changeAllButtons true))
     .append($('<input type="button" class="btn small" value="Clear all"/>').click(changeAllButtons false))
+    .append($('<span>&nbsp;<span class="label success"/>&nbsp;</span>'))
     .append($('<input type="submit" class="btn small danger" value="Decline" name="action"/>'))
+    .append($('<span>&nbsp;<span class="label success"/>&nbsp;</span>'))
     .append($('<input type="button" class="btn small info" value="Accept" name="Accept"/>').click(accepthandler))
                
 

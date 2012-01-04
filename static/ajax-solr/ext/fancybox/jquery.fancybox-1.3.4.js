@@ -94,11 +94,9 @@
 			}
 
 			href = selectedOpts.href || (obj.nodeName ? $(obj).attr('href') : obj.href) || null;
-
 			if ((/^(?:javascript)/i).test(href) || href == '#') {
 				href = null;
 			}
-
 			if (selectedOpts.type) {
 				type = selectedOpts.type;
 
@@ -612,7 +610,13 @@
 			}
 
 			if (currentOpts.type == 'iframe') {
+				//$('<iframe id="fancybox-frame" name="fancybox-frame' + new Date().getTime() + '" frameborder="0" hspace="0" ' + ($.browser.msie ? 'allowtransparency="true""' : '') + ' scrolling="' + selectedOpts.scrolling + '"></iframe>').appendTo(content);
+				//console.log(currentOpts.href, content);
 				$('<iframe id="fancybox-frame" name="fancybox-frame' + new Date().getTime() + '" frameborder="0" hspace="0" ' + ($.browser.msie ? 'allowtransparency="true""' : '') + ' scrolling="' + selectedOpts.scrolling + '" src="' + currentOpts.href + '"></iframe>').appendTo(content);
+			    /*if (currentOpts.content){
+			        console.log(currentOpts.content);
+			        $('#fancybox-frame').html(currentOpts.content);
+			    }*/
 			}
 
 			wrap.show();

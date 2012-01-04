@@ -4,7 +4,7 @@ $ = jQuery
 
 # Create a title for a saved item (e.g. searches or publications) area.
 
-AjaxSolr.theme.prototype.saved_title = (text) -> $('<h3/>').text text
+AjaxSolr.theme.prototype.section_title = (text) -> $('<h4/>').text text
 
 # Set or unset all the buttons in the table.
 
@@ -21,11 +21,15 @@ AjaxSolr.theme.prototype.saved_formactions = (saveingrouphandler, savetotagshand
       return $('<div class="formactions"/>')
         .append($('<input class="btn small" type="button" value="Mark all"/>').click(changeAllButtons true))
         .append($('<input class="btn small" type="button" value="Clear all"/>').click(changeAllButtons false))
+        .append($('<span>&nbsp;<span class="label success"/>&nbsp;</span>'))
         .append($('<input class="btn danger small" type="submit" value="Delete" name="action"/>'))
+        .append($('<span>&nbsp;<span class="label success"/>&nbsp;</span>'))
         .append($('<select class="groupselect"/>').append(("<option>#{ele}</option>" for ele in mygroups).join('')))
-        .append($('<input class="btn primary small" type="button" value="Save to Group" name="action"/>').click(saveingrouphandler))
+        .append($('<input class="btn primary small" type="button" value="Save to Collaboration" name="action"/>').click(saveingrouphandler))
+        .append($('<span>&nbsp;<span class="label success"/>&nbsp;</span>'))
         .append($('<input class="medium tagstext" type="text"/>'))
-        .append($('<input type="button" class="btn small info" value="Add Tags" name="Tag"/>').click(savetotagshandler))
+        .append($('<input type="button" class="btn small info" value="Add Tags" name="Tag"/>').click(savetotagshandler)) 
+        .append($('<span>&nbsp;<span class="label success"/>&nbsp;</span>'))
         .append($('<input class="btn info small" type="button" value="Get as BibTex"/>').click(bibtexHandler))
         .append($('<button type="button" name="myads" value="Send to myADS"/>')
           .click(myADSHandler)
@@ -34,9 +38,12 @@ AjaxSolr.theme.prototype.saved_formactions = (saveingrouphandler, savetotagshand
   return $('<div class="formactions"/>')
     .append($('<input class="btn small" type="button" value="Mark all"/>').click(changeAllButtons true))
     .append($('<input class="btn small" type="button" value="Clear all"/>').click(changeAllButtons false))
+    .append($('<span>&nbsp;<span class="label success"/>&nbsp;</span>'))
     .append($('<input class="btn danger small" type="submit" value="Delete" name="action"/>'))
+    .append($('<span>&nbsp;<span class="label success"/>&nbsp;</span>'))
     .append($('<select class="groupselect"/>').append(("<option>#{ele}</option>" for ele in mygroups).join('')))
-    .append($('<input class="btn primary small" type="button" value="Save to Group" name="action"/>').click(saveingrouphandler))
+    .append($('<input class="btn primary small" type="button" value="Save to Collaboration" name="action"/>').click(saveingrouphandler))
+    .append($('<span>&nbsp;<span class="label success"/>&nbsp;</span>'))
     .append($('<input class="medium tagstext" type="text"/>'))
     .append($('<input type="button" class="btn small info" value="Add Tags" name="Tag"/>').click(savetotagshandler))
 

@@ -6,6 +6,7 @@ and handles authentication through the ADS
 connect = require 'connect'
 connectutils = connect.utils
 http = require 'http'
+querystring = require 'querystring'
 url = require 'url'
 mustache = require 'mustache'
 fs = require 'fs'
@@ -108,16 +109,23 @@ doADSProxyHandler2 = (payload, req, res, next) ->
   console.log ">>    payload=#{payload}"
 
   args = JSON.parse payload
+  console.log "ARGS", args
   urlpath = args.urlpath
   method = args.method ? 'GET'
+  #below must be json encoded hash?
   data = args.data
   console.log ">>   proxying request: #{urlpath}"
+  poststring=querystring.stringify(data)
   opts =
       host: config.ADSHOST
       port: 80
+      method: method
       path: urlpath
-
-    proxy.doProxyPost opts, data, req, res
+      headers: {'Content-Type': 'application/x-www-form-urlencoded', 'Content-Length': poststring.length}
+  console.log opts
+  console.log poststring
+  proxy.doProxyPost opts, poststring, req, res
+  
 doADSProxy = doPost doADSProxyHandler
 doADSProxy2 = doPost doADSProxyHandler2
 

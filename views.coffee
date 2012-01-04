@@ -28,6 +28,7 @@ bodybodypub    = getTemplate 'bodybody_publications.html'
 bodybodyobsv   = getTemplate 'bodybody_observations.html'
 # bodybodysearch = getTemplate 'bodybody_search.html'
 bodybodysaved  = getTemplate 'bodybody_saved.html'
+bodybodyhelp  = getTemplate 'bodybody_help.html'
 bodybodygroup  = getTemplate 'bodybody_group.html'
 bodybodyuser  = getTemplate 'bodybody_user.html'
 
@@ -140,7 +141,25 @@ doSaved = doView "Saved", bodybodysaved,
       siteprefix: SITEPREFIX
       staticprefix: STATICPREFIX
 
+doHelp = doView "Help", bodybodyhelp,
+    pagehead:
+      pagetitle: 'Help'
+      pageclass: 'help'
+      haswidgets: false
+      siteprefix: SITEPREFIX
+      staticprefix: STATICPREFIX
+      jsdir: 'coffee'
 
+    bodyhead:
+      isitchosenhelp: 'active'
+      siteprefix: SITEPREFIX
+      staticprefix: STATICPREFIX
+
+    bodybody:
+      bodyright:
+        siteprefix: SITEPREFIX
+        staticprefix: STATICPREFIX
+            
 doGroup = doView "Group", bodybodygroup,
         pagehead:
           pagetitle: 'Group'
@@ -184,5 +203,6 @@ exports.doObservations = doObservations
 exports.doSaved = doSaved
 exports.doGroup = doGroup
 exports.doUser = doUser
+exports.doHelp = doHelp
 
 

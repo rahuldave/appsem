@@ -23,9 +23,9 @@ function encodeObsuri(obsuri){
             //this.model.bind("add", this.addOne, this);
             this.model.bind("populated", this.addAll, this);
             //alert("AA"+this.model.nobj)
-            var nobj=this.model.nobj;
+            var npub=this.model.npub;
             this.collectionexpanded=false;
-            $(this.el).append(AjaxSolr.theme("publicationpreamble", nobj));
+            $(this.el).append(AjaxSolr.theme("publicationpreamble", npub));
         },
         addOne: function(publicationmodel){
             var view=new PublicationView({model:publicationmodel});

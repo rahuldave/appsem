@@ -566,7 +566,7 @@ _doSearchForGroup = (email, fqGroupName, searchtype, templateCreatorFunc, res, k
                         margs=(['hget', "savedby:#{fqGroupName}", ele] for ele in searches.elements)
                         redis_client.multi(margs).exec (errm, savedbysjsonlist) ->
                             if errm
-                                return callback errm, savedBys
+                                return callback errm, savedbysjsonlist
                             savedBys=[]
                             for ele in savedbysjsonlist
                                 console.log "ELE", ele

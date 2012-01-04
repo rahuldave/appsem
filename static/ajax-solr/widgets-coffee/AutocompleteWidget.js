@@ -13,6 +13,7 @@
         var value;
         if (self.requestSent === false && e.which === 13) {
           value = $(this).val();
+          console.log("value is", value);
           if (value && self.add(value)) {
             return self.manager.doRequest(0);
           }
@@ -76,6 +77,7 @@
         resHandler = function(err, facet) {
           var nval;
           self.requestSent = true;
+          console.log("in RESHANDLER", facet);
           nval = "" + facet.field + ":" + (AjaxSolr.Parameter.escapeValue(facet.value));
           if (self.manager.store.addByValue('fq', nval)) {
             return self.manager.doRequest(0);

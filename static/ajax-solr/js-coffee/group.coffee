@@ -181,7 +181,7 @@ makeSearchText = (urifrag) ->
 makeSearchRow = (s) ->
   gin=s.groupsin
   sby=s.searchby
-  console.log s, gin, sby
+  console.log "sby",sby, "gin", gin, sby[0]
   groupsintext = ('by '+sby[idx].split('@')[0]+' in <a href="'+"#{SITEPREFIX}/explorer/group?fqGroupName=#{gin[idx]}"+'">'+gin[idx].split('/').pop()+'</a>' for idx in [0...gin.length])
   tagsintext = ('<a href="'+"#{SITEPREFIX}/explorer/group?fqGroupName=#{dagroup}&tagName=#{ele}"+'">'+ele.split('/').pop()+'</a>' for ele in s.tagsin.unique())
   

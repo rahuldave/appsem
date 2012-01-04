@@ -15,7 +15,7 @@ AjaxSolr.AstroExplorerStore = AjaxSolr.ParameterHashStore.extend
   # multiple values.
 
 	isMultiple: (name) ->
-    name.match(/^(?:bf|bq|facet\.date|facet\.date\.other|facet\.date\.include|facet\.field|facet\.pivot|facet\.range|facet\.range\.other|facet\.range\.include|facet\.query|fq|group\.field|group\.func|group\.query|stats\.field|pf|qf)$/)
+        name.match(/^(?:bf|bq|text|facet\.date|facet\.date\.other|facet\.date\.include|facet\.field|facet\.pivot|facet\.range|facet\.range\.other|facet\.range\.include|facet\.query|fq|group\.field|group\.func|group\.query|stats\.field|pf|qf)$/)
 
   # Overriding the default behavior to try and fix the issue
 	# with constraints of author names - which contain commas - being

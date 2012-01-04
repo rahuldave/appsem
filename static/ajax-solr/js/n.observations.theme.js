@@ -86,6 +86,7 @@ function encodeObsuri(obsuri){
     
     AjaxSolr.theme.prototype.publicationpreamble=function(npub){
         //alert(nobj);
+        console.log("npub is", npub);
         var $start=$('<div class="insidepublicationarea"/>').append(pubLabel('Papers')).append('<p class="extrapara"/>').append(' ');
         if (npub===0){
             $start.append('None');

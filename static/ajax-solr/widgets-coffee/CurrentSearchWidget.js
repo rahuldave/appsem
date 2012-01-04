@@ -39,6 +39,7 @@
       fq = self.manager.store.values('fq');
       order = [];
       store = {};
+      console.log('fq in here is', fq);
       _ref = (function() {
         var _j, _len, _results;
         _results = [];
@@ -69,10 +70,13 @@
           order.push(c.display);
           store[c.display] = [];
         }
+        console.log("&&&&&&", c.field, c.display, self.allowmulti, store[c.display]);
         if ((_ref3 = c.field, __indexOf.call(self.allowmulti, _ref3) >= 0) || store[c.display].length === 0) {
           store[c.display].push($span);
+          console.log("LLL", c);
         } else {
           if (self.removeFacet(c.field)) {
+            console.log("MMM", c);
             self.manager.doRequest(0);
           }
         }

@@ -71,7 +71,7 @@ AjaxSolr.CurrentSearchWidget = AjaxSolr.AbstractWidget.extend
     # think that is acceptable. .text("(x) #{c.label} ")
     order = []
     store = {}
-
+    console.log 'fq in here is', fq
     for c in (self.splitConstraint(cstr) for cstr in fq)
       labeltext=c.label
       #console.log ';;;', c.label
@@ -93,12 +93,14 @@ AjaxSolr.CurrentSearchWidget = AjaxSolr.AbstractWidget.extend
       if c.display not in order
         order.push c.display
         store[c.display] = []
-
+      console.log "&&&&&&", c.field, c.display, self.allowmulti
       if c.field in self.allowmulti or store[c.display].length is 0
         store[c.display].push $span
+        console.log "LLL",c,
       else
-        #rahul changed remove to removeFacet here. not sure. BUG?
+        #rahul changed remove to removeFacet here. not sure. BUG? I dont understand this code at all. Must!
         if self.removeFacet c.field
+          console.log "MMM",c
           self.manager.doRequest 0
 
     list = []

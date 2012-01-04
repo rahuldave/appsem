@@ -325,3 +325,6 @@ span.facetvalue:nth-child(odd) {
 a.sorter {
     font-weight:bold;
 }
+.topbar div > ul a.isurround, .nav a.isurround {
+    padding: 0;
+}

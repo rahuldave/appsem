@@ -7,6 +7,7 @@
                 
                 <li class="{{ isitchosenobservations }}"><a href="{{ siteprefix }}/explorer/observations">Observations</a></li>
                 <li class="{{ isitchosenobjects }}"><a href="{{ siteprefix }}/explorer/objects">Objects</a></li>
+				<li class="{{ isitchosencatalogs }}"><a href="{{ siteprefix }}/explorer/catalogs">Catalogs</a></li>
                 <!--li class="{{ isitchosenproposals }}"><a href="{{ siteprefix }}/explorer/proposals">Proposals</a></li-->
                 
             </ul>
@@ -20,10 +21,11 @@
 	        </p-->
             <ul class="nav secondary-nav pull-right"> 
                 <li>&nbsp;&nbsp;</li>
-                <li><img height="36" src="{{ staticprefix }}/images/vao.png"></img></li>
+                <li><a class="isurround" href="http://usvao.org"><img height="36" alt="VAO" src="{{ staticprefix }}/images/VAOLogo.png"></img></a></li>
                 <li>&nbsp;&nbsp;</li>
-                <li><img height="36" src="{{ staticprefix }}/images/adslogo_labs.jpg"></img></li>
+                <li><a class="isurround" href="http://adslabs.org"><img height="36" alt="ADSLabs" src="{{ staticprefix }}/images/adslogo_labs.jpg"></img></a></li>
                 <li>&nbsp;&nbsp;</li>
+				<li class="{{ isitchosenhelp }}"><a href="{{ siteprefix }}/explorer/help">Help</a></li>
                 <li class="{{ isitchosensaved }}"><a href="{{ siteprefix }}/explorer/saved">Saved</a></li>
                 <li  class="menu dropdown {{ isitchosengroup }}"> 
                     <a class="dropdown-toggle menu" href="#" id="groups">Groups</a> 

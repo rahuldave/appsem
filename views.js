@@ -2,7 +2,7 @@
   /*
   Create the different views/pages for the application.
   */
-  var SITEPREFIX, STATICPREFIX, TEMPLATEDIR, bodybodygroup, bodybodyobsv, bodybodypub, bodybodysaved, bodybodyuser, config, doGroup, doObservations, doPublications, doSaved, doUser, doView, fs, getTemplate, globpartialsjson, maint, mustache, partials, redis_client, url;
+  var SITEPREFIX, STATICPREFIX, TEMPLATEDIR, bodybodygroup, bodybodyhelp, bodybodyobsv, bodybodypub, bodybodysaved, bodybodyuser, config, doGroup, doHelp, doObservations, doPublications, doSaved, doUser, doView, fs, getTemplate, globpartialsjson, maint, mustache, partials, redis_client, url;
   fs = require('fs');
   url = require('url');
   mustache = require('mustache');
@@ -24,6 +24,7 @@
   bodybodypub = getTemplate('bodybody_publications.html');
   bodybodyobsv = getTemplate('bodybody_observations.html');
   bodybodysaved = getTemplate('bodybody_saved.html');
+  bodybodyhelp = getTemplate('bodybody_help.html');
   bodybodygroup = getTemplate('bodybody_group.html');
   bodybodyuser = getTemplate('bodybody_user.html');
   doView = function(name, body, view) {
@@ -130,6 +131,27 @@
       }
     }
   });
+  doHelp = doView("Help", bodybodyhelp, {
+    pagehead: {
+      pagetitle: 'Help',
+      pageclass: 'help',
+      haswidgets: false,
+      siteprefix: SITEPREFIX,
+      staticprefix: STATICPREFIX,
+      jsdir: 'coffee'
+    },
+    bodyhead: {
+      isitchosenhelp: 'active',
+      siteprefix: SITEPREFIX,
+      staticprefix: STATICPREFIX
+    },
+    bodybody: {
+      bodyright: {
+        siteprefix: SITEPREFIX,
+        staticprefix: STATICPREFIX
+      }
+    }
+  });
   doGroup = doView("Group", bodybodygroup, {
     pagehead: {
       pagetitle: 'Group',
@@ -177,4 +199,5 @@
   exports.doSaved = doSaved;
   exports.doGroup = doGroup;
   exports.doUser = doUser;
+  exports.doHelp = doHelp;
 }).call(this);

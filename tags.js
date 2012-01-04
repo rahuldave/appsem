@@ -671,40 +671,60 @@
                   }
                   return _results;
                 })();
-                return redis_client.multi(margs).exec(function(errm, savedBys) {
-                  var ele, margs2;
+                return redis_client.multi(margs).exec(function(errm, savedbysjsonlist) {
+                  var ele, margs2, parsedsavedbys, savedBys, savedbystoadd, _i, _len;
                   if (errm) {
-                    return callback(errm, savedBys);
+                    return callback(errm, savedbysjsonlist);
+                  }
+                  savedBys = [];
+                  for (_i = 0, _len = savedbysjsonlist.length; _i < _len; _i++) {
+                    ele = savedbysjsonlist[_i];
+                    console.log("ELE", ele);
+                    if (!ele) {
+                      savedBys.push([]);
+                    } else {
+                      parsedsavedbys = JSON.parse(ele);
+                      savedbystoadd = (function() {
+                        var _j, _len2, _results;
+                        _results = [];
+                        for (_j = 0, _len2 = parsedsavedbys.length; _j < _len2; _j++) {
+                          ele = parsedsavedbys[_j];
+                          _results.push(ele);
+                        }
+                        return _results;
+                      })();
+                      savedBys.push(savedbystoadd);
+                    }
                   }
                   margs2 = (function() {
-                    var _i, _len, _ref3, _results;
+                    var _j, _len2, _ref3, _results;
                     _ref3 = searches.elements;
                     _results = [];
-                    for (_i = 0, _len = _ref3.length; _i < _len; _i++) {
-                      ele = _ref3[_i];
+                    for (_j = 0, _len2 = _ref3.length; _j < _len2; _j++) {
+                      ele = _ref3[_j];
                       _results.push(['hget', "savedInGroups:" + searchtype, ele]);
                     }
                     return _results;
                   })();
                   console.log("<<<<<" + searchtype, margs2);
                   return redis_client.multi(margs2).exec(function(err, groupjsonlist) {
-                    var ele, groupstoadd, margs22, parsedgroups, savedingroups, _i, _len;
+                    var ele, groupstoadd, margs22, parsedgroups, savedingroups, _j, _len2;
                     if (err) {
                       return callback(err, groupjsonlist);
                     }
                     console.log(">>>>>>>" + searchtype, searches.elements, groupjsonlist);
                     savedingroups = [];
-                    for (_i = 0, _len = groupjsonlist.length; _i < _len; _i++) {
-                      ele = groupjsonlist[_i];
+                    for (_j = 0, _len2 = groupjsonlist.length; _j < _len2; _j++) {
+                      ele = groupjsonlist[_j];
                       if (!ele) {
                         savedingroups.push([]);
                       } else {
                         parsedgroups = JSON.parse(ele);
                         groupstoadd = (function() {
-                          var _j, _len2, _results;
+                          var _k, _len3, _results;
                           _results = [];
-                          for (_j = 0, _len2 = parsedgroups.length; _j < _len2; _j++) {
-                            ele = parsedgroups[_j];
+                          for (_k = 0, _len3 = parsedgroups.length; _k < _len3; _k++) {
+                            ele = parsedgroups[_k];
                             if (__indexOf.call(groups, ele) >= 0) {
                               _results.push(ele);
                             }
@@ -715,33 +735,33 @@
                       }
                     }
                     margs22 = (function() {
-                      var _j, _len2, _ref3, _results;
+                      var _k, _len3, _ref3, _results;
                       _ref3 = searches.elements;
                       _results = [];
-                      for (_j = 0, _len2 = _ref3.length; _j < _len2; _j++) {
-                        ele = _ref3[_j];
+                      for (_k = 0, _len3 = _ref3.length; _k < _len3; _k++) {
+                        ele = _ref3[_k];
                         _results.push(['hget', allTagsGroupHash, ele]);
                       }
                       return _results;
                     })();
                     console.log("<<<<<", margs22);
                     return redis_client.multi(margs22).exec(function(errg22, tagjsonlist) {
-                      var ele, names, parsedtags, savedintags, tagstoadd, titles, view, _j, _len2;
+                      var ele, names, parsedtags, savedintags, tagstoadd, titles, view, _k, _len3;
                       if (errg22) {
                         return callback(errg22, tagjsonlist);
                       }
                       savedintags = [];
-                      for (_j = 0, _len2 = tagjsonlist.length; _j < _len2; _j++) {
-                        ele = tagjsonlist[_j];
+                      for (_k = 0, _len3 = tagjsonlist.length; _k < _len3; _k++) {
+                        ele = tagjsonlist[_k];
                         if (!ele) {
                           savedintags.push([]);
                         } else {
                           parsedtags = JSON.parse(ele);
                           tagstoadd = (function() {
-                            var _k, _len3, _results;
+                            var _l, _len4, _results;
                             _results = [];
-                            for (_k = 0, _len3 = parsedtags.length; _k < _len3; _k++) {
-                              ele = parsedtags[_k];
+                            for (_l = 0, _len4 = parsedtags.length; _l < _len4; _l++) {
+                              ele = parsedtags[_l];
                               _results.push(ele);
                             }
                             return _results;

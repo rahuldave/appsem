@@ -40,9 +40,20 @@
             .attr('href', "http://labs.adsabs.harvard.edu/ui/abs/"+doc.bibcode)
             .fancybox(fancyboxOpts);
         var $titlepivot=AjaxSolr.theme.prototype.pivot('bibcode');
+        var fbhandler = function() {
+            poststring=doc.bibcode
+            $.fancybox({content:'http://adsabs.harvard.edu/tools/metrics', type:'iframe', 'autoDimensions': false, 'width': 1024, 'height': 768});
+            /*$.post('http://adsabs.harvard.edu/tools/metrics', poststring,function(data){
+                console.log(data);
+                $.fancybox({href:''});
+            });*/
+            //alert("Hi"+doc.bibcode);
+        };
         return $('<h5/>').append(doc.title + " ")
                          .append($titlelink)
-                         .append($titlepivot);
+                         .append($titlepivot)
+                         .append($('<a class="iframe fbman"/>').text("woo").bind('click', fbhandler))
+                         ;
     }
 
 

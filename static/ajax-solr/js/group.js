@@ -238,7 +238,7 @@
     var ele, gin, groupsintext, idx, sby, scpts, tagsintext;
     gin = s.groupsin;
     sby = s.searchby;
-    console.log(s, gin, sby);
+    console.log("sby", sby, "gin", gin, sby[0]);
     groupsintext = (function() {
       var _ref, _results;
       _results = [];

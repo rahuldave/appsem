@@ -102,7 +102,23 @@ doADSProxyHandler = (payload, req, res, next) ->
 
     proxy.doProxy opts, req, res
 
+doADSProxyHandler2 = (payload, req, res, next) ->
+  console.log '>> In doADSProxyHandler2'
+  console.log ">>    cookies=#{JSON.stringify req.cookies}"
+  console.log ">>    payload=#{payload}"
+
+  args = JSON.parse payload
+  urlpath = args.urlpath
+  method = args.method ? 'GET'
+  console.log ">>   proxying request: #{urlpath}"
+  opts =
+      host: config.ADSHOST
+      port: 80
+      path: urlpath
+
+    proxy.doProxy opts, req, res
 doADSProxy = doPost doADSProxyHandler
+doADSProxy2 = doPost doADSProxyHandler2
 
 # This is just temporary code: could add in a timeout and message
 
@@ -115,11 +131,13 @@ quickRedirect = (newloc) ->
 explorouter = connect(connect.router (app) ->
   app.get '/publications', views.doPublications
   app.get '/saved', views.doSaved
+  app.get '/help', views.doHelp
   app.get '/group', views.doGroup
   app.get '/user', views.doUser
   app.get '/objects', quickRedirect 'publications/'
   app.get '/observations', views.doObservations
   app.get '/proposals', quickRedirect 'publications/'
+  app.get '/catalogs', quickRedirect 'publications/'
   app.get '/', quickRedirect 'publications/'
   )
 
@@ -188,6 +206,7 @@ server.use SITEPREFIX+'/saveobsvstotag', doPostWithJSON tags.saveObsvsToTag
 # around the same-origin policy.
 
 server.use SITEPREFIX+'/adsproxy', doADSProxy
+server.use SITEPREFIX+'/adsproxy2', doADSProxy2
 
 server.use SITEPREFIX+'/savedsearches', saved.getSavedSearches
 server.use SITEPREFIX+'/savedsearches2', saved.getSavedSearches2

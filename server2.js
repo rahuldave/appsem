@@ -3,7 +3,7 @@
   A NodeJS server that statically serves javascript out, proxies solr requests,
   and handles authentication through the ADS
   */
-  var SITEPREFIX, STATICPREFIX, addUser, completeRequest, config, connect, connectutils, doADSProxy, doADSProxyHandler, doPost, doPostWithJSON, explorouter, failedRequest, fs, getUser, groups, http, ifLoggedIn, loginUser, logoutUser, makeADSJSONPCall, migration, mustache, postHandler, postHandlerWithJSON, proxy, quickRedirect, redis_client, requests, runServer, saved, server, solrrouter, solrrouter2, successfulRequest, tags, url, user, views;
+  var SITEPREFIX, STATICPREFIX, addUser, completeRequest, config, connect, connectutils, doADSProxy, doADSProxy2, doADSProxyHandler, doADSProxyHandler2, doPost, doPostWithJSON, explorouter, failedRequest, fs, getUser, groups, http, ifLoggedIn, loginUser, logoutUser, makeADSJSONPCall, migration, mustache, postHandler, postHandlerWithJSON, proxy, quickRedirect, redis_client, requests, runServer, saved, server, solrrouter, solrrouter2, successfulRequest, tags, url, user, views;
   connect = require('connect');
   connectutils = connect.utils;
   http = require('http');
@@ -102,7 +102,24 @@
       return proxy.doProxy(opts, req, res);
     });
   };
+  doADSProxyHandler2 = function(payload, req, res, next) {
+    var args, method, opts, urlpath, _ref;
+    console.log('>> In doADSProxyHandler2');
+    console.log(">>    cookies=" + (JSON.stringify(req.cookies)));
+    console.log(">>    payload=" + payload);
+    args = JSON.parse(payload);
+    urlpath = args.urlpath;
+    method = (_ref = args.method) != null ? _ref : 'GET';
+    console.log(">>   proxying request: " + urlpath);
+    opts = {
+      host: config.ADSHOST,
+      port: 80,
+      path: urlpath
+    };
+    return proxy.doProxy(opts, req, res);
+  };
   doADSProxy = doPost(doADSProxyHandler);
+  doADSProxy2 = doPost(doADSProxyHandler2);
   quickRedirect = function(newloc) {
     return function(req, res, next) {
       res.writeHead(302, 'Redirect', {
@@ -115,11 +132,13 @@
   explorouter = connect(connect.router(function(app) {
     app.get('/publications', views.doPublications);
     app.get('/saved', views.doSaved);
+    app.get('/help', views.doHelp);
     app.get('/group', views.doGroup);
     app.get('/user', views.doUser);
     app.get('/objects', quickRedirect('publications/'));
     app.get('/observations', views.doObservations);
     app.get('/proposals', quickRedirect('publications/'));
+    app.get('/catalogs', quickRedirect('publications/'));
     return app.get('/', quickRedirect('publications/'));
   }));
   server = connect.createServer();
@@ -161,6 +180,7 @@
   server.use(SITEPREFIX + '/savepubstotag', doPostWithJSON(tags.savePubsToTag));
   server.use(SITEPREFIX + '/saveobsvstotag', doPostWithJSON(tags.saveObsvsToTag));
   server.use(SITEPREFIX + '/adsproxy', doADSProxy);
+  server.use(SITEPREFIX + '/adsproxy2', doADSProxy2);
   server.use(SITEPREFIX + '/savedsearches', saved.getSavedSearches);
   server.use(SITEPREFIX + '/savedsearches2', saved.getSavedSearches2);
   server.use(SITEPREFIX + '/savedsearchesforgroup2', saved.getSavedSearchesForGroup2);

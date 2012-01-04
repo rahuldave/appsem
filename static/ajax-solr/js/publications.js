@@ -169,7 +169,7 @@ var PublicationsManager;
             id: 'currentsearch',
             target: '#selection',
 	        fieldmap: field_map,
-	        allowmulti: facet_fields
+	        allowmulti: facet_fields.concat(['text'])
 	}));
 	PublicationsManager.addWidget(new AjaxSolr.AutocompleteWidget({
             id: 'text',

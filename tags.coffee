@@ -451,9 +451,18 @@ _doSearchForTagInGroup = (email, tagName, fqGroupName, searchtype, templateCreat
                                         searches.scores.push(allsearches.scores[idx])
                                 console.log searchtype, 'searches.elements', searches.elements
                                 margs=(['hget', "savedby:#{fqGroupName}", ele] for ele in searches.elements)
-                                redis_client.multi(margs).exec (errm, savedBys) ->
+                                redis_client.multi(margs).exec (errm, savedbysjsonlist) ->
                                     if errm
-                                        return callback errm, savedBys
+                                        return callback errm, savedbysjsonlist
+                                    savedBys=[]
+                                    for ele in savedbysjsonlist
+                                        console.log "ELE", ele
+                                        if not ele
+                                            savedBys.push([])
+                                        else
+                                            parsedsavedbys=JSON.parse ele
+                                            savedbystoadd = (ele for ele in parsedsavedbys)
+                                            savedBys.push(savedbystoadd)
                                     #searchbys=(reply for reply in replies)
                                     margs2=(['hget', "savedInGroups:#{searchtype}", ele] for ele in searches.elements)
                                     console.log "<<<<<#{searchtype}", margs2

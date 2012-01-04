@@ -23,6 +23,7 @@ AjaxSolr.AutocompleteWidget = AjaxSolr.AbstractFacetWidget.extend
         $(this.target).find('input').unbind().bind 'keydown', (e) ->
           if self.requestSent is false and e.which is 13
             value = $(this).val()
+            console.log "value is", value
             if value and self.add(value)
               self.manager.doRequest(0)
 
@@ -63,6 +64,7 @@ AjaxSolr.AutocompleteWidget = AjaxSolr.AbstractFacetWidget.extend
                       $('#thrower').show()
               resHandler = (err, facet) ->
                     self.requestSent = true
+                    console.log "in RESHANDLER", facet
                     nval = "#{facet.field}:#{AjaxSolr.Parameter.escapeValue facet.value}"
                     if self.manager.store.addByValue 'fq', nval
                       self.manager.doRequest 0

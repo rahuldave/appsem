@@ -759,7 +759,7 @@
             return redis_client.multi(margs).exec(function(errm, savedbysjsonlist) {
               var ele, margs2, parsedsavedbys, savedBys, savedbystoadd, _i, _len;
               if (errm) {
-                return callback(errm, savedBys);
+                return callback(errm, savedbysjsonlist);
               }
               savedBys = [];
               for (_i = 0, _len = savedbysjsonlist.length; _i < _len; _i++) {

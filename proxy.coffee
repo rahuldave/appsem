@@ -36,9 +36,9 @@ doProxyPost = (proxyoptions, data, req, res) ->
     # Is this needed? Original comment said "BELOW is not needed. presumably helps in POST"
     req.addListener 'data', (chunk) -> proxy_request.write chunk, 'binary'
     req.addListener 'end', () -> proxy_request.end()
-    
-    req.write(data)
-    req.end()
+    console.log proxyoptions, data
+    proxy_request.write(data)
+    proxy_request.end()
         
 doTransformedProxy = (proxyoptions, req, res, transformcallback) ->
   console.log "--- transsformed proxy request #{req.method} #{req.url}"

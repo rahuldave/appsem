@@ -52,8 +52,9 @@
     req.addListener('end', function() {
       return proxy_request.end();
     });
-    req.write(data);
-    return req.end();
+    console.log(proxyoptions, data);
+    proxy_request.write(data);
+    return proxy_request.end();
   };
   doTransformedProxy = function(proxyoptions, req, res, transformcallback) {
     var completebuffer, proxy_request;

@@ -35,9 +35,10 @@
 		            );
     }
     var doADSProxy2 = function(urlpath, datastring, callback) {
+      console.log(urlpath, datastring);    
       return $.post("" + SITEPREFIX + "/adsproxy2", JSON.stringify({
-        urlpath: urlpath
-        method: 'POST'
+        urlpath: urlpath,
+        method: 'POST',
         data: datastring
       }), callback);
     };
@@ -50,6 +51,7 @@
             poststring=doc.bibcode
             //$.fancybox({content:'http://adsabs.harvard.edu/tools/metrics', type:'iframe', 'autoDimensions': false, 'width': 1024, 'height': 768});
             doADSProxy2('/tools/metrics', poststring, function(data){
+                console.log("return data", data);
                 $.fancybox({content:data, type:'iframe', 'autoDimensions': false, 'width': 1024, 'height': 768});
             })
             //alert("Hi"+doc.bibcode);

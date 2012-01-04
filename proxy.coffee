@@ -24,7 +24,22 @@ doProxy = (proxyoptions, req, res) ->
   req.addListener 'data', (chunk) -> proxy_request.write chunk, 'binary'
   req.addListener 'end', () -> proxy_request.end()
 
+doProxyPost = (proxyoptions, data, req, res) ->
+    console.log "--- proxy request #{req.method} #{req.url}"
+
+    proxy_request = http.request(proxyoptions, (proxy_response) ->
+      proxy_response.addListener 'data', (chunk) -> res.write chunk, 'binary'
+      proxy_response.addListener 'end', () -> res.end()
+      res.writeHead proxy_response.statusCode, proxy_response.headers
+    ).on 'error', (e) -> console.log "ERROR during proxy: #{e.message}"
     
+    # Is this needed? Original comment said "BELOW is not needed. presumably helps in POST"
+    req.addListener 'data', (chunk) -> proxy_request.write chunk, 'binary'
+    req.addListener 'end', () -> proxy_request.end()
+    
+    req.write(data)
+    req.end()
+        
 doTransformedProxy = (proxyoptions, req, res, transformcallback) ->
   console.log "--- transsformed proxy request #{req.method} #{req.url}"
 
@@ -43,4 +58,5 @@ doTransformedProxy = (proxyoptions, req, res, transformcallback) ->
   req.addListener 'end', () -> proxy_request.end()
 
 exports.doProxy = doProxy
+exports.doProxyPost = doProxyPost
 exports.doTransformedProxy = doTransformedProxy

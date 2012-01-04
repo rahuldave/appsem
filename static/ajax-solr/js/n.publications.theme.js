@@ -34,7 +34,13 @@
 		                .attr('id', 'p_' + doc.id)
 		            );
     }
-
+    var doADSProxy2 = function(urlpath, datastring, callback) {
+      return $.post("" + SITEPREFIX + "/adsproxy2", JSON.stringify({
+        urlpath: urlpath
+        method: 'POST'
+        data: datastring
+      }), callback);
+    };
     AjaxSolr.theme.prototype.title = function (doc) {
         var $titlelink=$('<a class="iframe"/>').text('(Link)')
             .attr('href', "http://labs.adsabs.harvard.edu/ui/abs/"+doc.bibcode)
@@ -42,11 +48,10 @@
         var $titlepivot=AjaxSolr.theme.prototype.pivot('bibcode');
         var fbhandler = function() {
             poststring=doc.bibcode
-            $.fancybox({content:'http://adsabs.harvard.edu/tools/metrics', type:'iframe', 'autoDimensions': false, 'width': 1024, 'height': 768});
-            /*$.post('http://adsabs.harvard.edu/tools/metrics', poststring,function(data){
-                console.log(data);
-                $.fancybox({href:''});
-            });*/
+            //$.fancybox({content:'http://adsabs.harvard.edu/tools/metrics', type:'iframe', 'autoDimensions': false, 'width': 1024, 'height': 768});
+            doADSProxy2('/tools/metrics', poststring, function(data){
+                $.fancybox({content:data, type:'iframe', 'autoDimensions': false, 'width': 1024, 'height': 768});
+            })
             //alert("Hi"+doc.bibcode);
         };
         return $('<h5/>').append(doc.title + " ")

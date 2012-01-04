@@ -110,13 +110,14 @@ doADSProxyHandler2 = (payload, req, res, next) ->
   args = JSON.parse payload
   urlpath = args.urlpath
   method = args.method ? 'GET'
+  data = args.data
   console.log ">>   proxying request: #{urlpath}"
   opts =
       host: config.ADSHOST
       port: 80
       path: urlpath
 
-    proxy.doProxy opts, req, res
+    proxy.doProxyPost opts, data, req, res
 doADSProxy = doPost doADSProxyHandler
 doADSProxy2 = doPost doADSProxyHandler2
 

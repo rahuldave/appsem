@@ -103,20 +103,21 @@
     });
   };
   doADSProxyHandler2 = function(payload, req, res, next) {
-    var args, method, opts, urlpath, _ref;
+    var args, data, method, opts, urlpath, _ref;
     console.log('>> In doADSProxyHandler2');
     console.log(">>    cookies=" + (JSON.stringify(req.cookies)));
     console.log(">>    payload=" + payload);
     args = JSON.parse(payload);
     urlpath = args.urlpath;
     method = (_ref = args.method) != null ? _ref : 'GET';
+    data = args.data;
     console.log(">>   proxying request: " + urlpath);
     opts = {
       host: config.ADSHOST,
       port: 80,
       path: urlpath
     };
-    return proxy.doProxy(opts, req, res);
+    return proxy.doProxyPost(opts, data, req, res);
   };
   doADSProxy = doPost(doADSProxyHandler);
   doADSProxy2 = doPost(doADSProxyHandler2);

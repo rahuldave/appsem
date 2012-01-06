@@ -71,32 +71,15 @@ AjaxSolr.AutocompleteWidget = AjaxSolr.AbstractFacetWidget.extend
                   listuse=pubs
               shownpubs=false  
               if npubs < 200
-                  poststring=pubs.join "\n"
+                  poststring=pubs.join ","
+                  console.log poststring
                   hiddenformdiv="""
-                  <div id=\"tempform\" style=\"display:none\"><form method=\"post\" action=\"http://adsabs.harvard.edu/tools/metrics\">
+                  <div id=\"tempform\" style=\"display:none\"><form method=\"post\" action=\"http://aglianico.cfa.harvard.edu/tools/metrics?rahul\">
                   <input type=\"hidden\" name=\"bibcode\" value=\"#{poststring}\">
                   <input type=\"hidden\" name=\"service\" value=\"yes\">
                   <input type=\"submit\" name=\"submit\" id=\"tempformsubmit\" value=\"submit\"/></form></div>
                   """
-                  $('body').append(hiddenformdiv)
-                  fbhandler = () ->                    
-                    $.fancybox.showActivity()
-                    doADSProxy2 '/tools/metrics', poststring, (data) ->
-                          #$('#metricsthrowerdiv').empty()
-                          #$('#metricsthroweriframe').contents().find('html').empty()
-                          starter='<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">' 
-                          starter2='<html>'
-                          ender='</html>'
-                          #data=data.replace(starter,'').replace(starter2,'').replace(ender,'')
-                          data=data.replace(/\/tools/g, 'http://adsabs.harvard.edu/tools')
-                          data=data.replace('<img src="http://doc.adsabs.harvard.edu/figs/newlogo.gif" alt="ADS" /> <br>','')
-                          #console.log data
-                          #console.log "MTF", $('#metricsthroweriframe').contents().find('html')
-                          #$('#metricsthroweriframe').contents().find('html').html(data)
-                          #console.log "MTFC", $('#metricsthroweriframe').contents().find('html')
-                          $.fancybox({content: data, 'autoDimensions': false, 'width': 1024, 'height': 768});
-                          #$.fancybox({type:'inline', href:'#metricsthrowerdiv', 'autoDimensions': false, 'width': 1024, 'height': 768})
-                    return false
+                  $('body').append(hiddenformdiv)                   
                   $('#metricsthrower').attr('href', '/semantic2/alpha/static/hiddenform.html')
                   $("#metricsthrower").fancybox({type: 'iframe',autoDimensions: false,width: 1024,height: 768,scrolling: 'yes'})
                   $('#metricsthrower').show()

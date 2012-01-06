@@ -32,7 +32,7 @@
         }
       });
       callback = function(response) {
-        var ele, facet, faceter, facetfields, fbhandler, field, fieldname, hiddenformdiv, list, listuse, nobsvs, npubs, obsvs, othertab, poststring, pubs, resHandler, shownpubs, throwhref, throwurlist, val, _i, _len, _ref, _ref2, _ref3;
+        var ele, facet, faceter, facetfields, field, fieldname, hiddenformdiv, list, listuse, nobsvs, npubs, obsvs, othertab, poststring, pubs, resHandler, shownpubs, throwhref, throwurlist, val, _i, _len, _ref, _ref2, _ref3;
         list = [];
         obsvs = [];
         pubs = [];
@@ -73,27 +73,10 @@
         }
         shownpubs = false;
         if (npubs < 200) {
-          poststring = pubs.join("\n");
-          hiddenformdiv = "<div id=\"tempform\" style=\"display:none\"><form method=\"post\" action=\"http://adsabs.harvard.edu/tools/metrics\">\n<input type=\"hidden\" name=\"bibcode\" value=\"" + poststring + "\">\n<input type=\"hidden\" name=\"service\" value=\"yes\">\n<input type=\"submit\" name=\"submit\" id=\"tempformsubmit\" value=\"submit\"/></form></div>";
+          poststring = pubs.join(",");
+          console.log(poststring);
+          hiddenformdiv = "<div id=\"tempform\" style=\"display:none\"><form method=\"post\" action=\"http://aglianico.cfa.harvard.edu/tools/metrics?rahul\">\n<input type=\"hidden\" name=\"bibcode\" value=\"" + poststring + "\">\n<input type=\"hidden\" name=\"service\" value=\"yes\">\n<input type=\"submit\" name=\"submit\" id=\"tempformsubmit\" value=\"submit\"/></form></div>";
           $('body').append(hiddenformdiv);
-          fbhandler = function() {
-            $.fancybox.showActivity();
-            doADSProxy2('/tools/metrics', poststring, function(data) {
-              var ender, starter, starter2;
-              starter = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">';
-              starter2 = '<html>';
-              ender = '</html>';
-              data = data.replace(/\/tools/g, 'http://adsabs.harvard.edu/tools');
-              data = data.replace('<img src="http://doc.adsabs.harvard.edu/figs/newlogo.gif" alt="ADS" /> <br>', '');
-              return $.fancybox({
-                content: data,
-                'autoDimensions': false,
-                'width': 1024,
-                'height': 768
-              });
-            });
-            return false;
-          };
           $('#metricsthrower').attr('href', '/semantic2/alpha/static/hiddenform.html');
           $("#metricsthrower").fancybox({
             type: 'iframe',

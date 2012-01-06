@@ -47,22 +47,16 @@
             .attr('href', "http://labs.adsabs.harvard.edu/ui/abs/"+doc.bibcode)
             .fancybox(fancyboxOpts);
         var $titlepivot=AjaxSolr.theme.prototype.pivot('bibcode');
-        var fbhandler = function() {
-            poststring=doc.bibcode
-            //$.fancybox({content:'http://adsabs.harvard.edu/tools/metrics', type:'iframe', 'autoDimensions': false, 'width': 1024, 'height': 768});
-            doADSProxy2('/tools/metrics', poststring, function(data){
-                data=data.replace(/\/tools/g, 'http://adsabs.harvard.edu/tools');
-                data=data.replace('<img src="http://doc.adsabs.harvard.edu/figs/newlogo.gif" alt="ADS" /> <br>','');
-                //console.log("databack", data);
-                $.fancybox({content: data, 'autoDimensions': false, 'width': 1024, 'height': 768});
-            })
-            return false;
-            //alert("Hi"+doc.bibcode);
-        };
+        var poststring=doc.bibcode;
+        var hiddenformdiv="<div id=\"tempform\" style=\"display:none\"><form method=\"post\" action=\"http://adsabs.harvard.edu/tools/metrics\">\
+              <input type=\"hidden\" name=\"bibcode\" value=\""+poststring+"\">\
+              <input type=\"hidden\" name=\"service\" value=\"yes\">\
+              <input type=\"submit\" name=\"submit\" id=\"tempformsubmit\" value=\"submit\"/></form></div>";
+        $('body').append(hiddenformdiv);
         return $('<h5/>').append(doc.title + " ")
                          .append($titlelink)
                          .append($titlepivot)
-                         .append($('<a class="label"/>').text("Metrics").bind('click', fbhandler));
+                         .append($('<a class="label"/>').text("Metrics").attr('href', '/semantic2/alpha/static/hiddenform.html').fancybox({type: 'iframe',autoDimensions: false,width: 1024,height: 768,scrolling: 'yes'}));
     }
 
 

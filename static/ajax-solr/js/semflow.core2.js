@@ -141,10 +141,11 @@
     bibcode: 'Bibcode'
   };
   setLoggedIn = function(email) {
-    var addgrouphandler, elem, _i, _j, _len, _len2, _ref, _ref2;
+    var addgrouphandler, elem, username, _i, _j, _len, _len2, _ref, _ref2;
     root.myemail = email;
+    username = email.split('@')[0];
     $('a#logouthref').text("logout");
-    $('a#userhref').text("[" + email + "]").attr('href', "" + dasiteprefix + "/explorer/user?fqUserName=" + email);
+    $('a#userhref').text("[" + username + "]").attr('href', "" + dasiteprefix + "/explorer/user?fqUserName=" + email);
     $('a#brandhref').attr('href', "" + dasiteprefix + "/explorer/user?fqUserName=" + email);
     console.log("SETLOGGEDIN-------------" + email);
     _ref = $('.userloggedin');

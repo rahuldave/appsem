@@ -162,8 +162,9 @@ root.fieldname_map =
 
 setLoggedIn = (email) ->
   root.myemail=email
+  username = email.split('@')[0]
   $('a#logouthref').text "logout"
-  $('a#userhref').text("[#{email}]").attr('href', "#{dasiteprefix}/explorer/user?fqUserName=#{email}")
+  $('a#userhref').text("[#{username}]").attr('href', "#{dasiteprefix}/explorer/user?fqUserName=#{email}")
   $('a#brandhref').attr('href', "#{dasiteprefix}/explorer/user?fqUserName=#{email}")
   console.log "SETLOGGEDIN-------------#{email}"
   for elem in $('.userloggedin')

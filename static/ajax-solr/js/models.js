@@ -92,12 +92,13 @@
             //alert(nobs);
             var damodels=[];
             var datargets=[];
+            //console.log("PHEW", doc.obsids_s.length, doc.ra_f.length);
             for (var i = 0; i < nobs; i += 1) {
                 //alert(obsids[i]);
 	            var toks = theobsids[i].split('/');
 	            var mission = toks[0];
 	            var obsid=toks[1];
-	            //console.log("LLLLLLL",mission);
+	            //console.log("LLLLLLL",mission, doc.ra_f);
 	            var out = {
 	                   mission: mission,
 	                   docid: docid,

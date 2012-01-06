@@ -106,15 +106,20 @@ function encodeObsuri(obsuri){
 		var $obody = $('<tbody class="publicationtbody"/>');
 	    $otable.append($obody);
 	    //$otable.tablesorter();
-        if (npub < 200) {
-            var poststring=pubcollection.doc.bibcode.join("\n");
-            console.log("AAA",poststring);
-            var hiddenformdiv="<div id=\"tempform\" style=\"display:none\"><form method=\"post\" action=\"http://adsabs.harvard.edu/tools/metrics\">\
+        if (npub < 500) {
+            var poststring=pubcollection.doc.bibcode.join(",");
+            var pphandler = function(){
+                console.log("before in pp", $('#tempform').html());
+                var hiddenformdiv="<div id=\"tempform\" style=\"display:none\"><form method=\"post\" action=\"http://adsabs.harvard.edu/tools/metrics\">\
                   <input type=\"hidden\" name=\"bibcode\" value=\""+poststring+"\">\
                   <input type=\"hidden\" name=\"service\" value=\"yes\">\
                   <input type=\"submit\" name=\"submit\" id=\"tempformsubmit\" value=\"submit\"/></form></div>";
-            $('body').append(hiddenformdiv);
-            $start.append($('<a class="label"/>').text("Metrics").attr('href', '/semantic2/alpha/static/hiddenform.html').fancybox({type: 'iframe',autoDimensions: false,width: 1024,height: 768,scrolling: 'yes'}));
+                console.log('in pphandler', hiddenformdiv);
+                $('body').append(hiddenformdiv);
+                $.fancybox({type: 'iframe',href:'/semantic2/alpha/static/hiddenform.html',autoDimensions: false,width: 1024,height: 768,scrolling: 'yes'})
+                return false;
+            };
+            $start.append($('<a class="label"/>').text("Metrics").bind('click',pphandler));
         }
 	    //$dataarea.append($('<div class="missiondata"/>').append($mtable));
 	    $start.append($otable);

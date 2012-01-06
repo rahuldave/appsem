@@ -32,7 +32,7 @@
         }
       });
       callback = function(response) {
-        var ele, facet, faceter, facetfields, field, fieldname, hiddenformdiv, list, listuse, nobsvs, npubs, obsvs, othertab, poststring, pubs, resHandler, shownpubs, throwhref, throwurlist, val, _i, _len, _ref, _ref2, _ref3;
+        var ele, facet, faceter, facetfields, field, fieldname, list, listuse, methandler, nobsvs, npubs, obsvs, othertab, poststring, pubs, resHandler, shownpubs, throwhref, throwurlist, val, _i, _len, _ref, _ref2, _ref3;
         list = [];
         obsvs = [];
         pubs = [];
@@ -72,19 +72,25 @@
           listuse = pubs;
         }
         shownpubs = false;
-        if (npubs < 200) {
+        if (npubs < 500) {
           poststring = pubs.join(",");
-          console.log(poststring);
-          hiddenformdiv = "<div id=\"tempform\" style=\"display:none\"><form method=\"post\" action=\"http://adsabs.harvard.edu/tools/metrics?rahul\">\n<input type=\"hidden\" name=\"bibcode\" value=\"" + poststring + "\">\n<input type=\"hidden\" name=\"service\" value=\"yes\">\n<input type=\"submit\" name=\"submit\" id=\"tempformsubmit\" value=\"submit\"/></form></div>";
-          $('body').append(hiddenformdiv);
-          $('#metricsthrower').attr('href', '/semantic2/alpha/static/hiddenform.html');
-          $("#metricsthrower").fancybox({
-            type: 'iframe',
-            autoDimensions: false,
-            width: 1024,
-            height: 768,
-            scrolling: 'yes'
-          });
+          methandler = function() {
+            var hiddenformdiv;
+            console.log("before in atpt", $('#tempform').html());
+            hiddenformdiv = "<div id=\"tempform\" style=\"display:none\"><form method=\"post\" action=\"http://adsabs.harvard.edu/tools/metrics\">\n<input type=\"hidden\" name=\"bibcode\" value=\"" + poststring + "\">\n<input type=\"hidden\" name=\"service\" value=\"yes\">\n<input type=\"submit\" name=\"submit\" id=\"tempformsubmit\" value=\"submit\"/></form></div>";
+            $('body').append(hiddenformdiv);
+            console.log("HERE", hiddenformdiv);
+            $.fancybox({
+              type: 'iframe',
+              href: '/semantic2/alpha/static/hiddenform.html',
+              autoDimensions: false,
+              width: 1024,
+              height: 768,
+              scrolling: 'yes'
+            });
+            return false;
+          };
+          $('#metricsthrower').bind('click', methandler);
           $('#metricsthrower').show();
           $('#numpubs').text("(" + npubs + " pubs)");
           shownpubs = true;
@@ -101,7 +107,7 @@
           })();
           throwhref = "" + root.dasiteprefix + "/explorer/" + othertab + "#fq=" + faceter + "%3A" + (throwurlist.join('%20OR%20'));
           console.log("THROWHREFLENGTH", throwhref.length);
-          if (throwhref.length < 3750) {
+          if (throwhref.length < 3500) {
             $('#thrower').attr('href', throwhref);
             $('#thrower').show();
             if (!shownpubs) {

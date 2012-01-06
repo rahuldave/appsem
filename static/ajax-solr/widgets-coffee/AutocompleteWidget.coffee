@@ -70,18 +70,23 @@ AjaxSolr.AutocompleteWidget = AjaxSolr.AbstractFacetWidget.extend
                   faceter='bibcode'
                   listuse=pubs
               shownpubs=false  
-              if npubs < 200
+              if npubs < 500
                   poststring=pubs.join ","
-                  console.log poststring
-                  hiddenformdiv="""
-                  <div id=\"tempform\" style=\"display:none\"><form method=\"post\" action=\"http://adsabs.harvard.edu/tools/metrics?rahul\">
-                  <input type=\"hidden\" name=\"bibcode\" value=\"#{poststring}\">
-                  <input type=\"hidden\" name=\"service\" value=\"yes\">
-                  <input type=\"submit\" name=\"submit\" id=\"tempformsubmit\" value=\"submit\"/></form></div>
-                  """
-                  $('body').append(hiddenformdiv)                   
-                  $('#metricsthrower').attr('href', '/semantic2/alpha/static/hiddenform.html')
-                  $("#metricsthrower").fancybox({type: 'iframe',autoDimensions: false,width: 1024,height: 768,scrolling: 'yes'})
+                  #console.log poststring
+                  methandler = () ->
+                      console.log("before in atpt", $('#tempform').html());
+                      hiddenformdiv="""
+                      <div id=\"tempform\" style=\"display:none\"><form method=\"post\" action=\"http://adsabs.harvard.edu/tools/metrics\">
+                      <input type=\"hidden\" name=\"bibcode\" value=\"#{poststring}\">
+                      <input type=\"hidden\" name=\"service\" value=\"yes\">
+                      <input type=\"submit\" name=\"submit\" id=\"tempformsubmit\" value=\"submit\"/></form></div>
+                      """
+                      $('body').append(hiddenformdiv)
+                      console.log "HERE", hiddenformdiv
+                      $.fancybox({type: 'iframe', href:'/semantic2/alpha/static/hiddenform.html', autoDimensions: false,width: 1024,height: 768,scrolling: 'yes'})
+                      return false
+                  $('#metricsthrower').bind('click', methandler)                       
+                  #$('#metricsthrower').attr('href', '/semantic2/alpha/static/hiddenform.html')
                   $('#metricsthrower').show()
                   $('#numpubs').text("(#{npubs} pubs)")
                   shownpubs=true
@@ -90,7 +95,7 @@ AjaxSolr.AutocompleteWidget = AjaxSolr.AbstractFacetWidget.extend
                   throwurlist=("#{encodeURIComponent ele}" for ele in listuse)
                   throwhref="#{root.dasiteprefix}/explorer/#{othertab}#fq=#{faceter}%3A#{throwurlist.join '%20OR%20'}"
                   console.log "THROWHREFLENGTH", throwhref.length
-                  if throwhref.length < 3750
+                  if throwhref.length < 3500
                       $('#thrower').attr('href', throwhref);
                       $('#thrower').show()
                       $('#numpubs').text("(#{npubs} pubs)") unless shownpubs

@@ -48,15 +48,21 @@
             .fancybox(fancyboxOpts);
         var $titlepivot=AjaxSolr.theme.prototype.pivot('bibcode');
         var poststring=doc.bibcode;
-        var hiddenformdiv="<div id=\"tempform\" style=\"display:none\"><form method=\"post\" action=\"http://adsabs.harvard.edu/tools/metrics\">\
+        var atpthandler = function(){
+            console.log("before in atpt", $('#tempform').html());
+            var hiddenformdiv="<div id=\"tempform\" style=\"display:none\"><form method=\"post\" action=\"http://adsabs.harvard.edu/tools/metrics\">\
               <input type=\"hidden\" name=\"bibcode\" value=\""+poststring+"\">\
               <input type=\"hidden\" name=\"service\" value=\"yes\">\
               <input type=\"submit\" name=\"submit\" id=\"tempformsubmit\" value=\"submit\"/></form></div>";
-        $('body').append(hiddenformdiv);
+            console.log('in atpt', hiddenformdiv);
+            $('body').append(hiddenformdiv);
+            $.fancybox({type: 'iframe',href:'/semantic2/alpha/static/hiddenform.html',autoDimensions: false,width: 1024,height: 768,scrolling: 'yes'})
+            return false;
+        };
         return $('<h5/>').append(doc.title + " ")
                          .append($titlelink)
                          .append($titlepivot)
-                         .append($('<a class="label"/>').text("Metrics").attr('href', '/semantic2/alpha/static/hiddenform.html').fancybox({type: 'iframe',autoDimensions: false,width: 1024,height: 768,scrolling: 'yes'}));
+                         .append($('<a class="label"/>').text("Metrics").bind('click', atpthandler));
     }
 
 

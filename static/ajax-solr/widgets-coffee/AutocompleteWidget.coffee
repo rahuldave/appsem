@@ -74,7 +74,7 @@ AjaxSolr.AutocompleteWidget = AjaxSolr.AbstractFacetWidget.extend
                   poststring=pubs.join ","
                   console.log poststring
                   hiddenformdiv="""
-                  <div id=\"tempform\" style=\"display:none\"><form method=\"post\" action=\"http://aglianico.cfa.harvard.edu/tools/metrics?rahul\">
+                  <div id=\"tempform\" style=\"display:none\"><form method=\"post\" action=\"http://adsabs.harvard.edu/tools/metrics?rahul\">
                   <input type=\"hidden\" name=\"bibcode\" value=\"#{poststring}\">
                   <input type=\"hidden\" name=\"service\" value=\"yes\">
                   <input type=\"submit\" name=\"submit\" id=\"tempformsubmit\" value=\"submit\"/></form></div>

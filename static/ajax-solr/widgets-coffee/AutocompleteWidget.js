@@ -81,7 +81,7 @@
             console.log("HERE", hiddenformdiv);
             $.fancybox({
               type: 'iframe',
-              href: '/semantic2/alpha/static/hiddenform.html',
+              href: dastaticprefix + '/hiddenform.html',
               autoDimensions: false,
               width: 1024,
               height: 768,

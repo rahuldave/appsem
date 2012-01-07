@@ -56,7 +56,7 @@
               <input type=\"submit\" name=\"submit\" id=\"tempformsubmit\" value=\"submit\"/></form></div>";
             console.log('in atpt', hiddenformdiv);
             $('body').append(hiddenformdiv);
-            $.fancybox({type: 'iframe',href:'/semantic2/alpha/static/hiddenform.html',autoDimensions: false,width: 1024,height: 768,scrolling: 'yes'})
+            $.fancybox({type: 'iframe',href:dastaticprefix+'/hiddenform.html',autoDimensions: false,width: 1024,height: 768,scrolling: 'yes'})
             return false;
         };
         return $('<h5/>').append(doc.title + " ")

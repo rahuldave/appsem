@@ -116,7 +116,7 @@ function encodeObsuri(obsuri){
                   <input type=\"submit\" name=\"submit\" id=\"tempformsubmit\" value=\"submit\"/></form></div>";
                 console.log('in pphandler', hiddenformdiv);
                 $('body').append(hiddenformdiv);
-                $.fancybox({type: 'iframe',href:'/semantic2/alpha/static/hiddenform.html',autoDimensions: false,width: 1024,height: 768,scrolling: 'yes'})
+                $.fancybox({type: 'iframe',href:dastaticprefix+'/hiddenform.html',autoDimensions: false,width: 1024,height: 768,scrolling: 'yes'})
                 return false;
             };
             $start.append($('<a class="label"/>').text("Metrics").unbind('click').bind('click',pphandler));

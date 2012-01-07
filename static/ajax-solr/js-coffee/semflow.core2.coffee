@@ -5,7 +5,8 @@
 root = exports ? this
 $ = jQuery
 
-root.SITEPREFIX = '/semantic2/alpha'
+root.SITEPREFIX = dasiteprefix
+root.STATICPREFIX = dastaticprefix
 root.SOLRURL = "#{root.SITEPREFIX}/solr/"
 
 

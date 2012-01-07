@@ -90,10 +90,9 @@ AjaxSolr.AutocompleteWidget = AjaxSolr.AbstractFacetWidget.extend
                   """
                   $('body').append(hiddenformdiv)
                   console.log "HERE", hiddenformdiv
-                  $.fancybox({type: 'iframe', href:'/semantic2/alpha/static/hiddenform.html', autoDimensions: false,width: 1024,height: 768,scrolling: 'yes'})
+                  $.fancybox({type: 'iframe', href:dastaticprefix+'/hiddenform.html', autoDimensions: false,width: 1024,height: 768,scrolling: 'yes'})
                   return false
               $('#metricsthrower').unbind('click').bind('click', methandler)                       
-              #$('#metricsthrower').attr('href', '/semantic2/alpha/static/hiddenform.html')
               $('#metricsthrower').show()
               $('#numpubs').text("(#{npubs} pubs)")
               shownpubs=true

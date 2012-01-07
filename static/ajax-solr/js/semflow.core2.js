@@ -3,7 +3,8 @@
   var __slice = Array.prototype.slice;
   root = typeof exports !== "undefined" && exports !== null ? exports : this;
   $ = jQuery;
-  root.SITEPREFIX = '/semantic2/alpha';
+  root.SITEPREFIX = dasiteprefix;
+  root.STATICPREFIX = dastaticprefix;
   root.SOLRURL = "" + root.SITEPREFIX + "/solr/";
   makeConsole = function() {
     var console;

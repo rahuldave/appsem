@@ -49,7 +49,7 @@
         var $titlepivot=AjaxSolr.theme.prototype.pivot('bibcode');
         var poststring=doc.bibcode;
         var atpthandler = function(){
-            console.log("before in atpt", $('#tempform').html());
+            console.log("before in atpt", dastaticprefix+'/hiddenform.html', $('#tempform').html());
             var hiddenformdiv="<div id=\"tempform\" style=\"display:none\"><form method=\"post\" action=\"http://adsabs.harvard.edu/tools/metrics\">\
               <input type=\"hidden\" name=\"bibcode\" value=\""+poststring+"\">\
               <input type=\"hidden\" name=\"service\" value=\"yes\">\

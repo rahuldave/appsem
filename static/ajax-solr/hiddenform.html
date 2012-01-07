@@ -4,20 +4,40 @@
 <meta charset="UTF-8">
 <title>Network post input</title>
 <script type="text/javascript" src="/semantic2/alpha/static/ext/jquery-1.4.2.min.js"></script>
+
 </head>
 <body>
 <div id="tmp" style="display:none;"></div>
 <script type="text/javascript">
 $(document).ready(function()
 {
-//code to grab a form with all the content from the parent page 
-var form_html = parent.$("#tempform").html();
-$("#tmp").append(form_html);
-//console.log("---",$('#tmp').html());
-parent.$("#tempform").remove();
+	//code to grab a form with all the content from the parent page 
+	var form_html = parent.$("#tempform").html();
+	$("#tmp").append(form_html);
+	//console.log("---",$('#tmp').html());
+	parent.$("#tempform").remove();
 //console.log("In Frame");
-$("#tempformsubmit").click();
+	//$('body').append('<h2>Loading....</h2>');
+	//$('body').append('<p><img src="/semantic2/alpha/static/images/big-ajax-loader.gif"></img>Loading</p>');
+    /*$('form[name=tempformform]').submit(function(e){
+        e.preventDefault();
+        $.ajax({
+            type: 'POST',
+            cache: false,
+            url: $(this).attr('action'),
+            data:$(this).serialize(), 
+            success: function(msg) {
+                $("html").empty();
+				$("html").html(msg);
+            }
+        });
+    }); */
+
+
+    $("#tempformsubmit").click();
+	
 });
+
 </script>
 </body>
 </html>

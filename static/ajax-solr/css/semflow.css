@@ -333,3 +333,11 @@ span.spanner {
     padding:1px;
     border: 1px solid black;
 }
+
+a:hover {
+ cursor:pointer;
+}
+
+ol.normal li{
+    color:#404040;
+}

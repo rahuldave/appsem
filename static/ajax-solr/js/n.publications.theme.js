@@ -50,7 +50,7 @@
         var poststring=doc.bibcode;
         var atpthandler = function(){
             console.log("before in atpt", dastaticprefix+'/hiddenform.html', $('#tempform').html());
-            var hiddenformdiv="<div id=\"tempform\" style=\"display:none\"><form method=\"post\" action=\"http://adsabs.harvard.edu/tools/metrics\">\
+            var hiddenformdiv="<div id=\"tempform\" style=\"display:none\"><form name=\"tempformform\" method=\"post\" action=\"http://adsabs.harvard.edu/tools/metrics\">\
               <input type=\"hidden\" name=\"bibcode\" value=\""+poststring+"\">\
               <input type=\"hidden\" name=\"service\" value=\"yes\">\
               <input type=\"submit\" name=\"submit\" id=\"tempformsubmit\" value=\"submit\"/></form></div>";

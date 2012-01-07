@@ -147,7 +147,7 @@ explorouter = connect(connect.router (app) ->
   app.get '/observations', views.doObservations
   app.get '/proposals', quickRedirect 'publications/'
   app.get '/catalogs', quickRedirect 'publications/'
-  app.get '/', quickRedirect 'publications/'
+  app.get '/', quickRedirect 'user/'
   )
 
 server = connect.createServer()
@@ -161,6 +161,7 @@ server.use connect.query()
 # server.use(connect.session({ store: new RedisStore, secret: 'keyboard cat', cookie :{maxAge: 31536000000} }));
 #
 server.use STATICPREFIX+'/', connect.static(__dirname + '/static/ajax-solr/')
+#server.use SITEPREFIX+'/', quickRedirect 'explorer/user'
 server.use SITEPREFIX+'/solr/', solrrouter
 server.use SITEPREFIX+'/solr2/', solrrouter2
 server.use SITEPREFIX+'/explorer/', explorouter

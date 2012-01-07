@@ -150,7 +150,7 @@
     app.get('/observations', views.doObservations);
     app.get('/proposals', quickRedirect('publications/'));
     app.get('/catalogs', quickRedirect('publications/'));
-    return app.get('/', quickRedirect('publications/'));
+    return app.get('/', quickRedirect('user/'));
   }));
   server = connect.createServer();
   server.use(connect.cookieParser());

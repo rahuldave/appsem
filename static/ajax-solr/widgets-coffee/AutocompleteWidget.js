@@ -76,7 +76,7 @@
           poststring = pubs.join(",");
           methandler = function() {
             var hiddenformdiv;
-            hiddenformdiv = "<div id=\"tempform\" style=\"display:none\"><form method=\"post\" action=\"http://adsabs.harvard.edu/tools/metrics\">\n<input type=\"hidden\" name=\"bibcode\" value=\"" + poststring + "\">\n<input type=\"hidden\" name=\"service\" value=\"yes\">\n<input type=\"submit\" name=\"submit\" id=\"tempformsubmit\" value=\"submit\"/></form></div>";
+            hiddenformdiv = "<div id=\"tempform\" style=\"display:none\"><form name=\"tempformform\" method=\"post\" action=\"http://adsabs.harvard.edu/tools/metrics\">\n<input type=\"hidden\" name=\"bibcode\" value=\"" + poststring + "\">\n<input type=\"hidden\" name=\"service\" value=\"yes\">\n<input type=\"submit\" name=\"submit\" id=\"tempformsubmit\" value=\"submit\"/></form></div>";
             $('body').append(hiddenformdiv);
             console.log("HERE", hiddenformdiv);
             $.fancybox({

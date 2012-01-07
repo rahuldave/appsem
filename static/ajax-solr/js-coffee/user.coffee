@@ -273,4 +273,6 @@ mediator.subscribe 'user/login', (email) ->
   refreshAll()
   $('#welcome').text("Welcome, user #{email}!")
 
-  
+$ ->
+    $('a.feedback').fancybox()
+      

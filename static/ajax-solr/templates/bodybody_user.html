@@ -23,7 +23,11 @@
 		</form>
 	</div>
 </div>
-<div class="content"> 
+<div class="content">
+<span class="pull-right">
+	<a class="btn small info iframe feedback" href="https://docs.google.com/spreadsheet/embeddedform?formkey=dDVLSk9TcVdtekJKa0RwOGJmV2Z2YkE6MQ">Feedback</a>
+	<a class="btn small success" href="{{ siteprefix }}/explorer/help">Help</a>
+</span>
 <h2 id="welcome" class="userloggedin"></h2>
 <h2 class="userloggedout" style="display:none">Welcome, unknown user!</h2>
 <hr/>
@@ -31,14 +35,31 @@
 <p>
  Please <a class="userlogin" href="#">log in</a> to see your home page.
 </p>
-<h5> How to Use the AstroExplorer </h5>
+<h3> How to Use the AstroExplorer </h3>
 <p>
-	Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam diam risus, scelerisque a aliquet ut, consequat at leo. Nunc egestas ornare euismod. Nulla facilisi. Pellentesque consectetur ante et enim ultrices lobortis. Etiam fringilla, libero sit amet pellentesque rutrum, odio mauris pellentesque nulla, at lacinia velit dolor quis lectus. Suspendisse vitae mauris leo. Maecenas sed nibh felis.
+	AstroExplorer aims to be your research portfolio application. It allows you to explore astronomical resources such as
+	publications, observations (and their associated datasets), objects, catalogs, and proposals, and to explore the relationships
+	between them. It then enables you to save these resources into tagged libraries which you can access later, and into collaborations,
+	so that you can share your findings with your co-workers and collaborators.
 </p>
 <p>
-	Etiam tincidunt metus a orci euismod tempor. Vestibulum egestas pharetra mollis. Donec pulvinar felis at sapien commodo ultrices. Sed vitae ipsum ac mauris porttitor pretium et sollicitudin magna. Donec mi sem, consequat nec auctor dictum, condimentum eu lorem. Aliquam sed nulla non lorem placerat commodo. Proin vel ligula urna, sed ornare mi. Maecenas consequat sollicitudin nisl, id eleifend eros lobortis vitae. Mauris egestas elementum sem, faucibus vestibulum libero rhoncus vel. Vestibulum sagittis est ut sem hendrerit vel suscipit massa ullamcorper.
+	We expose these resources and their connections by curating and indexing them all at one place. This is the model
+	used by google, where the data resides on your servers, but the index on theirs. We have currently indexed all Chandra Observations,
+	observations from several missions from MAST, related articles, objects, and observing proposals (88K observations and 10K publications).
+	This is part of our current focus
+	on NASA missions, since they have already curated extensive bibliographies. If you own a data set with bibliographic links which you would
+	like to see curated, please contact us at adsvao.astroexplorer@gmail.com.
 </p>
-
+<p>
+	This is a prototype!  It has been created to showcase what kind of functionality can be delivered when these resources are brought 
+	together and exposed to the user in a web-based environment.  It is meant to provide search and discovery capabilities which 
+	are complementary to the position-based searches supported by the VAO portal.
+</p>
+<p>
+	The personalization features which are supported are based on the ADS login system, so they require users to log into their ADS account.
+	This enables one to save queries, resources (publications and observations), tag them, and optionally share them with a group of
+	collaborators.
+</p>
 </div>
   
 <div style="display: none;" class="userloggedin">

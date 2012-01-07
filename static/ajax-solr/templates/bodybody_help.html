@@ -1,28 +1,96 @@
 <div class="sidebar">
 	<div class="well">
-		<div id="tagslist">
-		</div>
+		<h3>Useful Links</h3>
+		<ul>
+			<li>Link1</li>
+			<li>Link2</li>
+			<li>Link3</li>
+		</ul>
 	</div>
 </div>
 
 <div class="content"> 
 
-<h3>Ye Old Help Page</h3>
+<h2>Help</h2>
+<hr/>
+<h3> How to Use the AstroExplorer </h3>
+<p>
+	AstroExplorer aims to be your research portfolio application. It allows you to explore astronomical resources such as
+	publications, observations (and their associated datasets), objects, catalogs, and proposals, and to explore the relationships
+	between them. It then enables you to save these resources into tagged libraries which you can access later, and into collaborations,
+	so that you can share your findings with your co-workers and collaborators.
+</p>
+<p>
+	We expose these resources and their connections by curating and indexing them all at one place. This is the model
+	used by google, where the data resides on your servers, but the index on theirs. We have currently indexed all Chandra Observations,
+	observations from several missions from MAST, related articles, objects, and observing proposals (88K observations and 10K publications).
+	This is part of our current focus
+	on NASA missions, since they have already curated extensive bibliographies. If you own a data set with bibliographic links which you would
+	like to see curated, please contact us at adsvao.astroexplorer@gmail.com.
+</p>
+<p>
+	This is a prototype!  It has been created to showcase what kind of functionality can be delivered when these resources are brought 
+	together and exposed to the user in a web-based environment.  It is meant to provide search and discovery capabilities which 
+	are complementary to the position-based searches supported by the VAO portal.
+</p>
+<p>
+	The personalization features which are supported are based on the ADS login system, so they require users to log into their ADS account.
+	This enables one to save queries, resources (publications and observations), tag them, and optionally share them with a group of
+	collaborators.
+</p>
+<p>
+<h3>Script to understand using the application.</h3>
+</p>
 
 <p>
-	Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam diam risus, scelerisque a aliquet ut, consequat at leo. Nunc egestas ornare euismod. Nulla facilisi. Pellentesque consectetur ante et enim ultrices lobortis. Etiam fringilla, libero sit amet pellentesque rutrum, odio mauris pellentesque nulla, at lacinia velit dolor quis lectus. Suspendisse vitae mauris leo. Maecenas sed nibh felis.
+First log on, and along the way try and save queries, publications, and datasets.
+Save results at each point so we have an interesting set of search results to play with.
 </p>
-<p>
-	Etiam tincidunt metus a orci euismod tempor. Vestibulum egestas pharetra mollis. Donec pulvinar felis at sapien commodo ultrices. Sed vitae ipsum ac mauris porttitor pretium et sollicitudin magna. Donec mi sem, consequat nec auctor dictum, condimentum eu lorem. Aliquam sed nulla non lorem placerat commodo. Proin vel ligula urna, sed ornare mi. Maecenas consequat sollicitudin nisl, id eleifend eros lobortis vitae. Mauris egestas elementum sem, faucibus vestibulum libero rhoncus vel. Vestibulum sagittis est ut sem hendrerit vel suscipit massa ullamcorper.
-</p>
-<p>
-	Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Morbi id nisl lacus. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Nulla aliquam, nisi nec vestibulum porta, dolor nunc ultricies diam, sed mollis ipsum velit sit amet felis. Etiam pretium mi in quam vestibulum adipiscing. Fusce id purus ut leo fermentum blandit congue vel nisl. Nam eros diam, placerat et gravida quis, semper sed est. Aliquam erat volutpat.
-</p>
-<p>
-	Pellentesque non elit ut elit auctor placerat. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Sed quis neque massa. Vivamus vitae placerat neque. Etiam egestas leo at purus pharetra dapibus at eget risus. Curabitur eu felis a ligula dapibus tincidunt. Nunc facilisis lobortis turpis sit amet adipiscing. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi accumsan dictum accumsan.
-</p>
-<p>
-	Suspendisse laoreet volutpat felis in venenatis. Quisque sit amet lorem sit amet turpis tincidunt aliquam a eu metus. Aliquam erat volutpat. Vivamus lobortis metus dolor, sed imperdiet mauris. Maecenas vitae nulla sit amet metus laoreet venenatis at tristique massa. Sed eget massa sed tellus fermentum porta. Praesent molestie lectus sed sem rutrum quis iaculis neque aliquam. In metus nibh, aliquet nec adipiscing sit amet, faucibus lacinia turpis. Sed varius est sit amet massa sodales et tempus quam euismod.
-</p>
+<ol>
+<li>
+Describe the main page, displaying publications and facets.  Point out the number of publications displayed and the four type of facets available on the left (publications, objects, observations, proposals).  Point out that one can sort results in two ways (publication date or citations), ascending or descending.
+</li>
+<li>
+Type in blazars into search box on publications page. See the 10 autocomplete as keywords but  larger set of 146 when you hit ESC to remove the autocomplete and perform at bibliographic search over title, abstract, etc.
+</li>
+<li>
+See top keywords, active people, most studied CDS objects, targets (mention combining these). Click in left on B1101+384 object, one of the most studied.
+</li>
+<li>
+choose the one that has chandra mission. Note that it also has data with FUSE.
+</li>
+<li>
+click on various things associated with the paper to show possibilities. Also note how the left side shows facets of this paper. Notice target normalization is needed. We are tackling it.
+</li>
+<li>
+Pivot on QSO B1101+384 [NOTE: SIMBAD’s canonical name for this is Mrk 421], notice Schull as main author, and Sembachs on proposals. This is a problem of name normalization that we are tackling
+</li>
+<li>
+[NOTE: instead of using an object we may want to instead select a target] Facet on mission “Chandra” which reduces the set of results to 27 papers, and continue in observations (317 results)
+</li>
+<li>
+Show the pop-over under current selection showing all obsids
+</li>
+<li>
+Select instrument HRC-S which narrows results to 47 observations; sort on exposure time, showing the deepest observations first
+</li>
+<li>
+Go to Observations tab, type in and autocomplete QSO B1101+384...4361 entries..highly studied
+</li>
+<li>
+choose stuff taken with IUE/SWP. See FOV, resolution, exposure time facets.  Look at Urry, C, Megan proposals, and see authors. Note now that these are not papers, but observations used in papers.
+</li>
+<li>
+Clear results, and pose the question: what is the impact of one or more observations of a particular target?  Pick MAST/Jupiter, click on the “See Metrics” which will display metrics on the 34 papers related to it.
+</li>
+<li>
+Showcase the use of metrics to evaluate impact of proposals.  Start from publications tab, select Chandra, scroll down to Proposal facets and select “Fabian” from the PI facet section.  This generates a list of 73 observations (147 publications).  Click on “Metrics” to get the aggregate metrics number for all of them.
+</li>
+<li>
+Show “saved” and collaborations, highlight things that have been saved along the way.
+</li>
+</ol>
+
+
     
 </div>

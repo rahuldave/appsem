@@ -444,6 +444,9 @@
   mediator.subscribe('user/login', function(email) {
     root.email = email;
     refreshAll();
-    return $('#welcome').text("Welcome, user " + email);
+    return $('#welcome').text("Welcome, user " + email + "!");
+  });
+  $(function() {
+    return $('a.feedback').fancybox();
   });
 }).call(this);

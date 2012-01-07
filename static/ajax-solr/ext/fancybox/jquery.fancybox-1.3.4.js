@@ -947,7 +947,7 @@
 		$(window).unbind("resize.fb scroll.fb");
 		$(document).unbind('keydown.fb');
 
-		content.find('iframe').attr('src', isIE6 && /^https/i.test(window.location.href || '') ? 'javascript:void(false)' : 'about:blank');
+		//content.find('iframe').attr('src', isIE6 && /^https/i.test(window.location.href || '') ? 'javascript:void(false)' : 'about:blank');
 
 		if (currentOpts.titlePosition !== 'inside') {
 			title.empty();

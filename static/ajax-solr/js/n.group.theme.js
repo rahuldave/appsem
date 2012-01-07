@@ -27,12 +27,12 @@
       myADSHandler = null;
     }
     if (!(bibtexHandler === null && myADSHandler === null)) {
-      return $('<div class="formactions"/>').append($('<input class="btn small" type="button" value="Mark all"/>').click(changeAllButtons(true))).append($('<input class="btn small" type="button" value="Clear all"/>').click(changeAllButtons(false))).append($('<span>&nbsp;<span class="label"/>&nbsp;</span>')).append($('<input class="btn danger small" type="submit" value="Remove" name="action"/>')).append($('<span>&nbsp;<span class="label"/>&nbsp;</span>')).append($('<input class="btn info small" type="button" value="Facet"/>').click(throwhandler)).append($('<span>&nbsp;<span class="label"/>&nbsp;</span>')).append($('<input class="btn info small" type="button" value="Get as BibTex"/>').click(bibtexHandler)).append($('<button type="button" name="myads" value="Send to myADS"/>').click(myADSHandler).append($('<img alt="[myADS logo]"/>').attr('src', "" + SITEPREFIX + "/static/images/ADSlabs-button.png")));
+      return $('<div class="formactions"/>').append($('<input class="btn small" type="button" value="Mark all"/>').click(changeAllButtons(true))).append($('<input class="btn small" type="button" value="Clear all"/>').click(changeAllButtons(false))).append($('<span>&nbsp;<span class="label"/>&nbsp;</span>')).append($('<input class="btn danger small" type="submit" value="Remove" name="action"/>')).append($('<span>&nbsp;<span class="label"/>&nbsp;</span>')).append($('<input class="btn info small" type="button" value="View"/>').click(throwhandler)).append($('<span>&nbsp;<span class="label"/>&nbsp;</span>')).append($('<input class="btn info small" type="button" value="Get as BibTex"/>').click(bibtexHandler)).append($('<button type="button" name="myads" value="Send to myADS"/>').click(myADSHandler).append($('<img alt="[myADS logo]"/>').attr('src', "" + SITEPREFIX + "/static/images/ADSlabs-button.png")));
     }
     $thediv = $('<div class="formactions"/>').append($('<input class="btn small" type="button" value="Mark all"/>').click(changeAllButtons(true))).append($('<input class="btn small" type="button" value="Clear all"/>').click(changeAllButtons(false))).append($('<span>&nbsp;<span class="label"/>&nbsp;</span>')).append($('<input class="btn danger small" type="submit" value="Remove" name="action"/>'));
     if (throwhandler !== null) {
       $thediv.append($('<span>&nbsp;<span class="label"/>&nbsp;</span>'));
-      $thediv.append($('<input class="btn info small" type="button" value="Facet"/>').click(throwhandler));
+      $thediv.append($('<input class="btn info small" type="button" value="View"/>').click(throwhandler));
     }
     return $thediv;
   };

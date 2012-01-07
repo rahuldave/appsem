@@ -30,7 +30,7 @@ AjaxSolr.theme.prototype.saved_formactions = (saveingrouphandler, savetotagshand
         .append($('<input class="medium tagstext" type="text"/>'))
         .append($('<input type="button" class="btn small info" value="Add Tags" name="Tag"/>').click(savetotagshandler)) 
         .append($('<span>&nbsp;<span class="label"/>&nbsp;</span>'))
-        .append($('<input class="btn info small" type="button" value="Facet"/>').click(throwhandler))
+        .append($('<input class="btn info small" type="button" value="View"/>').click(throwhandler))
         .append($('<span>&nbsp;<span class="label"/>&nbsp;</span>'))        
         .append($('<input class="btn info small" type="button" value="Get as BibTex"/>').click(bibtexHandler))
         .append($('<button type="button" name="myads" value="Send to myADS"/>')
@@ -50,7 +50,7 @@ AjaxSolr.theme.prototype.saved_formactions = (saveingrouphandler, savetotagshand
     .append($('<input type="button" class="btn small info" value="Add Tags" name="Tag"/>').click(savetotagshandler))
   if throwhandler isnt null
       $thediv.append($('<span>&nbsp;<span class="label"/>&nbsp;</span>'))
-      $thediv.append($('<input class="btn info small" type="button" value="Facet"/>').click(throwhandler))
+      $thediv.append($('<input class="btn info small" type="button" value="View"/>').click(throwhandler))
   return $thediv    
       
 

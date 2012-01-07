@@ -56,7 +56,7 @@
 			    value: facet,
 			    text: facet + ' (' + response.facet_counts.facet_fields[field][facet] + ') - ' + fieldname
 			});
-		    }
+	        }
 		}
 		
 		self.requestSent = false;

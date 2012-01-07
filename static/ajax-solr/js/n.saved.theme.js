@@ -36,7 +36,7 @@
           _results.push("<option>" + ele + "</option>");
         }
         return _results;
-      })()).join(''))).append($('<input class="btn primary small" type="button" value="Save to Collabs" name="action"/>').click(saveingrouphandler)).append($('<span>&nbsp;<span class="label"/>&nbsp;</span>')).append($('<input class="medium tagstext" type="text"/>')).append($('<input type="button" class="btn small info" value="Add Tags" name="Tag"/>').click(savetotagshandler)).append($('<span>&nbsp;<span class="label"/>&nbsp;</span>')).append($('<input class="btn info small" type="button" value="Facet"/>').click(throwhandler)).append($('<span>&nbsp;<span class="label"/>&nbsp;</span>')).append($('<input class="btn info small" type="button" value="Get as BibTex"/>').click(bibtexHandler)).append($('<button type="button" name="myads" value="Send to myADS"/>').click(myADSHandler).append($('<img alt="[myADS logo]"/>').attr('src', "" + SITEPREFIX + "/static/images/ADSlabs-button.png")));
+      })()).join(''))).append($('<input class="btn primary small" type="button" value="Save to Collabs" name="action"/>').click(saveingrouphandler)).append($('<span>&nbsp;<span class="label"/>&nbsp;</span>')).append($('<input class="medium tagstext" type="text"/>')).append($('<input type="button" class="btn small info" value="Add Tags" name="Tag"/>').click(savetotagshandler)).append($('<span>&nbsp;<span class="label"/>&nbsp;</span>')).append($('<input class="btn info small" type="button" value="View"/>').click(throwhandler)).append($('<span>&nbsp;<span class="label"/>&nbsp;</span>')).append($('<input class="btn info small" type="button" value="Get as BibTex"/>').click(bibtexHandler)).append($('<button type="button" name="myads" value="Send to myADS"/>').click(myADSHandler).append($('<img alt="[myADS logo]"/>').attr('src', "" + SITEPREFIX + "/static/images/ADSlabs-button.png")));
     }
     $thediv = $('<div class="formactions"/>').append($('<input class="btn small" type="button" value="Mark all"/>').click(changeAllButtons(true))).append($('<input class="btn small" type="button" value="Clear all"/>').click(changeAllButtons(false))).append($('<span>&nbsp;<span class="label"/>&nbsp;</span>')).append($('<input class="btn danger small" type="submit" value="Delete" name="action"/>')).append($('<span>&nbsp;<span class="label"/>&nbsp;</span>')).append($('<select class="groupselect"/>').append(((function() {
       var _i, _len, _results;
@@ -49,7 +49,7 @@
     })()).join(''))).append($('<input class="btn primary small" type="button" value="Save to Collabs" name="action"/>').click(saveingrouphandler)).append($('<span>&nbsp;<span class="label"/>&nbsp;</span>')).append($('<input class="medium tagstext" type="text"/>')).append($('<input type="button" class="btn small info" value="Add Tags" name="Tag"/>').click(savetotagshandler));
     if (throwhandler !== null) {
       $thediv.append($('<span>&nbsp;<span class="label"/>&nbsp;</span>'));
-      $thediv.append($('<input class="btn info small" type="button" value="Facet"/>').click(throwhandler));
+      $thediv.append($('<input class="btn info small" type="button" value="View"/>').click(throwhandler));
     }
     return $thediv;
   };

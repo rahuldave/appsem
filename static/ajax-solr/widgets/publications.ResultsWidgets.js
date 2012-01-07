@@ -132,6 +132,7 @@ PublicationView=Backbone.View.extend({
        var $target=$(event.target);
        var facet_field=$target.attr('facet_field');
        var facet_value=$target.attr('facet_value');
+       console.log('FF', facet_field, facet_value);
        var pivot=facet_field + ':' + AjaxSolr.Parameter.escapeValue(facet_value);
        this.widget.manager.store.remove('fq');
        this.widget.manager.store.addByValue('fq', pivot);

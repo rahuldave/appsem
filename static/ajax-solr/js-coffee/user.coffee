@@ -271,5 +271,6 @@ refreshAll = () ->
 mediator.subscribe 'user/login', (email) ->
   root.email=email
   refreshAll()
+  $('#welcome').text("Welcome, user #{email}!")
 
   

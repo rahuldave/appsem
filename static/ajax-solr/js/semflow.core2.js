@@ -145,8 +145,8 @@
     root.myemail = email;
     username = email.split('@')[0];
     $('a#logouthref').text("logout");
-    $('a#userhref').text("[" + username + "]").attr('href', "" + dasiteprefix + "/explorer/user?fqUserName=" + email);
-    $('a#brandhref').attr('href', "" + dasiteprefix + "/explorer/user?fqUserName=" + email);
+    $('a#userhref').text("[" + username + "]").attr('href', "" + dasiteprefix + "/explorer/user");
+    $('a#brandhref').attr('href', "" + dasiteprefix + "/explorer/user");
     console.log("SETLOGGEDIN-------------" + email);
     _ref = $('.userloggedin');
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -171,13 +171,6 @@
       });
     };
     $('a.newgroupfancybox').fancybox();
-    $('#searchsubmit').click(function() {
-      var etts, tts, value;
-      value = $("input[@name=optionsRadios]:checked").val();
-      tts = $('#qtext').val();
-      etts = encodeURIComponent(tts);
-      return window.location.href = "" + dasiteprefix + "/explorer/" + value + "#fq=text%3A" + etts + "&q=*%3A*";
-    });
     $('#addgroupdiv').append($('<span>Group Name:</span>')).append($('<input class="medium" id="addgrouptext" type="text"/>')).append($('<input type="button" class="btn small info" value="Add" name="Add"/>').click(addgrouphandler));
     $.getJSON("" + dasiteprefix + "/memberofgroups", function(data) {
       var gmhtml, group, groups;
@@ -200,7 +193,7 @@
   };
   setLoggedOut = function() {
     var elem, _i, _j, _len, _len2, _ref, _ref2;
-    $('a#brandhref').attr('href', "" + dasiteprefix + "/explorer/publications");
+    $('a#brandhref').attr('href', "" + dasiteprefix + "/explorer/user");
     _ref = $('.userloggedout');
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       elem = _ref[_i];
@@ -244,6 +237,21 @@
     $('#gosearch').click(function() {
       return alert('The search box is not implemented');
     });
+    $('#searchsubmit').click(function() {
+      var etts, tts, value;
+      console.log("Hello");
+      value = $("input[@name=optionsRadios]:checked").val();
+      tts = $('#qtext').val();
+      etts = encodeURIComponent(tts);
+      return window.location.href = "" + dasiteprefix + "/explorer/" + value + "#fq=text%3A" + etts + "&q=*%3A*";
+    });
+    $('#qtext').keypress(function(e) {
+      if (e.which === 13) {
+        $(this).blur();
+        $('#searchsubmit').focus().click();
+        return false;
+      }
+    });
     _ref = $('a.userlogin');
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       elem = _ref[_i];
@@ -255,8 +263,9 @@
       return window.location.href = "" + SITEPREFIX + "/logout?redirect=" + loc;
     });
     return $.getJSON("" + SITEPREFIX + "/getuser", function(data) {
-      if ((data.email != null) && data.email !== '' && data.email !== 'undefined') {
-        return setLoggedIn(data.email);
+      if ((data.email != null) && data.email !== '' && data.email !== 'undefined' && data.email !== 'null') {
+        setLoggedIn(data.email);
+        return false;
       } else {
         if ((data.startup != null) && data.startup !== 'undefined') {
           return $.ajax({
@@ -266,14 +275,17 @@
             success: function(adata) {
               if ((adata.email != null) && adata.email !== '') {
                 setLoggedIn(adata.email);
-                return $.post("" + SITEPREFIX + "/addtoredis", JSON.stringify(adata));
+                $.post("" + SITEPREFIX + "/addtoredis", JSON.stringify(adata));
+                return false;
               } else {
-                return setLoggedOut();
+                setLoggedOut();
+                return false;
               }
             }
           });
         } else {
-          return setLoggedOut();
+          setLoggedOut();
+          return false;
         }
       }
     });

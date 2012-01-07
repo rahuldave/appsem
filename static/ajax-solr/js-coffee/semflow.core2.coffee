@@ -1,4 +1,6 @@
 # Common code for AstroExplorer
+#Common bugs
+#if u do publications#something, infinite loop can happen. Be defensive in what you expectBUG
 
 root = exports ? this
 $ = jQuery
@@ -44,6 +46,8 @@ makeMediator = () ->
 
 root.mediator = makeMediator()
 
+
+      
 # Given a facet name, return a human-readable version using the supplied
 # namemap; if there is no mapping for this field, or the namemap
 # is not suppleid then the input name is returned.
@@ -164,8 +168,8 @@ setLoggedIn = (email) ->
   root.myemail=email
   username = email.split('@')[0]
   $('a#logouthref').text "logout"
-  $('a#userhref').text("[#{username}]").attr('href', "#{dasiteprefix}/explorer/user?fqUserName=#{email}")
-  $('a#brandhref').attr('href', "#{dasiteprefix}/explorer/user?fqUserName=#{email}")
+  $('a#userhref').text("[#{username}]").attr('href', "#{dasiteprefix}/explorer/user")
+  $('a#brandhref').attr('href', "#{dasiteprefix}/explorer/user")
   console.log "SETLOGGEDIN-------------#{email}"
   for elem in $('.userloggedin')
     $(elem).show()
@@ -181,12 +185,7 @@ setLoggedIn = (email) ->
           window.location.href = "#{dasiteprefix}/explorer/user?fqUserName=#{email}"
   #Not always available. So how to deal with this on separate pages? Assciate a js with each?    
   $('a.newgroupfancybox').fancybox()
-  $('#searchsubmit').click () ->
-      ##fq=text%3Ahello&q=*%3A*
-      value = $("input[@name=optionsRadios]:checked").val()
-      tts = $('#qtext').val()
-      etts= encodeURIComponent tts
-      window.location.href = "#{dasiteprefix}/explorer/#{value}#fq=text%3A#{etts}&q=*%3A*"
+  
   $('#addgroupdiv')
   .append($('<span>Group Name:</span>'))
   .append($('<input class="medium" id="addgrouptext" type="text"/>'))
@@ -200,7 +199,7 @@ setLoggedIn = (email) ->
   mediator.publish 'user/login', email
 
 setLoggedOut = () ->
-  $('a#brandhref').attr('href', "#{dasiteprefix}/explorer/publications")
+  $('a#brandhref').attr('href', "#{dasiteprefix}/explorer/user")
   for elem in $('.userloggedout')
     $(elem).show()
   for elem in $('.userloggedin')
@@ -235,7 +234,19 @@ loginHandler = () ->
 
 $ ->
   $('#gosearch').click () -> alert 'The search box is not implemented'
+  $('#searchsubmit').click () ->
+        ##fq=text%3Ahello&q=*%3A*
+        console.log "Hello"
+        value = $("input[@name=optionsRadios]:checked").val()
+        tts = $('#qtext').val()
+        etts= encodeURIComponent tts
+        window.location.href = "#{dasiteprefix}/explorer/#{value}#fq=text%3A#{etts}&q=*%3A*"
 
+  $('#qtext').keypress (e) ->
+      if e.which is 13
+          $(this).blur()
+          $('#searchsubmit').focus().click()
+          return false
   # We allow multiple login links
   for elem in $('a.userlogin')
     $(elem).click loginHandler
@@ -246,10 +257,10 @@ $ ->
 
   $.getJSON "#{SITEPREFIX}/getuser", (data) ->
     #console.log "getuser call returned: #{JSON.stringify data}"
-    if data.email? and data.email isnt '' and data.email isnt 'undefined'
+    if data.email? and data.email isnt '' and data.email isnt 'undefined' and data.email isnt 'null'
       #console.log "Yeehah; we are logged in"
       setLoggedIn data.email
-
+      return false
     else
       # User is not logged in according to our database, so check ADS.
       #
@@ -265,11 +276,12 @@ $ ->
               setLoggedIn adata.email
               # do we really need to add this back to Redis?
               $.post "#{SITEPREFIX}/addtoredis", JSON.stringify(adata)
-
+              return false
             else
               setLoggedOut()
-
+              return false
       else
         #console.log "Flat-out not logged in"
         setLoggedOut()
+        return false
 

@@ -142,9 +142,9 @@ var PublicationsManager;
 	    return false;
 	});
 	//removing obsids, obsids_s
-	var fields = [ 'keywords', 'author', 'objecttypes', 'objectnames', 'obsvtypes', 'instruments', 'missions', 'emdomains', 'targets', 'datatypes', 'propids', 'proposaltype', 'proposalpi'];
-	var facet_fields= [ 'keywords_s', 'author_s', 'objecttypes_s', 'objectnames_s', 'obsvtypes_s', 'instruments_s', 'obsv_mission_s', 'emdomains_s', 'targets_s', 'datatypes_s', 'propids_s', 'proposaltype_s', 'proposalpi_s'];
-	var field_names = ['Keyword', 'Author', 'Object Type', 'Object Name', 'Observation Type', 'Obsid', 'Instrument',
+	var fields = [ 'bibcodes', 'obsids', 'keywords', 'author', 'objecttypes', 'objectnames', 'obsvtypes', 'instruments', 'missions', 'emdomains', 'targets', 'datatypes', 'propids', 'proposaltype', 'proposalpi'];
+	var facet_fields= [ 'bibcode', 'obsids_s', 'keywords_s', 'author_s', 'objecttypes_s', 'objectnames_s', 'obsvtypes_s', 'instruments_s', 'obsv_mission_s', 'emdomains_s', 'targets_s', 'datatypes_s', 'propids_s', 'proposaltype_s', 'proposalpi_s'];
+	var field_names = ['Bibcode', 'Observation Id', 'Keyword', 'Author', 'Object Type', 'Object Name', 'Observation Type', 'Obsid', 'Instrument',
 			   'Mission', 'Wavelength', 'Target Name',
 			   'Data Type', 'Proposal ID', 'Proposal Type', 'Proposal PI'];
 	var field_map = root.fieldname_map;
@@ -176,7 +176,7 @@ var PublicationsManager;
             target: '#search',
             field: 'text',
             tab: 'publications',
-            fields: facet_fields.concat(['bibcode', 'obsids_s']),
+            fields: facet_fields,
 	        fieldmap: field_map
 	}));
 	PublicationsManager.addWidget(new AjaxSolr.YearWidget({

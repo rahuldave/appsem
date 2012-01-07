@@ -62,7 +62,7 @@
         return $('<h5/>').append(doc.title + " ")
                          .append($titlelink)
                          .append($titlepivot)
-                         .append($('<a class="label"/>').text("Metrics").bind('click', atpthandler));
+                         .append($('<a class="label"/>').text("Metrics").unbind('click').bind('click', atpthandler));
     }
 
 
@@ -90,6 +90,12 @@
             valuestring=value;
         }
         return $('<a facet_field="'+pivotclass+'" facet_value="'+valuestring+'" class="facetlink '+pivotclass+'" href="#"/>').text(value);
+    };
+    AjaxSolr.theme.prototype.facet_link2 = function (value, pivotclass, valuestring) {
+        if (valuestring===undefined){
+            valuestring=value;
+        }
+        return $('<a facet_field="'+pivotclass+'" facet_value="'+valuestring+'" class="label facetlink '+pivotclass+'" href="#"/>').text(value);
     };
     AjaxSolr.theme.prototype.authors = function(){
         return $('<span class="authors"/>');
@@ -250,11 +256,11 @@
 	        $obody.append($('<tr/>')
 			      .append($('<td/>')
 				      .append(AjaxSolr.theme.prototype.simbad_link(oname))
-				      .append(AjaxSolr.theme.prototype.facet_link('[P]', 'objectnames_s', oname))
+				      .append(AjaxSolr.theme.prototype.facet_link2('P', 'objectnames_s', oname))
 				  )
 			      .append($('<td/>')
 				      .text(otype)
-				      .append(AjaxSolr.theme.prototype.facet_link('[P]', 'objecttypes_s', otype))
+				      .append(AjaxSolr.theme.prototype.facet_link2('P', 'objecttypes_s', otype))
 				  )
 			);
 	    } 
@@ -295,11 +301,11 @@
         var otype=doc.objtype;
         $obody.append($('<td/>')
 				      .append(AjaxSolr.theme.prototype.simbad_link(oname))
-				      .append(AjaxSolr.theme.prototype.facet_link('[P]', 'objectnames_s', oname))
+				      .append(AjaxSolr.theme.prototype.facet_link2('P', 'objectnames_s', oname))
 				  )
 			      .append($('<td/>')
-				      .text(otype)
-				      .append(AjaxSolr.theme.prototype.facet_link('[P]', 'objecttypes_s', otype))
+				      .html(otype+"&nbsp;")
+				      .append(AjaxSolr.theme.prototype.facet_link2('P', 'objecttypes_s', otype))
 				  )
 		return $obody;
       };
@@ -363,14 +369,14 @@
         $mbody.append($('<td/>').text(doc.mission.toUpperCase()))
 		    .append($('<td/>')
 			          .append(AjaxSolr.theme.prototype.mission_link(doc.mission, doc.obsids_s))
-			          .append(AjaxSolr.theme.prototype.facet_link('[P]', 'obsids_s', doc.mission + '/' + doc.obsids_s))
-			          .append($('<a class="label" href="'+SITEPREFIX+'/explorer/observations#fq=obsids_s%3A'+doc.mission+'%2F'+doc.obsids_s+'&q=*%3A*"/>').text('Go'))
+			          .append(AjaxSolr.theme.prototype.facet_link2('P', 'obsids_s', doc.mission + '/' + doc.obsids_s))
+			          .append($('<a class="label" href="'+SITEPREFIX+'/explorer/observations#fq=obsids_s%3A'+doc.mission+'%2F'+doc.obsids_s+'&q=*%3A*"/>').text('View'))
 			)
 		    .append($('<td/>').text(doc.exptime_f))
 		    .append($('<td/>').text(doc.obsvtime_d))
 		    .append($('<td/>')
-			          .text(doc.targets_s)
-			          .append(AjaxSolr.theme.prototype.facet_link('[P]', 'targets_s',parent + '/' + doc.targets_s))
+			          .html(doc.targets_s+"&nbsp;")
+			          .append(AjaxSolr.theme.prototype.facet_link2('P', 'targets_s',parent + '/' + doc.targets_s))
 			)
 		    .append($('<td/>').text(doc.ra_f)) // may want to try <span value=decimal>text value</span> trick?
 		    .append($('<td/>').text(doc.dec_f));

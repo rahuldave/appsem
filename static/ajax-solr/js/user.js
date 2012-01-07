@@ -443,6 +443,7 @@
   };
   mediator.subscribe('user/login', function(email) {
     root.email = email;
-    return refreshAll();
+    refreshAll();
+    return $('#welcome').text("Welcome, user " + email);
   });
 }).call(this);

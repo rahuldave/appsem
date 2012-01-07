@@ -6,6 +6,14 @@
       from_objects:false  
     };
     
+    undefgen = function(n) {
+      var _results, i;
+      _results = [];
+      for (i = 0; 0 <= n ? i < n : i > n; 0 <= n ? i++ : i--) {
+        _results.push(undefined);
+      }
+      return _results;
+    };
     ObservationModel=Backbone.Model.extend({
     //We'll just initialize with an attribute dict passed into constructor by Collection.
         initialize: function(models, options){
@@ -76,7 +84,7 @@
         populateFromObservations: function(){
             for (var i = 0, l = this.manager.response.response.docs.length; i < l; i++) {
               var doc = this.manager.response.response.docs[i];
-
+              //console.log('pforahul', doc);
               var result=new ObservationModel(doc, this.passed_options);
               this.add(result)
               //this.add(doc, {from_publications:this.froms.from_publications})
@@ -87,18 +95,39 @@
             var doc=this.doc;
             var docid=this.doc.id;
             var docbibcode=this.doc.bibcode;
+            //console.log('rahulbibcode', docbibcode, doc);
+            //BUG some chandras dont have ra's and dec's. fix.
             var theobsids=doc.obsids_s;
             var nobs=this.nobs;
             //alert(nobs);
             var damodels=[];
             var datargets=[];
-            //console.log("PHEW", doc.obsids_s.length, doc.ra_f.length);
+            var ra, dec;
+            //console.log("PHEW", doc.ra_f, doc.dec_f);
+            var raf=doc.ra_f;
+            var decf=doc.dec_f;
+            if (raf === undefined) {
+                raf=undefgen(nobs);
+            } 
+            if (decf === undefined){
+                decf=undefgen(nobs);
+            }
             for (var i = 0; i < nobs; i += 1) {
                 //alert(obsids[i]);
 	            var toks = theobsids[i].split('/');
 	            var mission = toks[0];
 	            var obsid=toks[1];
-	            //console.log("LLLLLLL",mission, doc.ra_f);
+	            //console.log("LLLLLLL",mission, doc.ra_f[i], doc.dec_f[i]);
+	            if (raf[i] === undefined){
+	                ra='not given';
+	            } else {
+	                ra=raf[i];
+	            }
+	            if (decf[i] === undefined){
+	                dec='not given';
+	            } else {
+	                dec=decf[i];
+	            }
 	            var out = {
 	                   mission: mission,
 	                   docid: docid,
@@ -107,8 +136,8 @@
 		               exptime_f: doc.exptime_f[i],
 		               obsvtime_d: doc.obsvtime_d[i],
 		               targets_s: doc.targets_s[i].split('/', 2)[1],
-		               ra_f: doc.ra_f[i],
-		               dec_f: doc.dec_f[i]
+		               ra_f: ra,
+		               dec_f: dec
 		        };
 		        //this.add(out, {silent:true});
 		        damodels.push(out);

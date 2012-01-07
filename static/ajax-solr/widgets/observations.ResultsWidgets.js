@@ -84,6 +84,7 @@ function encodeObsuri(obsuri){
            var $target=$(event.target);
            var facet_field=$target.attr('facet_field');
            var facet_value=$target.attr('facet_value');
+           console.log('FF', facet_field, facet_value);
            var pivot=facet_field + ':' + AjaxSolr.Parameter.escapeValue(facet_value);
            this.widget.manager.store.remove('fq');
            this.widget.manager.store.addByValue('fq', pivot);
@@ -104,7 +105,7 @@ function encodeObsuri(obsuri){
            var links = [];
            if (facet_values) {
                for (var i = 0, l = facet_values.length; i < l; i++) {
-                   links.push(AjaxSolr.theme('facet_link2',
+                   links.push(AjaxSolr.theme('facet_link',
                             facet_values[i],
                             facet_field));
                             //doing it like below overrides event bubbling.
@@ -202,7 +203,7 @@ function encodeObsuri(obsuri){
                 AjaxSolr.theme('list_items', AjaxSolr.theme('emdomains'), emdomains, "| "),
                 AjaxSolr.theme('additional', 
                     doc,
-                    AjaxSolr.theme('facet_link2', obsvtime_d, 'obsvtime_d', '['+obsvtime_d+' TO ' + obsvtime_d +']'), doc.exptime_f
+                    AjaxSolr.theme('facet_link', obsvtime_d, 'obsvtime_d', '['+obsvtime_d+' TO ' + obsvtime_d +']'), doc.exptime_f
                 ),
                 AjaxSolr.theme('lessmore', doc, this.objcollectionview.render().el, this.pubcollectionview.render().el),
                 this.widget

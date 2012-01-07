@@ -18,16 +18,27 @@
                </li> 
         	</ul>
 			<br/>
-			<input type="button" class="btn small primary" id="searchsubmit" value="Submit" name="Submit"/>
+			<input type="button" class="btn small primary" id="searchsubmit" value="Search" name="Submit"/>
 		</fieldset>
 		</form>
 	</div>
 </div>
 <div class="content"> 
-{{#isuser}} <h2>User {{ user }}</h2> {{/isuser}}
+<h2 id="welcome" class="userloggedin"></h2>
+<h2 class="userloggedout" style="display:none">Welcome, unknown user!</h2>
 <hr/>
 <div style="display: none;" class="userloggedout">
+<p>
  Please <a class="userlogin" href="#">log in</a> to see your home page.
+</p>
+<h5> How to Use the AstroExplorer </h5>
+<p>
+	Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam diam risus, scelerisque a aliquet ut, consequat at leo. Nunc egestas ornare euismod. Nulla facilisi. Pellentesque consectetur ante et enim ultrices lobortis. Etiam fringilla, libero sit amet pellentesque rutrum, odio mauris pellentesque nulla, at lacinia velit dolor quis lectus. Suspendisse vitae mauris leo. Maecenas sed nibh felis.
+</p>
+<p>
+	Etiam tincidunt metus a orci euismod tempor. Vestibulum egestas pharetra mollis. Donec pulvinar felis at sapien commodo ultrices. Sed vitae ipsum ac mauris porttitor pretium et sollicitudin magna. Donec mi sem, consequat nec auctor dictum, condimentum eu lorem. Aliquam sed nulla non lorem placerat commodo. Proin vel ligula urna, sed ornare mi. Maecenas consequat sollicitudin nisl, id eleifend eros lobortis vitae. Mauris egestas elementum sem, faucibus vestibulum libero rhoncus vel. Vestibulum sagittis est ut sem hendrerit vel suscipit massa ullamcorper.
+</p>
+
 </div>
   
 <div style="display: none;" class="userloggedin">

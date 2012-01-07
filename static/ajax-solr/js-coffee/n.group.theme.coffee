@@ -23,7 +23,7 @@ AjaxSolr.theme.prototype.saved_formactions = (throwhandler=null, bibtexHandler=n
         .append($('<span>&nbsp;<span class="label"/>&nbsp;</span>'))
         .append($('<input class="btn danger small" type="submit" value="Remove" name="action"/>'))
         .append($('<span>&nbsp;<span class="label"/>&nbsp;</span>'))
-        .append($('<input class="btn info small" type="button" value="Facet"/>').click(throwhandler))
+        .append($('<input class="btn info small" type="button" value="View"/>').click(throwhandler))
         .append($('<span>&nbsp;<span class="label"/>&nbsp;</span>'))
         .append($('<input class="btn info small" type="button" value="Get as BibTex"/>').click(bibtexHandler))
         .append($('<button type="button" name="myads" value="Send to myADS"/>')
@@ -37,7 +37,7 @@ AjaxSolr.theme.prototype.saved_formactions = (throwhandler=null, bibtexHandler=n
     .append($('<input class="btn danger small" type="submit" value="Remove" name="action"/>'))
   if throwhandler isnt null
     $thediv.append($('<span>&nbsp;<span class="label"/>&nbsp;</span>'))
-    $thediv.append($('<input class="btn info small" type="button" value="Facet"/>').click(throwhandler))
+    $thediv.append($('<input class="btn info small" type="button" value="View"/>').click(throwhandler))
   return $thediv
         
 

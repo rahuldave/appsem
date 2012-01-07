@@ -37,6 +37,7 @@
         obsvs = [];
         pubs = [];
         facetfields = response.facet_counts.facet_fields;
+        console.log("BB", self.fields, facetfields);
         _ref = self.fields;
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           field = _ref[_i];
@@ -60,7 +61,6 @@
         npubs = pubs.length;
         nobsvs = obsvs.length;
         console.log("INAUTOWIDGET", self.tab, 'pubs', npubs, 'obsvs', nobsvs);
-        self.requestSent = false;
         if (self.tab === 'publications') {
           othertab = 'observations';
           faceter = 'obsids_s';
@@ -76,7 +76,6 @@
           poststring = pubs.join(",");
           methandler = function() {
             var hiddenformdiv;
-            console.log("before in atpt", $('#tempform').html());
             hiddenformdiv = "<div id=\"tempform\" style=\"display:none\"><form method=\"post\" action=\"http://adsabs.harvard.edu/tools/metrics\">\n<input type=\"hidden\" name=\"bibcode\" value=\"" + poststring + "\">\n<input type=\"hidden\" name=\"service\" value=\"yes\">\n<input type=\"submit\" name=\"submit\" id=\"tempformsubmit\" value=\"submit\"/></form></div>";
             $('body').append(hiddenformdiv);
             console.log("HERE", hiddenformdiv);
@@ -90,7 +89,7 @@
             });
             return false;
           };
-          $('#metricsthrower').bind('click', methandler);
+          $('#metricsthrower').unbind('click').bind('click', methandler);
           $('#metricsthrower').show();
           $('#numpubs').text("(" + npubs + " pubs)");
           shownpubs = true;
@@ -128,6 +127,7 @@
             return self.manager.doRequest(0);
           }
         };
+        self.requestSent = false;
         return $(self.target).find('input').unautocomplete().autocomplete(list, {
           formatItem: function(facet) {
             return facet.text;

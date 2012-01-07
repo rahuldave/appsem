@@ -56,10 +56,10 @@ function encodeObsuri(obsuri){
 	        .append('<br/>')
 	        .append(pubLabel('Target:'))
 	        .append(' ')
-	        .append(AjaxSolr.theme.prototype.facet_link2(doc.targets_s, 'targets_s',doc.targets_s))
+	        .append(AjaxSolr.theme.prototype.facet_link(doc.targets_s, 'targets_s',doc.targets_s))
 	        .append(' ')
 	        .append(pubLabel('Instruments:')).append(' ')
-	        .append(AjaxSolr.theme.prototype.facet_link2(doc.instruments_s[0], 'instruments_s',doc.instruments_s[0]))
+	        .append(AjaxSolr.theme.prototype.facet_link(doc.instruments_s[0], 'instruments_s',doc.instruments_s[0]))
 	        .append(' ');
 	        return $output1;
 	};
@@ -119,7 +119,7 @@ function encodeObsuri(obsuri){
                 $.fancybox({type: 'iframe',href:'/semantic2/alpha/static/hiddenform.html',autoDimensions: false,width: 1024,height: 768,scrolling: 'yes'})
                 return false;
             };
-            $start.append($('<a class="label"/>').text("Metrics").bind('click',pphandler));
+            $start.append($('<a class="label"/>').text("Metrics").unbind('click').bind('click',pphandler));
         }
 	    //$dataarea.append($('<div class="missiondata"/>').append($mtable));
 	    $start.append($otable);
@@ -131,12 +131,12 @@ function encodeObsuri(obsuri){
         var byear=doc.year;
         $obody.append($('<td/>')
                       .append(AjaxSolr.theme.prototype.bibcode_link(bcode))
-				      .append(AjaxSolr.theme.prototype.facet_link2('[P]', 'bibcode', bcode))
-				      .append($('<a class="label" href="'+SITEPREFIX+'/explorer/publications#fq=bibcode%3A'+encodeURIComponent(bcode)+'&q=*%3A*"/>').text('Go'))
+				      .append(AjaxSolr.theme.prototype.facet_link2('P', 'bibcode', bcode))
+				      .append($('<a class="label" href="'+SITEPREFIX+'/explorer/publications#fq=bibcode%3A'+encodeURIComponent(bcode)+'&q=*%3A*"/>').text('View'))
 			          
 				  )
 			      .append($('<td/>')
-				      .append(AjaxSolr.theme.prototype.facet_link2(byear, 'pubyear_i', '['+byear+' TO ' + byear +']'))
+				      .append(AjaxSolr.theme.prototype.facet_link(byear, 'pubyear_i', '['+byear+' TO ' + byear +']'))
 				  )
 		return $obody;
       };
@@ -189,11 +189,11 @@ function encodeObsuri(obsuri){
         var otype=doc.objtype;
         $obody.append($('<td/>')
 				      .append(AjaxSolr.theme.prototype.simbad_link(oname))
-				      .append(AjaxSolr.theme.prototype.facet_link2('[P]', 'objectnames_s', oname))
+				      .append(AjaxSolr.theme.prototype.facet_link2('P', 'objectnames_s', oname))
 				  )
 			      .append($('<td/>')
-				      .text(otype)
-				      .append(AjaxSolr.theme.prototype.facet_link2('[P]', 'objecttypes_s', otype))
+				      .html(otype+"&nbsp;")
+				      .append(AjaxSolr.theme.prototype.facet_link2('P', 'objecttypes_s', otype))
 				  )
 		return $obody;
       };     
@@ -209,23 +209,33 @@ AjaxSolr.theme.prototype.title2 = function (doc) {
             .attr('href', titlehref)
             .fancybox(fancyboxOpts);
 
-//http://archive.stsci.edu/load_specview.php?name=iue/lwp31915mxlo_vo.fits   
+//http://archive.stsci.edu/load_specview.php?name=iue/lwp31915mxlo_vo.fits 
+//currently only do 0th data product, there might be more but we dont do it now
+//this is data-product, observations link which we currently dont handle, bedides not handling chandra at all  
     var $titlepivot=AjaxSolr.theme.prototype.pivot2('obsids_s');
+    //console.log("datauri", doc.data_url_s);
     return $('<h5/>').append(doc.obsv_mission_s + ": "+obsidwithoutmission[obsidwithoutmission.length -1])
                          .append($titlelink)
                          .append($titlepivot)
-                         .append($('<a class="label" href="'+doc.data_url_s+'"/>').text("Download"));
+                         .append($('<a class="label" href="'+doc.data_url_s[0]+'"/>').text("Download"));
 }
 
     AjaxSolr.theme.prototype.pivot2 = function (pivotclass){
         return $('<a facet_field="'+pivotclass+'" class="label pivotlink '+pivotclass+'" href="#"/>').text('P');
     }
 
-    AjaxSolr.theme.prototype.facet_link2 = function (value, pivotclass, valuestring) {
+    AjaxSolr.theme.prototype.facet_link = function (value, pivotclass, valuestring) {
         if (valuestring===undefined){
             valuestring=value;
         }
         return $('<a facet_field="'+pivotclass+'" facet_value="'+valuestring+'" class="facetlink '+pivotclass+'" href="#"/>').text(value);
+    };
+    
+    AjaxSolr.theme.prototype.facet_link2 = function (value, pivotclass, valuestring) {
+        if (valuestring===undefined){
+            valuestring=value;
+        }
+        return $('<a facet_field="'+pivotclass+'" facet_value="'+valuestring+'" class="label facetlink '+pivotclass+'" href="#"/>').text(value);
     };
     
     
@@ -274,7 +284,7 @@ AjaxSolr.theme.prototype.pivot_link = function (handler) {
     return $('<a class="label pivotlink" href="#"/>').text('P').click(handler);
 }
 
-AjaxSolr.theme.prototype.facet_link = function (value, handler) {
+AjaxSolr.theme.prototype.facet_link3 = function (value, handler) {
   return $('<a href="#"/>').text(value).click(handler);
 };
 

@@ -40,17 +40,18 @@
 	This enables one to save queries, resources (publications and observations), tag them, and optionally share them with a group of
 	collaborators.
 </p>
-
-
 <p>
-	Features not in this version but in development are: nicknames, target normalization, author normalization, more data, more scalable continuation of searches between tabs, public libraries, dropbox support, Data Discovery Tool interoperation, object searching, catalog searching. For the meaning of these, read the tour below!
+	We would love feedback. Either click the blue Feedback link on the upper right of the home page, or email us at: adsvao.astroexplorer@gmail.com.
+</p>
+<p>
+	Features not in this version but in development are: nicknames, target normalization, author normalization, more data, more scalable continuation of searches between tabs, public libraries, Dropbox support, Data Discovery Tool interoperation, object searching, catalog searching, and SAMP connections to desktop applications. For the meaning of these, read the tour below!
 </p>
 
 <h3>Tour and Tutorial</h3>
 <br/>
 <ol class="normal">
 <li>
-<p>The Home Page:</p>
+<p><b>The Home Page</b>:</p>
 <br/>
 <img width="800" src="{{staticprefix}}/images/helpimgs/Home-1.jpg"/>
 <br/>
@@ -62,7 +63,7 @@ could decide to login (2) by clicking the link on the upper right. Also note the
 </p>
 </li>
 <li>
-<p>Logging In:</p>
+<p><b>Logging In</b>:</p>
 <br/>
 <img width="600" src="{{staticprefix}}/images/helpimgs/Home2-1-1.jpg"/>
 <br/>
@@ -75,6 +76,7 @@ could decide to login (2) by clicking the link on the upper right. Also note the
 </li>
 
 <li>
+	<p><b>Search and explore</b>:</p>
 	<p>
 Click on the publications page in the black upper bar, displaying publications and facets which can be used to filter these publications. Alternately you can make a textual search, say, on "blazars", from the home page. This will lead to a screen like so:
 </p>
@@ -99,12 +101,13 @@ See the top keywords, active people, most studied objects, targets. Play around 
 </li>
 
 <li>
-<p> Using the (X) button to get back to the state of the search at text:blazars, click in the left on B1101+384 object-name facet, which, by the looks of our Tag Cloud, is one of the most studied. Our tag cloud limits us to the 20 most occurent values for any facet.
-In missions, click the chandra mission facet. Note that the publications which surface also have data from FUSE. In this way we can figure multi-mission publications. The left side of your application now looks the left side of the image below:
+<p><b>Targets, Authors, and Normalization</b>:</p>
+<p> Using the (X) button to get back to the state of the search at text:blazars, click in the left on B1101+384 object-name facet, which, by the looks of our Tag Cloud, is one of the most studied. Our tag cloud limits us to the 20 most occurrent values for any facet.
+In missions, click the CHANDRA mission facet. Note that the publications which surface also have data from FUSE. In this way we can figure multi-mission publications. The left side of your application now looks the left side of the image below:
 </p>
 <img width="500" src="{{staticprefix}}/images/helpimgs/Publications2.jpg"/>
 <img width="343" src="{{staticprefix}}/images/helpimgs/Publications3-1.jpg"/>
-<p> Notice from the right side that the most frequent target is Mrk421. You will see different spellings of it.  SIMBAD’s canonical name for QSO B1101+384 is Mrk 421. This problem arises because missions usually take target names from their Guest Observers who dont use a consistent nomenclature. We are tackling the curation of these targets to the object names specified by the CDS, but the current prototype reflects the rather incomplete state of our efforts.
+<p> Notice from the right side that the most frequent target is Mrk421. You will see different spellings of it.  SIMBAD’s canonical name for QSO B1101+384 is Mrk 421. This problem arises because missions usually take target names from their Guest Observers who don't use a consistent nomenclature. We are tackling the curation of these targets to the object names specified by the CDS, but the current prototype reflects the rather incomplete state of our efforts.
 </p>
 </li>
 
@@ -114,6 +117,7 @@ Pivot on B1101+384 by clicking the [P] next to the (X) in the Current Selection 
 </p>
 </li>
 <li>
+<p><b>Continuing searches</b>:</p>
 <p>
 	From the state in point 6, which you can get back to by using the 'Back' button in your browser (this is the state in the left of the two images), click on the green 'Continue In Observations' Button on the upper left side. This button only appears when there are few enough observations corresponding to the publications that we can scalably continue the search in the observations tab. We are working on increasing this (currently rather small) number. When we do this, we get 'thrown' into the Observations page where the list of observations corresponding to the publications are presented along with all the facets (publications, objects, observations, proposals) that may be used to filter these further.
 </p>
@@ -127,7 +131,7 @@ Pivot on B1101+384 by clicking the [P] next to the (X) in the Current Selection 
 </li>
 
 <li>
-<p>Sorting:</p>
+<p><b>Sorting</b>:</p>
 <br/>
 <img width="761" src="{{staticprefix}}/images/helpimgs/Observations3.jpg"/>
 <br/>
@@ -137,6 +141,7 @@ We can now use the sorter in the upper right corner to sort on exposure time, sh
 </li>
 
 <li>
+<p><b>Searching Observations</b>:</p>	
 <p>
 We can (X) out this search in the upper left corner, just as we did in the Publications tab. Do that and then in the text-entry box below,  type in 'QSO B11' and watch as it autocompletes to QSO B1101+384...4474 entries...this is a highly studied object.
 <p>
@@ -146,17 +151,31 @@ We can (X) out this search in the upper left corner, just as we did in the Publi
 </li>
 <li>
 <p>Now filter down to observations taken taken with the instrument IUE/SWP. See FOV, resolution, exposure time facets.  
-Filter using Urry, C, Megan proposals, and see authors under publication facets. Note now that the numbers you see next to these authors are not numbers of papers, but those of observations used in papers. In other words, searches on the Observations page give a notion of the importance of observations as reflected in publications created by their use. We can study this impact using the AstroExplorer in even greater detail, using ADS Lab's new <a href="http://adsabs.harvard.edu/tools/metrics/">Metrics Service</a>.
+Filter using Urry, C, Megan proposals, and see authors under publication facets. Take the first observation returned in the sort order
+of your choice and click the more button to get details about the observation:
+</p>
+<br/>
+<img width="800" src="{{staticprefix}}/images/helpimgs/obsvmore.jpg"/>
+<br/>
+<p>
+	Notice firstly that there is a 'P' button and a download button (1) next to the Observation Title. The Download button gets the appropriate FITS file. In a future version you will be able to connect the data set to desktop applications such as ds9. The 'P' button, which you have seen before in the publications tab, and which we have alluded to as 'pivoting', allows you to see the facets and details of just that observation id. 
+</p>
+<p>
+	On clicking the "More" button we see informations about the objects (connected through papers by the CDS) and publications associated with the observation(2). Clicking on 'P' will tell you about all the observations associated with the publication while clicking on View will take you to the Publications page and give you information about the publication. Click on 'P' in the objects list (3) will filter observations associated with that object via publications, while clicking on the object link itself will bring up CDS information about the object. In the future we will be enhancing this connection in two ways: (a) by matching targets to objects for observations and (b) my looking for objects in the footprint of the observations. So we hope to have a bit deeper linking between objects and data to augment that generously provided us by CDS.
+</p>
+<p>
+Note now that the numbers you see next to these authors are not numbers of papers, but those of observations used in papers. In other words, searches on the Observations page give a notion of the importance of observations as reflected in publications created by their use. We can study this impact using the AstroExplorer in even greater detail, using ADS Lab's new <a href="http://adsabs.harvard.edu/tools/metrics/">Metrics Service</a>. See the metric link above the publications(4). If you click on it, you will have an idea of the impact of that particular observation.
 </p>
 </li>
 <li>
+<p><b>Metrics</b>:</p>
 <p>
 Clear results (using the (X) in the current selection area), and pose the question: what is the impact of one or more observations of a particular target?  Scroll down on the left to Observation Targets, pick MAST/Jupiter, click on the green “Metrics” below the current selection, which will display metrics on the 34 papers related to it. 
 <p>
 <img width="500" src="{{staticprefix}}/images/helpimgs/Observationsj1.jpg"/>
 <img width="350" src="{{staticprefix}}/images/helpimgs/Observationsj2.jpg"/>	
 <p>
-You can also click "more" on individual observations to access metrics corresponding to that observation: ie the metrics from the papers that used that observation.
+You can also click "more" on individual observations to access metrics corresponding to that observation: i.e. the metrics from the papers that used that observation (as described in the previous image).
 </p>	
 </li>
 <li>
@@ -169,6 +188,7 @@ Similarly, we can use metrics to evaluate impact of proposals.  Start from the p
 <br/>
 </li>
 <li>
+<p><b>Saving, Sharing, and Tagging</b>:</p>
 <p>
 While following along, I hope you have been saving searches, publications, and observations, for, there are some interesting ways in
 AstroExplorer to organize and share the results of your searching and exploring. Let us first look at the Saved Items page, accessible from the 'Saved' link in the black bar at the top:
@@ -177,13 +197,14 @@ AstroExplorer to organize and share the results of your searching and exploring.
 <img width="800" src="{{staticprefix}}/images/helpimgs/Saved-1.jpg"/>
 <br/>
 <p>
-Firstly, once you save an item, you can publish it (or share it) into a group or collaboration. The modus operandi for all actions on this page is, as usual, select items, and then do an operation in bulk on it. Thus we can use the controls in (1) to choose a group, and save the items in question into that group. Secondly, as seen in (2), one can view pubs or obsvs selected in the Publications or Observations pages respectively by hitting the appropriate view button.
+Firstly, once you save an item, you can publish it (or share it) into a group or collaboration. The modus operandi for all actions on this page is, as usual, select items, and then do an operation in bulk on it. Thus we can use the controls in (1) to choose a group, and save the items in question into that group. Secondly, as seen in (2), one can view publications or observations selected in the Publications or Observations pages respectively by hitting the appropriate view button.
 </p>
 <p>
 	In addition to being able to share items into collaborations, you might want to tag them. This reproduces and enhance some of the functionality that <a href="http://myads.harvard.edu/">MyADS</a> has provided for a while now. Enter one tag at a time (3), after selecting the items you want to tag. An item may have as many tags as you like. The tags correspond to libraries in the MYADS interface, but are freer form, and many-to-many in their relationship to items. The list of tags on the left (4) will update and you can select the tag you want to view.
 </p>
 </li>
 <li>
+<p><b>Collaborations, and Tagging</b>:</p>
 <p>
 	But wait, thats not all! You can see your collaborations by clicking on the collaborations menu, as seen in the left image in the panel below. When you choose a collaboration, you get a page similar to the 'Saved' page, but with less options, as seen in the image on the right.
 </p>
@@ -198,7 +219,7 @@ Firstly, once you save an item, you can publish it (or share it) into a group or
 	One can select a particular tag using the list of the tags on the left side, the result being this:
 </p>
 <br/>
-<img width="800" src="{{staticprefix}}/images/helpimgs/Collaboration-1.jpg"/>
+<img width="750" src="{{staticprefix}}/images/helpimgs/Collaboration-1.jpg"/>
 <br/>
 <p>
 	Here one can see the results of choosing the tag 'tagsfive' in the group 'truckers' (1). (If you are wondering why truckers is preceded

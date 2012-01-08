@@ -105,25 +105,53 @@ Pivot on B1101+384 by clicking the [P] next to the (X) in the Current Selection 
 </p>
 </li>
 <li>
-[NOTE: instead of using an object we may want to instead select a target] Facet on mission “Chandra” which reduces the set of results to 27 papers, and continue in observations (317 results)
+<p>
+	From the state in point 6, which you can get back to by using the 'Back' button in your browser (this is the state in the left of the two images), click on the green 'Continue In Observations' Button on the upper left side. This button only appears when there are few enough observations corresponding to the publications that we can scalably continue the search in the observations tab. We are working on increasing this (currently rather small) number. When we do this, we get 'thrown' into the Observations page where the list of observations corresponding to the publications are presented along with all the facets (publications, objects, observations, proposals) that may be used to filter these further.
+</p>
+<br/>
+<img width="600" src="{{staticprefix}}/images/helpimgs/Observations.jpg"/>
+<br/>
+<p>
+	Note the black popup showing the list of objects used. One caveat to the filtering of observations by object names and types. These
+	currently use the CDS connection through publications. They are not augmented by the target normalization that we are doing.
+</p>
+</li>
+
+<li>
+<p>Sorting:</p>
+<br/>
+<img width="761" src="{{staticprefix}}/images/helpimgs/Observations3.jpg"/>
+<br/>
+<p>
+We can now use the sorter in the upper right corner to sort on exposure time, showing the deepest observations first.
+</p>
+</li>
+
+<li>
+<p>
+We can (X) out this search in the upper left corner, just as we did in the Publications tab. Do that and then in the text-entry box below,  type in 'QSO B11' and watch as it autocompletes to QSO B1101+384...4474 entries...this is a highly studied object.
+<p>
+	<br/>
+	<img width="597" src="{{staticprefix}}/images/helpimgs/Observations2.jpg"/>
+	<br/>	
 </li>
 <li>
-Show the pop-over under current selection showing all obsids
+<p>Now filter down to observations taken taken with the instrument IUE/SWP. See FOV, resolution, exposure time facets.  
+Filter using Urry, C, Megan proposals, and see authors under publication facets. Note now that the numbers you see next to these authors are not numbers of papers, but those of observations used in papers. In other words, searches on the Observations page give a notion of the importance of observations as reflected in publications created by their use. We can study this impact using the AstroExplorer in even greater detail, using ADS Lab's new <a href="http://adsabs.harvard.edu/tools/metrics/">Metrics Service</a>.
+</p>
 </li>
 <li>
-Select instrument HRC-S which narrows results to 47 observations; sort on exposure time, showing the deepest observations first
+<p>
+Clear results (using the (X) in the current selection area), and pose the question: what is the impact of one or more observations of a particular target?  Scroll down on the left to Observation Targets, pick MAST/Jupiter, click on the green “Metrics” below the current selection, which will display metrics on the 34 papers related to it. 
+<p>
+<img width="500" src="{{staticprefix}}/images/helpimgs/Observationsj1.jpg"/>
+<img width="350" src="{{staticprefix}}/images/helpimgs/Observationsj2.jpg"/>	
+<p>
+You can also click "more" on individual observations to access metrics corresponding to that observation: ie the metrics from the papers that used that observation.
+</p>	
 </li>
 <li>
-Go to Observations tab, type in and autocomplete QSO B1101+384...4361 entries..highly studied
-</li>
-<li>
-choose stuff taken with IUE/SWP. See FOV, resolution, exposure time facets.  Look at Urry, C, Megan proposals, and see authors. Note now that these are not papers, but observations used in papers.
-</li>
-<li>
-Clear results, and pose the question: what is the impact of one or more observations of a particular target?  Pick MAST/Jupiter, click on the “See Metrics” which will display metrics on the 34 papers related to it.
-</li>
-<li>
-Showcase the use of metrics to evaluate impact of proposals.  Start from publications tab, select Chandra, scroll down to Proposal facets and select “Fabian” from the PI facet section.  This generates a list of 73 observations (147 publications).  Click on “Metrics” to get the aggregate metrics number for all of them.
+Similarly, we can use metrics to evaluate impact of proposals.  Start from publications tab, select Chandra, scroll down to Proposal facets and select “Fabian” from the PI facet section.  This generates a list of 73 observations (147 publications).  Click on “Metrics” to get the aggregate metrics number for all of them.
 </li>
 <li>
 Show “saved” and collaborations, highlight things that have been saved along the way.

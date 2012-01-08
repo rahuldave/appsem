@@ -40,33 +40,69 @@
 	This enables one to save queries, resources (publications and observations), tag them, and optionally share them with a group of
 	collaborators.
 </p>
-<p>
 <h3>Script to understand using the application.</h3>
-</p>
-
-<p>
-First log on, and along the way try and save queries, publications, and datasets.
-Save results at each point so we have an interesting set of search results to play with.
-</p>
-<p>
+<br/>
 <ol class="normal">
 <li>
-Describe the main page, displaying publications and facets.  Point out the number of publications displayed and the four type of facets available on the left (publications, objects, observations, proposals).  Point out that one can sort results in two ways (publication date or citations), ascending or descending.
+<p>The Home Page:</p>
+<br/>
+<img width="800" src="{{staticprefix}}/images/helpimgs/Home-1.jpg"/>
+<br/>
+<p>
+When you first visit AstroExplorer, you see the home page with some information about the application, 
+and a simple search area with the ability to textually search either publications or observations (1). You can
+elect instead to explore Publications or Observations under the Explore heading, or on the black bar up top. Or you
+could decide to login (2) by clicking the link on the upper right. Also note the feedback and help buttons. You are reading the help text.
+</p>
 </li>
 <li>
-Type in blazars into search box on publications page. See the 10 autocomplete as keywords but  larger set of 146 when you hit ESC to remove the autocomplete and perform at bibliographic search over title, abstract, etc.
+<p>Logging In:</p>
+<br/>
+<img width="600" src="{{staticprefix}}/images/helpimgs/Home2-1-1.jpg"/>
+<br/>
+<p>
+	When you log in you are presented with a page that shoes you the collaborations you created, have been invited to, or are a member of. You can create new collaborations using the "Add Collaboration" (1) Button or the Collaborations Menu (2). You can also invite people to your collaboration, decline invitations, delete collaborations, or accept invitations.
+</p>
 </li>
+
 <li>
-See top keywords, active people, most studied CDS objects, targets (mention combining these). Click in left on B1101+384 object, one of the most studied.
+	<p>
+Click on the publications page in the black upper bar, displaying publications and facets which can be used to filter these publications. Alternately you can make a textual search, say, on "blazars", from the home page. This will lead to a screen like so:
+</p>
+<br/>
+	<img width="900" src="{{staticprefix}}/images/helpimgs/Publications-2-1-1.jpg"/>
+<br/>
+<p>
+There are four type of facets available on the left (publications, objects, observations, proposals). In the screen shot we see keywords(1). We can see the current search in the upper left (2), and the number of results (146) on the top of the pagination of results (3). If we are logged in, we can save the search, or individual publications into our library (4). One can currently sort results in two ways (publication date or citations), ascending or descending (5).
+</p>
 </li>
+
 <li>
-choose the one that has chandra mission. Note that it also has data with FUSE.
+<p>
+Note that if you click the (X) (6) next to in blazars into search box, you will get the exploratory list of all publications in our system. If you type 'blazars' into the search box (7) below, you will see  10 autocomplete as keywords, smaller than the 146 you found earlier. This is because textual search searches titles abstracts, keywords, etc, rather than just being restricted to a given facet. To reproduce that search from this page, type blazars into the search box (7) and hit escape to stop the autocompletion, before hitting the return key.
+</p>
 </li>
+
 <li>
-click on various things associated with the paper to show possibilities. Also note how the left side shows facets of this paper. Notice target normalization is needed. We are tackling it.
+<p>
+See the top keywords, active people, most studied objects, targets. Play around with the various facets. Save some searches and publications.
+</p> 
 </li>
+
 <li>
-Pivot on QSO B1101+384 [NOTE: SIMBAD’s canonical name for this is Mrk 421], notice Schull as main author, and Sembachs on proposals. This is a problem of name normalization that we are tackling
+<p> Using the (X) button to get back to the state of the search at text:blazars, click in the left on B1101+384 object-name facet, which, by the looks of our Tag Cloud, is one of the most studied. Our tag cloud limits us to the 20 most occurent values for any facet.
+In missions, click the chandra mission facet. Note that the publications which surface also have data from FUSE. In this way we can figure multi-mission publications. The left side of your application now looks the left side of the image below:
+</p>
+<img width="500" src="{{staticprefix}}/images/helpimgs/Publications2.jpg"/>
+<img width="343" src="{{staticprefix}}/images/helpimgs/Publications3-1.jpg"/>
+<p> Notice from the right side that the most frequent target is Mrk421. You will see different spellings of it.  SIMBAD’s canonical name for QSO B1101+384 is Mrk 421. This problem arises because missions usually take target names from their Guest Observers who dont use a consistent nomenclature. We are tackling the curation of these targets to the object names specified by the CDS, but the current prototype reflects the rather incomplete state of our efforts.
+</p>
+</li>
+
+<li>
+<p>
+Pivot on B1101+384 by clicking the [P] next to the (X) in the Current Selection area on the upper left, notice Schull as main author, and two different Sembachs' on proposals. This is a variant of the previous problem, but instead has to do with the names that are obtained from various proposals and papers, and the need for normalization of these names. This too is a problem that we are tackling.
+</p>
 </li>
 <li>
 [NOTE: instead of using an object we may want to instead select a target] Facet on mission “Chandra” which reduces the set of results to 27 papers, and continue in observations (317 results)

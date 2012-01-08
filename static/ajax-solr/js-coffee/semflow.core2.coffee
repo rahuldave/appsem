@@ -188,7 +188,7 @@ setLoggedIn = (email) ->
   $('a.newgroupfancybox').fancybox()
   
   $('#addgroupdiv')
-  .append($('<span>Group Name:</span>'))
+  .append($('<span>Collaboration Name:</span>'))
   .append($('<input class="medium" id="addgrouptext" type="text"/>'))
   .append($('<input type="button" class="btn small info" value="Add" name="Add"/>').click(addgrouphandler))
   $.getJSON "#{dasiteprefix}/memberofgroups", (data) ->

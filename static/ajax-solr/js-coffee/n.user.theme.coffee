@@ -79,7 +79,7 @@ AjaxSolr.theme.prototype.section_tablerow = (row) ->
 AjaxSolr.theme.prototype.section_items = (idfrag, cols, rows, invitehandler=null, accepthandler=null) ->
   $out = $('<form action="#"/>').attr 'id', "#{idfrag}-form"
   $actions = AjaxSolr.theme "#{idfrag}_formactions", invitehandler, accepthandler
-  $table = $('<table class="tablesorter"/>')
+  $table = $('<table class="table table-striped table-bordered table-condensed"/>')
     .attr('id', "#{idfrag}-table")
     .append(AjaxSolr.theme 'section_tablehead', cols)
 

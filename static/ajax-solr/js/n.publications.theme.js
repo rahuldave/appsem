@@ -243,7 +243,7 @@
 	    }
 	    objinfo.sort(function(a,b) { return a.name.localeCompare(b.name); });
 
-	    var $otable = $('<table class="tablesorter"/>')
+	    var $otable = $('<table class="table table-striped table-bordered table-condensed tablesorter"/>')
 	        .attr('id', 'objs_' + docid)
 	        //.attr("class", "zebra-striped")
 	        .append($('<thead/>')
@@ -282,7 +282,7 @@
             $start.append('None');
             return $start.append($('<br/>'));
         }
-        var $otable = $('<table class="tablesorter"/>')
+        var $otable = $('<table class="table table-striped table-bordered table-condensed tablesorter"/>')
 	        //.attr("class", "zebra-striped")
 	        .append($('<thead/>')
 		        .append('<tr><th>Name</th><th>Type</th></tr>'));
@@ -332,7 +332,7 @@
         }
         var colnames = ["Mission", "Observation", "Exposure time (s)",
 			    "Observation date", "Target name", "RA", "Dec"];
-	    var $mtable = $('<table class="tablesorter"/>')
+	    var $mtable = $('<table class="table table-striped table-bordered table-condensed tablesorter"/>')
 	        .append($('<thead/>')
 		        .append($('<tr/>')
 			        .append(colnames.map(function (c) { return "<th>" + c + "</th>"; }).join('')))

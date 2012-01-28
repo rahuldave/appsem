@@ -273,7 +273,7 @@ PublicationCollectionView=Backbone.View.extend({
     addOne: function(publicationmodel){
         var view=new PublicationView({model:publicationmodel, widget:this.widget});
         this.viewdict[view.model.get('id')]=view;
-        this.el.append(view.render().el);
+        $(this.el).append(view.render().el);
     }
 });
 

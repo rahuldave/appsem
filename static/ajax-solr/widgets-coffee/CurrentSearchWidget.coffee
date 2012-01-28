@@ -79,7 +79,7 @@ AjaxSolr.CurrentSearchWidget = AjaxSolr.AbstractWidget.extend
       if (lp=c.label.search /OR/) isnt -1
           labeltext=c.label[0...lp*2]+'...'
           #console.log lp, c.label
-          $sspan = $('<span class="facetvalue"/>').html("#{labeltext} ").twipsy({fallback:c.label, placement:'below'})
+          $sspan = $('<span rel="tooltip" class="facetvalue"/>').html("#{labeltext} ").tooltip({fallback:c.label, placement:'below'})
       else
           $sspan = $('<span class="facetvalue"/>').html("#{labeltext} ")
       $link = $('<a class="label important" href="#"/>')

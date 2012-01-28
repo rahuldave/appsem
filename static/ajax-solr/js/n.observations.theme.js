@@ -99,7 +99,7 @@ function encodeObsuri(obsuri){
             $start.append('None');
             return $start.append($('<br/>'));
         }
-        var $otable = $('<table class="tablesorter"/>')
+        var $otable = $('<table class="table table-striped table-bordered table-condensed tablesorter"/>')
 	        //.attr("class", "zebra-striped")
 	        .append($('<thead/>')
 		        .append('<tr><th>Bibcode</th><th>Year</th></tr>'));
@@ -148,7 +148,7 @@ function encodeObsuri(obsuri){
             $start.append('None');
             return $start.append($('<br/>'));
         }
-        var $otable = $('<table class="tablesorter"/>')
+        var $otable = $('<table class="table table-striped table-bordered table-condensed tablesorter"/>')
 	        //.attr("class", "zebra-striped")
 	        .append($('<thead/>')
 		        .append('<tr><th>Name</th><th>Type</th></tr>'));

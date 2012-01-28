@@ -1,8 +1,8 @@
-<div class="topbar" data-dropdown="dropdown">
-    <div class="topbar-inner">
-        <div class="container-fluid">
+<div class="navbar navbar-fixed">
+    <div class="navbar-inner">
+        <div class="fluid-container">
             <a id="brandhref" class="brand" href="#">AstroExplorer&nbsp;<sup>&alpha;:2</sup></a>
-            <ul class="nav"> 
+            <ul class="nav pull-left"> 
                 <li class="{{ isitchosenpublications }}"><a href="{{ siteprefix }}/explorer/publications">Publications</a></li> 
                 
                 <li class="{{ isitchosenobservations }}"><a href="{{ siteprefix }}/explorer/observations">Observations</a></li>
@@ -11,25 +11,17 @@
                 <!--li class="{{ isitchosenproposals }}"><a href="{{ siteprefix }}/explorer/proposals">Proposals</a></li-->
                 
             </ul>
-            <!--form class="pull-left">
-                <input type="text" id="querybig" name="query"/>&nbsp;&nbsp;<a  id="gosearch" style="cursor: pointer;">Go</a>
-            </form!-->
-            <!--p class="pull-right  {{isitchosenuser}}">
-                <a href="#" class="userlogin userloggedout" id="loginhref" style="display: none; cursor: pointer;">login</a>
-                <a id="userhref" class="userloggedin" style="display: none; cursor: pointer;"></a>
-                <a id="logouthref" class="userloggedin" style="display: none; cursor: pointer;">logout</a>
-	        </p-->
             <ul class="nav secondary-nav pull-right"> 
                 <li>&nbsp;&nbsp;</li>
-                <li><a class="isurround" href="http://usvao.org"><img height="36" alt="VAO" src="{{ staticprefix }}/images/VAOlogo.png"></img></a></li>
+                <!--li><a class="isurround" href="http://usvao.org"><img height="36" alt="VAO" src="{{ staticprefix }}/images/VAOlogo.png"></img></a></li>
                 <li>&nbsp;&nbsp;</li>
                 <li><a class="isurround" href="http://adslabs.org"><img height="36" alt="ADSLabs" src="{{ staticprefix }}/images/adslogo_labs.jpg"></img></a></li>
-                <li>&nbsp;&nbsp;</li>
+                <li>&nbsp;&nbsp;</li-->
 				<!--li class="{{ isitchosenhelp }}"><a href="{{ siteprefix }}/explorer/help">Help</a></li-->
                 <li class="{{ isitchosensaved }}"><a href="{{ siteprefix }}/explorer/saved">Saved</a></li>
                 <li  class="menu dropdown {{ isitchosengroup }}"> 
-                    <a class="dropdown-toggle menu" href="#" id="groups">Collaborations</a> 
-                    <ul id="groupsmenu" class="menu-dropdown"> 
+                    <a class="dropdown-toggle menu" href="#" id="groups" data-toggle="dropdown">Collaborations<span class="caret"></span></a> 
+                    <ul id="groupsmenu" class="dropdown-menu"> 
                         <li><a class="userlogin userloggedout" href="#">Login to Activate</a></li>
 						<li><a class="userloggedin newgroupfancybox" href="#addgroupdiv">New Collaboration</a></li>
                         <li class="divider"></li>
@@ -52,7 +44,9 @@
             
         </div> 
     </div>
-	<div style="display:none"><div id="addgroupdiv"></div></div>
+	<div style="display:none">
+        <div id="addgroupdiv"></div>
+    </div>
 </div>
 
 

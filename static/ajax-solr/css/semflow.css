@@ -17,7 +17,7 @@ a {
   text-decoration: none;
 }
 
-.content a.savelink {
+.fluid-content a.savelink {
     color: #333;
     border: 1px solid;
     padding-left: 5px;
@@ -26,7 +26,7 @@ a {
     border-radius: 10px;
 }
 
-.content a.deletelink {
+.fluid-content a.deletelink {
     color: #333;
     border: 1px solid;
     padding-left: 5px;
@@ -35,7 +35,7 @@ a {
     border-radius: 10px;
 }
 
-.content a.save {
+.fluid-content a.save {
     color: #333;
     border: 1px solid;
     padding-left: 5px;
@@ -44,7 +44,7 @@ a {
     border-radius: 10px;
 }
 
-.content a.delete {
+.fluid-content a.delete {
     color: #333;
     border: 1px solid;
     padding-left: 5px;
@@ -53,7 +53,7 @@ a {
     border-radius: 10px;
 }
 
-.content a:hover {
+.fluid-content a:hover {
   color: #000;
   text-decoration: underline;
 }
@@ -154,9 +154,12 @@ a.go {
   border-right: 1px solid #aaa;
   border-left: 1px solid #aaa;
 }
-
+/*
 .well {
     padding:-20px;
+}*/
+.well {
+  height:100%;
 }
 .well h3 {
   clear: left;
@@ -313,22 +316,26 @@ span.facetvalue:nth-child(odd) {
     background: white; 
 }
 
-/*overriding bootstrap*/
-.container-fluid > .sidebar {
+/*overriding bootstrap
+.fluid-sidebar {
   float: left;
   width: 380px;
 }
-.container-fluid > .content {
+.fluid-container > .fluid-content {
   margin-left: 400px;
 }
+*/
+
 
 a.sorter {
     font-weight:bold;
 }
-.topbar div > ul a.isurround, .nav a.isurround {
+.navbar-top div > ul a.isurround, .nav a.isurround {
     padding: 0;
 }
-
+.navbar-top div > ul a.isurround img, .nav a.isurround img{
+    height: 36;
+}
 span.spanner {
     padding:1px;
     border: 1px solid black;
@@ -340,4 +347,16 @@ a:hover {
 
 ol.normal li{
     color:#404040;
+}
+
+.navbar-fixed .brand {
+  font-weight: bold;
+  color: #000;
+  text-shadow: 0 1px 0 rgba(255,255,255,.1), 0 0 30px rgba(255,255,255,.125);
+  -webkit-transition: all .2s linear;
+     -moz-transition: all .2s linear;
+          transition: all .2s linear;
+}
+.navbar-fixed .brand:hover {
+  text-decoration: none;
 }

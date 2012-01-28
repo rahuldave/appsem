@@ -96,7 +96,7 @@ AjaxSolr.theme.prototype.saved_items = (idfrag, cols, rows, saveingrouphandler, 
   $out = $('<form action="#"/>').attr 'id', "saved-#{idfrag}-form"
   $actions = AjaxSolr.theme 'saved_formactions', saveingrouphandler, savetotagshandler, throwhandler, bibtexHandler, myADSHandler
 
-  $table = $('<table class="tablesorter"/>')
+  $table = $('<table class="table table-striped table-bordered table-condensed"/>')
     .attr('id', "saved-#{idfrag}-table")
     .append(AjaxSolr.theme 'saved_tablehead', cols)
 

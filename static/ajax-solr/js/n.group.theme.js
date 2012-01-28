@@ -58,7 +58,7 @@
     var $actions, $out, $table, $tbody, value, _i, _len;
     $out = $('<form action="#"/>').attr('id', "saved-" + idfrag + "-form");
     $actions = AjaxSolr.theme('saved_formactions', throwhandler, bibtexHandler, myADSHandler);
-    $table = $('<table class="tablesorter"/>').attr('id', "saved-" + idfrag + "-table").append(AjaxSolr.theme('saved_tablehead', cols));
+    $table = $('<table class="table table-striped table-bordered table-condensed"/>').attr('id', "saved-" + idfrag + "-table").append(AjaxSolr.theme('saved_tablehead', cols));
     $tbody = $('<tbody/>');
     for (_i = 0, _len = rows.length; _i < _len; _i++) {
       value = rows[_i];

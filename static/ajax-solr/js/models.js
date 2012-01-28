@@ -16,6 +16,7 @@
     };
     ObservationModel=Backbone.Model.extend({
     //We'll just initialize with an attribute dict passed into constructor by Collection.
+        idAttribute: 'obsids_s',
         initialize: function(models, options){
             this.froms=_.clone(FROMS);
             if (options && options.from_publications && options.from_publications===true){
@@ -84,8 +85,9 @@
         populateFromObservations: function(){
             for (var i = 0, l = this.manager.response.response.docs.length; i < l; i++) {
               var doc = this.manager.response.response.docs[i];
-              //console.log('pforahul', doc);
+              console.log('pforahul', doc);
               var result=new ObservationModel(doc, this.passed_options);
+              console.log(result);
               this.add(result)
               //this.add(doc, {from_publications:this.froms.from_publications})
               this.docids.push(doc.obsids_s);//should this be escaped?

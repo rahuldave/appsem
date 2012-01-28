@@ -54,7 +54,7 @@
         $span = $('<span/>');
         if ((lp = c.label.search(/OR/)) !== -1) {
           labeltext = c.label.slice(0, lp * 2) + '...';
-          $sspan = $('<span class="facetvalue"/>').html("" + labeltext + " ").twipsy({
+          $sspan = $('<span rel="tooltip" class="facetvalue"/>').html("" + labeltext + " ").tooltip({
             fallback: c.label,
             placement: 'below'
           });

@@ -52,7 +52,7 @@
     }
     $out = $('<form action="#"/>').attr('id', "" + idfrag + "-form");
     $actions = AjaxSolr.theme("" + idfrag + "_formactions", invitehandler, accepthandler);
-    $table = $('<table class="tablesorter"/>').attr('id', "" + idfrag + "-table").append(AjaxSolr.theme('section_tablehead', cols));
+    $table = $('<table class="table table-striped table-bordered table-condensed"/>').attr('id', "" + idfrag + "-table").append(AjaxSolr.theme('section_tablehead', cols));
     $tbody = $('<tbody/>');
     for (_i = 0, _len = rows.length; _i < _len; _i++) {
       value = rows[_i];

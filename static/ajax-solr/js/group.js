@@ -32,7 +32,7 @@
       var data, item, map;
       data = (function() {
         var _i, _len, _ref, _results;
-        _ref = $(this).find('input[type=checkbox][checked|=true]');
+        _ref = $(this).find('input[type=checkbox]:checked');
         _results = [];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           item = _ref[_i];
@@ -83,7 +83,7 @@
       var data, item;
       data = (function() {
         var _i, _len, _ref, _results;
-        _ref = $(this.form).find('input[type=checkbox][checked|=true]').parent().nextAll('td').find('span.bibcode');
+        _ref = $(this.form).find('input[type=checkbox]:checked').parent().nextAll('td').find('span.bibcode');
         _results = [];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           item = _ref[_i];
@@ -105,7 +105,7 @@
       console.log('in stgh', widgetname, itemstype, $(this.form));
       items = (function() {
         var _i, _len, _ref, _results;
-        _ref = $(this.form).find('input[type=checkbox][checked|=true]');
+        _ref = $(this.form).find('input[type=checkbox]:checked');
         _results = [];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           item = _ref[_i];
@@ -154,7 +154,7 @@
         faceter = 'bibcode';
         bcodes = (function() {
           var _j, _len2, _ref, _results;
-          _ref = $(this.form).find('input[type=checkbox][checked|=true]');
+          _ref = $(this.form).find('input[type=checkbox]:checked');
           _results = [];
           for (_j = 0, _len2 = _ref.length; _j < _len2; _j++) {
             item = _ref[_j];
@@ -189,7 +189,7 @@
       var data, item;
       data = (function() {
         var _i, _len, _ref, _results;
-        _ref = $(this.form).find('input[type=checkbox][checked|=true]').parent().nextAll('td').find('span.bibcode');
+        _ref = $(this.form).find('input[type=checkbox]:checked').parent().nextAll('td').find('span.bibcode');
         _results = [];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           item = _ref[_i];
@@ -210,7 +210,7 @@
       var data, item, ndata, nrows, query;
       data = (function() {
         var _i, _len, _ref, _results;
-        _ref = $(this.form).find('input[type=checkbox][checked|=true]');
+        _ref = $(this.form).find('input[type=checkbox]:checked');
         _results = [];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           item = _ref[_i];

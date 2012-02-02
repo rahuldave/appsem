@@ -8,7 +8,7 @@
       var data, datamap, ele, idx, item, _ref;
       data = (function() {
         var _i, _len, _ref, _results;
-        _ref = $(this).find('input[type=checkbox][checked|=true]');
+        _ref = $(this).find('input[type=checkbox]:checked');
         _results = [];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           item = _ref[_i];
@@ -52,7 +52,7 @@
       console.log('in stghi', $(this.form));
       groupsintext = (function() {
         var _i, _len, _ref, _results;
-        _ref = $(this.form).find('input[type=checkbox][checked|=true]');
+        _ref = $(this.form).find('input[type=checkbox]:checked');
         _results = [];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           item = _ref[_i];
@@ -93,7 +93,7 @@
       console.log('in stgha', $(this.form));
       groupsintext = (function() {
         var _i, _len, _ref, _results;
-        _ref = $(this.form).find('input[type=checkbox][checked|=true]');
+        _ref = $(this.form).find('input[type=checkbox]:checked');
         _results = [];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           item = _ref[_i];
@@ -182,7 +182,7 @@
       var data, datamap, ele, idx, item, _ref;
       data = (function() {
         var _i, _len, _ref, _results;
-        _ref = $(this).find('input[type=checkbox][checked|=true]');
+        _ref = $(this).find('input[type=checkbox]:checked');
         _results = [];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           item = _ref[_i];
@@ -280,7 +280,7 @@
       var data, datamap, ele, idx, item, _ref;
       data = (function() {
         var _i, _len, _ref, _results;
-        _ref = $(this).find('input[type=checkbox][checked|=true]');
+        _ref = $(this).find('input[type=checkbox]:checked');
         _results = [];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           item = _ref[_i];

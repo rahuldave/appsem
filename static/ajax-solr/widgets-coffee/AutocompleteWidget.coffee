@@ -49,7 +49,7 @@ AjaxSolr.AutocompleteWidget = AjaxSolr.AbstractFacetWidget.extend
             obsvs=[]
             pubs=[]
             facetfields=response.facet_counts.facet_fields
-            console.log "BB", self.fields, facetfields
+            #console.log "BB", self.fields, facetfields
             for field in self.fields
                 for facet, val of facetfields[field]
                     if field is 'obsids_s'
@@ -64,8 +64,7 @@ AjaxSolr.AutocompleteWidget = AjaxSolr.AbstractFacetWidget.extend
 
             npubs=pubs.length
             nobsvs=obsvs.length
-            console.log "INAUTOWIDGET", self.tab, 'pubs', npubs, 'obsvs', nobsvs
-
+            #console.log "INAUTOWIDGET", self.tab, 'pubs', npubs, 'obsvs', nobsvs
             if self.tab is 'publications'
                 othertab='observations'
                 faceter='obsids_s'
@@ -118,10 +117,13 @@ AjaxSolr.AutocompleteWidget = AjaxSolr.AbstractFacetWidget.extend
                   self.manager.doRequest 0
             
             self.requestSent = false
-            
+            autooptions=
+              formatItem: (facet) -> facet.text
+              scroll: true
+              max: 150
             $(self.target).find('input')
                 .unautocomplete()
-                .autocomplete(list, formatItem: (facet) -> facet.text)
+                .autocomplete(list, autooptions)
                 .result(resHandler)
         #console.log 'SELF>MANAGER', self.manager.store.hash
         params = [self.manager.store.hash, 'q=*:*&rows=0&facet=true&facet.limit=-1&facet.mincount=1&json.nl=map']

@@ -3,7 +3,7 @@ $ = jQuery
 
 submitUnsubscribeGroupAction = (path, idname, recreate) ->
   return () ->
-    data = (item.value for item in $(this).find('input[type=checkbox][checked|=true]'))
+    data = (item.value for item in $(this).find('input[type=checkbox]:checked'))
     if data.length is 0
       alert "No items have been selected."
       return false
@@ -22,7 +22,7 @@ submitUnsubscribeGroupAction = (path, idname, recreate) ->
 handleInvites = (recreate) ->
     () ->
         console.log 'in stghi', $(this.form)
-        groupsintext = (item.value for item in $(this.form).find('input[type=checkbox][checked|=true]'))
+        groupsintext = (item.value for item in $(this.form).find('input[type=checkbox]:checked'))
         if groupsintext.length is 0
           alert "No items have been selected."
           return false
@@ -44,7 +44,7 @@ handleInvites = (recreate) ->
 handleAccepts = (recreate) ->
     () ->
         console.log 'in stgha', $(this.form)
-        groupsintext = (item.value for item in $(this.form).find('input[type=checkbox][checked|=true]'))
+        groupsintext = (item.value for item in $(this.form).find('input[type=checkbox]:checked'))
         if groupsintext.length is 0
           alert "No items have been selected."
           return false
@@ -106,7 +106,7 @@ noMemberOfGroups = () ->
 
 submitDeleteActionInvitations = (path, idname, recreate) ->
   return () ->
-    data = (item.value for item in $(this).find('input[type=checkbox][checked|=true]'))
+    data = (item.value for item in $(this).find('input[type=checkbox]:checked'))
     if data.length is 0
       alert "No items have been selected."
       return false
@@ -169,7 +169,7 @@ noPendingInvitations = () ->
 
 submitDeleteActionOwnerGroups = (path, idname, recreate) ->
     return () ->
-      data = (item.value for item in $(this).find('input[type=checkbox][checked|=true]'))
+      data = (item.value for item in $(this).find('input[type=checkbox]:checked'))
       if data.length is 0
         alert "No items have been selected."
         return false

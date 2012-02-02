@@ -28,7 +28,7 @@ doADSProxy = (urlpath, callback) ->
 
 submitDeleteAction = (path, idname, recreate, groupName='default') ->
   return () ->
-    data = (item.value for item in $(this).find('input[type=checkbox][checked|=true]'))
+    data = (item.value for item in $(this).find('input[type=checkbox]:checked'))
     if data.length is 0
       alert "No items have been selected."
       return false
@@ -68,7 +68,7 @@ saveToMyADS = (bibcodes) ->
 
 handlePublications = (handler) ->
   () ->
-    data = ($(item).text() for item in $(this.form).find('input[type=checkbox][checked|=true]').parent().nextAll('td').find('span.bibcode'))
+    data = ($(item).text() for item in $(this.form).find('input[type=checkbox]:checked').parent().nextAll('td').find('span.bibcode'))
 
     if data.length is 0
       alert "No publications have been selected."
@@ -80,7 +80,8 @@ handlePublications = (handler) ->
 handleItemsWithPK = (widgetname, handler, itemstype, recreate) ->
     () ->
         console.log 'in stgh', widgetname, itemstype, $(this.form)
-        items = (item.value for item in $(this.form).find('input[type=checkbox][checked|=true]'))
+        console.log "AAAA", $(this.form).find('input[type=checkbox]')
+        items = (item.value for item in $(this.form).find('input[type=checkbox]:checked'))
         if items.length is 0
           alert "No items have been selected."
           return false
@@ -103,7 +104,7 @@ handleItemsWithPK = (widgetname, handler, itemstype, recreate) ->
             window.location.href=throwhref
         else if widgetname is 'publications'
             faceter='bibcode'
-            bcodes = ($(item).attr('bibcode') for item in $(this.form).find('input[type=checkbox][checked|=true]'))
+            bcodes = ($(item).attr('bibcode') for item in $(this.form).find('input[type=checkbox]:checked'))
             throwurlist=("#{encodeURIComponent ele}" for ele in bcodes)
             throwhref="#{SITEPREFIX}/explorer/#{widgetname}#fq=#{faceter}%3A#{throwurlist.join '%20OR%20'}"
             window.location.href=throwhref
@@ -133,7 +134,7 @@ saveToTag = (itemstype, map, recreate) ->
         
 handleObservations = (handler) ->
   () ->
-    data = ($(item).text() for item in $(this.form).find('input[type=checkbox][checked|=true]').parent().nextAll('td').find('span.bibcode'))
+    data = ($(item).text() for item in $(this.form).find('input[type=checkbox]:checked').parent().nextAll('td').find('span.bibcode'))
 
     if data.length is 0
       alert "No observations have been selected."
@@ -148,7 +149,7 @@ handleObservations = (handler) ->
 
 handleSearches = (handler) ->
   () ->
-    data = (item.value for item in $(this.form).find('input[type=checkbox][checked|=true]'))
+    data = (item.value for item in $(this.form).find('input[type=checkbox]:checked'))
 
     ndata = data.length
     if ndata is 0

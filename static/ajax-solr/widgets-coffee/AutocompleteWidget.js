@@ -32,12 +32,11 @@
         }
       });
       callback = function(response) {
-        var ele, facet, faceter, facetfields, field, fieldname, list, listuse, methandler, nobsvs, npubs, obsvs, othertab, poststring, pubs, resHandler, shownpubs, throwhref, throwurlist, val, _i, _len, _ref, _ref2, _ref3;
+        var autooptions, ele, facet, faceter, facetfields, field, fieldname, list, listuse, methandler, nobsvs, npubs, obsvs, othertab, poststring, pubs, resHandler, shownpubs, throwhref, throwurlist, val, _i, _len, _ref, _ref2, _ref3;
         list = [];
         obsvs = [];
         pubs = [];
         facetfields = response.facet_counts.facet_fields;
-        console.log("BB", self.fields, facetfields);
         _ref = self.fields;
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           field = _ref[_i];
@@ -60,7 +59,6 @@
         }
         npubs = pubs.length;
         nobsvs = obsvs.length;
-        console.log("INAUTOWIDGET", self.tab, 'pubs', npubs, 'obsvs', nobsvs);
         if (self.tab === 'publications') {
           othertab = 'observations';
           faceter = 'obsids_s';
@@ -128,11 +126,14 @@
           }
         };
         self.requestSent = false;
-        return $(self.target).find('input').unautocomplete().autocomplete(list, {
+        autooptions = {
           formatItem: function(facet) {
             return facet.text;
-          }
-        }).result(resHandler);
+          },
+          scroll: true,
+          max: 150
+        };
+        return $(self.target).find('input').unautocomplete().autocomplete(list, autooptions).result(resHandler);
       };
       params = [self.manager.store.hash, 'q=*:*&rows=0&facet=true&facet.limit=-1&facet.mincount=1&json.nl=map'];
       _ref = self.fields;

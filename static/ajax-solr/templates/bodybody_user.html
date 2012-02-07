@@ -1,23 +1,19 @@
 <div class="fluid-sidebar">
 	<div class="well">
 		<h3>Search</h3><br/>
-		<form id="qsearchform" class="form-stacked" action="">
+		<form id="qsearchform" class="form-vertical" action="">
 		<fieldset>
 			<input class="large" id="qtext" type="text"/><br/><br/>
-			<ul class="inputs-list"> 
-               <li> 
-                 <label> 
+			<div class="controls"> 
+                 <label class="radio inline"> 
                    <input type="radio" checked name="optionsRadios" value="publications" /> 
                    <span>Publications</span> 
                  </label> 
-               </li> 
-               <li> 
-                 <label> 
+                 <label class="radio inline"> 
                    <input type="radio" name="optionsRadios" value="observations" /> 
                    <span>Observations</span> 
                  </label> 
-               </li> 
-        	</ul>
+        	</div>
 			<br/>
 			<input type="button" class="btn small primary" id="searchsubmit" value="Search" name="Submit"/>
 		</fieldset>

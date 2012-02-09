@@ -1,79 +1,82 @@
-<div class="fluid-sidebar">
-	<div class="well">
-		<h3>Search</h3><br/>
-		<form id="qsearchform" class="form-vertical" action="">
-		<fieldset>
-			<input class="large" id="qtext" type="text"/><br/><br/>
-			<div class="controls"> 
-                 <label class="radio inline"> 
-                   <input type="radio" checked name="optionsRadios" value="publications" /> 
-                   <span>Publications</span> 
-                 </label> 
-                 <label class="radio inline"> 
-                   <input type="radio" name="optionsRadios" value="observations" /> 
-                   <span>Observations</span> 
-                 </label> 
-        	</div>
-			<br/>
-			<input type="button" class="btn small primary" id="searchsubmit" value="Search" name="Submit"/>
-		</fieldset>
-		</form>
-		<h3>Explore</h3><br/>
-		<ul>
-			<li><a href="{{siteprefix}}/explorer/publications">Publications</a></li>
-			<li><a href="{{siteprefix}}/explorer/observations">Observations</a></li>
-			<li>Objects (Coming Soon)</li>
-			<li>Catalogs (Coming Soon)</li>
-		</ul>
+<div class="row-fluid">
+	<div class="span4">
+		<div class="well">
+			<h3>Search</h3><br/>
+			<form id="qsearchform" class="form-vertical" action="">
+			<fieldset>
+				<input class="large" id="qtext" type="text"/><br/><br/>
+				<div class="controls"> 
+	                 <label class="radio inline"> 
+	                   <input type="radio" checked name="optionsRadios" value="publications" /> 
+	                   <span>Publications</span> 
+	                 </label> 
+	                 <label class="radio inline"> 
+	                   <input type="radio" name="optionsRadios" value="observations" /> 
+	                   <span>Observations</span> 
+	                 </label> 
+	        	</div>
+				<br/>
+				<input type="button" class="btn small primary" id="searchsubmit" value="Search" name="Submit"/>
+			</fieldset>
+			</form>
+			<h3>Explore</h3><br/>
+			<ul>
+				<li><a href="{{siteprefix}}/explorer/publications">Publications</a></li>
+				<li><a href="{{siteprefix}}/explorer/observations">Observations</a></li>
+				<li>Objects (Coming Soon)</li>
+				<li>Catalogs (Coming Soon)</li>
+			</ul>
+		</div>
 	</div>
-</div>
-<div class="fluid-content">
-<span class="pull-right">
-	<a class="btn small info iframe feedback" href="https://docs.google.com/spreadsheet/embeddedform?formkey=dDVLSk9TcVdtekJKa0RwOGJmV2Z2YkE6MQ">Feedback</a>
-	<a class="btn small success" href="{{ siteprefix }}/explorer/help">Help</a>
-</span>
-<h2 id="welcome" class="userloggedin"></h2>
-<h2 class="userloggedout" style="display:none">Welcome, unknown user!</h2>
-<hr/>
-<div style="display: none;" class="userloggedout">
-<p>
- Please <a class="userlogin">log in</a> to see your home page.
-</p>
-<h3> How to Use the AstroExplorer </h3>
-<p>
-	AstroExplorer aims to be your research portfolio application. It allows you to explore astronomical resources such as
-	publications, observations (and their associated datasets), objects, catalogs, and proposals, and to explore the relationships
-	between them. It then enables you to save these resources into tagged libraries which you can access later, and into collaborations,
-	so that you can share your findings with your co-workers and collaborators.
-</p>
-<p>
-	We expose these resources and their connections by curating and indexing them all at one place. This is the model
-	used by google, where the data resides on your servers, but the index on theirs. We have currently indexed all Chandra Observations,
-	observations from several missions from MAST, related articles, objects, and observing proposals (88K observations and 10K publications).
-	This is part of our current focus
-	on NASA missions, since they have already curated extensive bibliographies. If you own a data set with bibliographic links which you would
-	like to see curated, please contact us at adsvao.astroexplorer@gmail.com.
-</p>
-<p>
-	This is a prototype!  It has been created to showcase what kind of functionality can be delivered when these resources are brought 
-	together and exposed to the user in a web-based environment.  It is meant to provide search and discovery capabilities which 
-	are complementary to the position-based searches supported by the VAO portal.
-</p>
-<p>
-	The personalization features which are supported are based on the ADS login system, so they require users to log into their ADS account.
-	This enables one to save queries, resources (publications and observations), tag them, and optionally share them with a group of
-	collaborators.
-</p>
-<p>
-	We would love feedback. Either click the blue Feedback link on the upper right of this page, or email us at: adsvao.astroexplorer@gmail.com.
-</p>
-</div>
-  
-<div style="display: none;" class="userloggedin">
-<a type="button" class="btn small primary newgroupfancybox" href="#addgroupdiv">Add Collaboration</a>
-<div id="owner_groups" class="saved-items"></div>	
-<div id="pending_invitations" class="saved-items"></div>
-<div id="member_groups" class="saved-items"></div>
-</div>
-    
+
+	<div class="fluid-content span8">
+		<span class="pull-right">
+			<a class="btn small info iframe feedback" href="https://docs.google.com/spreadsheet/embeddedform?formkey=dDVLSk9TcVdtekJKa0RwOGJmV2Z2YkE6MQ">Feedback</a>
+			<a class="btn small success" href="{{ siteprefix }}/explorer/help">Help</a>
+		</span>
+		<h2 id="welcome" class="userloggedin"></h2>
+		<h2 class="userloggedout" style="display:none">Welcome, unknown user!</h2>
+		<hr/>
+		<div style="display: none;" class="userloggedout">
+			<p>
+			 Please <a class="userlogin">log in</a> to see your home page.
+			</p>
+			<h3> How to Use the AstroExplorer </h3>
+			<p>
+				AstroExplorer aims to be your research portfolio application. It allows you to explore astronomical resources such as
+				publications, observations (and their associated datasets), objects, catalogs, and proposals, and to explore the relationships
+				between them. It then enables you to save these resources into tagged libraries which you can access later, and into collaborations,
+				so that you can share your findings with your co-workers and collaborators.
+			</p>
+			<p>
+				We expose these resources and their connections by curating and indexing them all at one place. This is the model
+				used by google, where the data resides on your servers, but the index on theirs. We have currently indexed all Chandra Observations,
+				observations from several missions from MAST, related articles, objects, and observing proposals (88K observations and 10K publications).
+				This is part of our current focus
+				on NASA missions, since they have already curated extensive bibliographies. If you own a data set with bibliographic links which you would
+				like to see curated, please contact us at adsvao.astroexplorer@gmail.com.
+			</p>
+			<p>
+				This is a prototype!  It has been created to showcase what kind of functionality can be delivered when these resources are brought 
+				together and exposed to the user in a web-based environment.  It is meant to provide search and discovery capabilities which 
+				are complementary to the position-based searches supported by the VAO portal.
+			</p>
+			<p>
+				The personalization features which are supported are based on the ADS login system, so they require users to log into their ADS account.
+				This enables one to save queries, resources (publications and observations), tag them, and optionally share them with a group of
+				collaborators.
+			</p>
+			<p>
+				We would love feedback. Either click the blue Feedback link on the upper right of this page, or email us at: adsvao.astroexplorer@gmail.com.
+			</p>
+		</div>
+		  
+		<div style="display: none;" class="userloggedin">
+			<a type="button" class="btn small primary newgroupfancybox" href="#addgroupdiv">Add Collaboration</a>
+			<div id="owner_groups" class="saved-items"></div>	
+			<div id="pending_invitations" class="saved-items"></div>
+			<div id="member_groups" class="saved-items"></div>
+		</div>
+	    
+	</div>
 </div>

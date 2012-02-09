@@ -1,22 +1,24 @@
-<div class="fluid-sidebar">
-	<div class="well">
-		<div id="tagslist">
+<div class="row-fluid">
+	<div class="span4">
+		<div class="well">
+			<div id="tagslist">
+			</div>
 		</div>
 	</div>
-</div>
 
-<div class="fluid-content"> 
-<h3> Saved Searches, Publications, and Observations </h3>
-{{#istag}} <h4>Tag {{ tag }}</h4> {{/istag}}
-<hr/>
-<div style="display: none;" class="userloggedout">
- Please <a class="userlogin" href="#">log in</a> to see your saved items.
-</div>
-  
-<div style="display: none;" class="userloggedin">
-<div id="saved-searches" class="saved-items"></div>
-<div id="saved-pubs" class="saved-items"></div>
-<div id="saved-obsvs" class="saved-items"></div>
-</div>
-    
+	<div class="fluid-content span8"> 
+		<h3> Saved Searches, Publications, and Observations </h3>
+		{{#istag}} <h4>Tag {{ tag }}</h4> {{/istag}}
+		<hr/>
+		<div style="display: none;" class="userloggedout">
+			Please <a class="userlogin" href="#">log in</a> to see your saved items.
+		</div>
+		  
+		<div style="display: none;" class="userloggedin">
+			<div id="saved-searches" class="saved-items"></div>
+			<div id="saved-pubs" class="saved-items"></div>
+			<div id="saved-obsvs" class="saved-items"></div>
+		</div>
+		    
+		</div>
 </div>

@@ -61,7 +61,7 @@
         } else {
           $sspan = $('<span class="facetvalue"/>').html("" + labeltext + " ");
         }
-        $link = $('<a class="label important" href="#"/>').html('x').click(self.removeFacet(c.constraint));
+        $link = $('<a class="label label-important" href="#"/>').html('x').click(self.removeFacet(c.constraint));
         $pivot = AjaxSolr.theme('pivot_link', self.pivotHandler(c.constraint));
         $span.append($sspan).append($link).append($pivot);
         if (_ref2 = c.display, __indexOf.call(order, _ref2) < 0) {
@@ -95,7 +95,7 @@
         $(self.target).html('<div>Viewing all documents!</div>');
       } else {
         if (list.length > 1) {
-          list.push($('<a class="label important" href="#"/>').text('remove all').click(function() {
+          list.push($('<a class="label label-important" href="#"/>').text('remove all').click(function() {
             self.manager.store.remove('fq');
             self.manager.doRequest(0);
             return false;

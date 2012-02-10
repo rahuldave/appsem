@@ -395,7 +395,7 @@
             for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
               ele = _ref2[_i];
               if (ele !== root.email) {
-                _results2.push(ele + ' <a group="' + groups[idx] + '" id="m-' + ele.replace('@', '_at_').replace(/\./g, '_dot_') + '" class="xmember label important">x</a>');
+                _results2.push(ele + ' <a group="' + groups[idx] + '" id="m-' + ele.replace('@', '_at_').replace(/\./g, '_dot_') + '" class="xmember label label-important">x</a>');
               }
             }
             return _results2;
@@ -413,7 +413,7 @@
                 _results2 = [];
                 for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
                   ele = _ref2[_i];
-                  _results2.push(ele + ' <a group="' + groups[cidx] + '" id="i-' + ele.replace('@', '_at_').replace(/\./g, '_dot_') + '" class="xinvite label important">x</a>');
+                  _results2.push(ele + ' <a group="' + groups[cidx] + '" id="i-' + ele.replace('@', '_at_').replace(/\./g, '_dot_') + '" class="xinvite label label-important">x</a>');
                 }
                 return _results2;
               })();

@@ -82,7 +82,7 @@ AjaxSolr.CurrentSearchWidget = AjaxSolr.AbstractWidget.extend
           $sspan = $('<span rel="tooltip" class="facetvalue"/>').html("#{labeltext} ").tooltip({fallback:c.label, placement:'below'})
       else
           $sspan = $('<span class="facetvalue"/>').html("#{labeltext} ")
-      $link = $('<a class="label important" href="#"/>')
+      $link = $('<a class="label label-important" href="#"/>')
         .html('x').click(self.removeFacet c.constraint)
         #.html("<span class=\"label important\">x</span>")
         #.click(self.removeFacet c.constraint)
@@ -119,7 +119,7 @@ AjaxSolr.CurrentSearchWidget = AjaxSolr.AbstractWidget.extend
       $(self.target).html '<div>Viewing all documents!</div>'
     else
       if list.length > 1
-        list.push $('<a class="label important" href="#"/>').text('remove all').click(() ->
+        list.push $('<a class="label label-important" href="#"/>').text('remove all').click(() ->
           self.manager.store.remove 'fq'
           self.manager.doRequest 0
           return false)

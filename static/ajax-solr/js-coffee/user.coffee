@@ -241,7 +241,7 @@ createOwnerOfGroupsSection = (groups) ->
           (data)->
               console.log "data", data
               frag=groups[idx].replace(/\//g, '-').replace('@', '_at_').replace(/\./g, '_dot_')
-              grouptextarray=(ele+' <a group="'+groups[idx]+'" id="m-'+ele.replace('@', '_at_').replace(/\./g, '_dot_')+'" class="xmember label important">x</a>' for ele in data.getMembersOfGroup when ele isnt root.email)
+              grouptextarray=(ele+' <a group="'+groups[idx]+'" id="m-'+ele.replace('@', '_at_').replace(/\./g, '_dot_')+'" class="xmember label label-important">x</a>' for ele in data.getMembersOfGroup when ele isnt root.email)
               grouptext=grouptextarray.join ', '
               $("#og_#{frag}").html grouptext
               #BUG: scope it
@@ -250,7 +250,7 @@ createOwnerOfGroupsSection = (groups) ->
               $.getJSON SITEPREFIX+"/getinvitationstogroup?fqGroupName=#{groups[cidx]}", do (cidx) =>
                   (data2) ->
                       console.log "data2", data2
-                      invitetextarray=(ele+' <a group="'+groups[cidx]+'" id="i-'+ele.replace('@', '_at_').replace(/\./g, '_dot_')+'" class="xinvite label important">x</a>' for ele in data2.getInvitationsToGroup)
+                      invitetextarray=(ele+' <a group="'+groups[cidx]+'" id="i-'+ele.replace('@', '_at_').replace(/\./g, '_dot_')+'" class="xinvite label label-important">x</a>' for ele in data2.getInvitationsToGroup)
                       invitetext=invitetextarray.join ', '
                       $("#ogi_#{frag}").html invitetext
                       #BUG scope it

@@ -92,7 +92,7 @@ var SOLRURL2 = SITEPREFIX + '/solr2/';
 	    ObservationsManager.doRequest();
 	});
 	$('#togglesort').click(function(){
-	    var statemap={desc:'<i class="icon arrow-down"></i>', asc:'<i class="icon arrow-up"></i>'};
+	    var statemap={desc:'<i class="icon-arrow-down"></i>', asc:'<i class="icon-arrow-up"></i>'};
 	    var $togglesort=$('#togglesort');
 	    var $sortselector=$('#sortselector');
 	    var sorter = $sortselector.find('option:selected')[0].value;

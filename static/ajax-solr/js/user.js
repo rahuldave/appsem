@@ -1,8 +1,10 @@
 (function() {
   var $, createMemberOfGroups, createMemberOfGroupsSection, createOwnerOfGroups, createOwnerOfGroupsSection, createPendingInvitations, createPendingInvitationsSection, handleAccepts, handleInvites, makeMemberOfGroupsSectionRow, makeOwnerOfGroupsSectionRow, makePendingInvitationsSectionRow, noMemberOfGroups, noOwnerOfGroups, noPendingInvitations, refreshAll, root, submitDeleteActionInvitations, submitDeleteActionOwnerGroups, submitUnsubscribeGroupAction;
-  var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+
   root = typeof exports !== "undefined" && exports !== null ? exports : this;
+
   $ = jQuery;
+
   submitUnsubscribeGroupAction = function(path, idname, recreate) {
     return function() {
       var data, datamap, ele, idx, item, _ref;
@@ -36,9 +38,7 @@
         $.post(SITEPREFIX + path, JSON.stringify(datamap[idx]), (function(idx) {
           return function(resp) {
             console.log('in unsubscribe', resp, idx, datamap.length);
-            if (idx === (datamap.length - 1)) {
-              recreate();
-            }
+            if (idx === (datamap.length - 1)) recreate();
             return false;
           };
         })(idx));
@@ -46,6 +46,7 @@
       return false;
     };
   };
+
   handleInvites = function(recreate) {
     return function() {
       var data, groups, groupsintext, idx, invitestring, item, userNames, _ref;
@@ -77,9 +78,7 @@
         $.post("" + SITEPREFIX + "/addinvitationtogroup", JSON.stringify(data), (function(idx) {
           return function(resp) {
             console.log('inav', resp, idx, groups.length);
-            if (idx === (groups.length - 1)) {
-              recreate();
-            }
+            if (idx === (groups.length - 1)) recreate();
             return false;
           };
         })(idx));
@@ -87,6 +86,7 @@
       return false;
     };
   };
+
   handleAccepts = function(recreate) {
     return function() {
       var data, groups, groupsintext, idx, item, _ref;
@@ -114,9 +114,7 @@
         $.post("" + SITEPREFIX + "/acceptinvitationtogroup", JSON.stringify(data), (function(idx) {
           return function(resp) {
             console.log('inava', resp, idx, groups.length);
-            if (idx === (groups.length - 1)) {
-              recreate();
-            }
+            if (idx === (groups.length - 1)) recreate();
             return false;
           };
         })(idx));
@@ -124,6 +122,7 @@
       return false;
     };
   };
+
   createMemberOfGroups = function() {
     $('div#member_groups').empty();
     return $.getJSON(SITEPREFIX + '/memberofgroups', function(data) {
@@ -136,13 +135,16 @@
       }
     });
   };
+
   makeMemberOfGroupsSectionRow = function(s) {
     var frag;
     frag = s.replace(/\//g, '-').replace('@', '_at_').replace(/\./g, '_dot_');
     return [$('<input type="checkbox" name="groupid"/>').attr('value', s), $('<a/>').attr('href', "" + SITEPREFIX + "/explorer/group?fqGroupName=" + s).text(s), $("<span id=\"mg_" + frag + "\">")];
   };
+
   createMemberOfGroupsSection = function(groups) {
-    var $div, idx, ngroup, rows, s, _ref, _results;
+    var $div, idx, ngroup, rows, s, _ref, _results,
+      _this = this;
     ngroup = groups.length;
     rows = (function() {
       var _i, _len, _results;
@@ -159,7 +161,7 @@
     $('#member_groups-form').submit(submitUnsubscribeGroupAction('/removeoneselffromgroup', 'fqGroupName', createMemberOfGroups));
     _results = [];
     for (idx = 0, _ref = groups.length; 0 <= _ref ? idx < _ref : idx > _ref; 0 <= _ref ? idx++ : idx--) {
-      _results.push($.getJSON(SITEPREFIX + ("/getmembersofgroup?fqGroupName=" + groups[idx]), __bind(function(idx) {
+      _results.push($.getJSON(SITEPREFIX + ("/getmembersofgroup?fqGroupName=" + groups[idx]), (function(idx) {
         return function(data) {
           var frag, grouptext;
           frag = groups[idx].replace(/\//g, '-').replace('@', '_at_').replace(/\./g, '_dot_');
@@ -169,14 +171,16 @@
             return $('#member_groups-table').tablesorter();
           }
         };
-      }, this)(idx)));
+      })(idx)));
     }
     return _results;
   };
+
   noMemberOfGroups = function() {
     $('div#member_groups').append(AjaxSolr.theme('section_title', 'No Collaborations you are a member of'));
     return true;
   };
+
   submitDeleteActionInvitations = function(path, idname, recreate) {
     return function() {
       var data, datamap, ele, idx, item, _ref;
@@ -209,9 +213,7 @@
         $.post(SITEPREFIX + path, JSON.stringify(datamap[idx]), (function(idx) {
           return function(resp) {
             console.log('in del invit', resp, idx, datamap.length);
-            if (idx === (datamap.length - 1)) {
-              recreate();
-            }
+            if (idx === (datamap.length - 1)) recreate();
             return false;
           };
         })(idx));
@@ -219,6 +221,7 @@
       return false;
     };
   };
+
   createPendingInvitations = function() {
     $('div#pending_invitations').empty();
     return $.getJSON(SITEPREFIX + '/pendinginvitationtogroups', function(data) {
@@ -232,13 +235,16 @@
       }
     });
   };
+
   makePendingInvitationsSectionRow = function(s) {
     var frag;
     frag = s.replace(/\//g, '-').replace('@', '_at_').replace(/\./g, '_dot_');
     return [$('<input type="checkbox" name="groupid"/>').attr('value', s), $('<a/>').attr('href', "" + SITEPREFIX + "/explorer/group?fqGroupName=" + s).text(s), $("<span id=\"pi_" + frag + "\">")];
   };
+
   createPendingInvitationsSection = function(groups) {
-    var $div, idx, ngroup, rows, s, _ref, _results;
+    var $div, idx, ngroup, rows, s, _ref, _results,
+      _this = this;
     console.log(groups);
     ngroup = groups.length;
     rows = (function() {
@@ -256,7 +262,7 @@
     $('#pending_invitations-form').submit(submitDeleteActionInvitations('/declineinvitationtogroup', 'fqGroupName', createPendingInvitations));
     _results = [];
     for (idx = 0, _ref = groups.length; 0 <= _ref ? idx < _ref : idx > _ref; 0 <= _ref ? idx++ : idx--) {
-      _results.push($.getJSON(SITEPREFIX + ("/getgroupinfo?fqGroupName=" + groups[idx]), __bind(function(idx) {
+      _results.push($.getJSON(SITEPREFIX + ("/getgroupinfo?fqGroupName=" + groups[idx]), (function(idx) {
         return function(data) {
           var frag, grouptext;
           frag = groups[idx].replace(/\//g, '-').replace('@', '_at_').replace(/\./g, '_dot_');
@@ -267,14 +273,16 @@
             return $('#pending_invitations-table').tablesorter();
           }
         };
-      }, this)(idx)));
+      })(idx)));
     }
     return _results;
   };
+
   noPendingInvitations = function() {
     $('div#pending_invitations').append(AjaxSolr.theme('section_title', 'No Pending Invitations To Collaborations'));
     return true;
   };
+
   submitDeleteActionOwnerGroups = function(path, idname, recreate) {
     return function() {
       var data, datamap, ele, idx, item, _ref;
@@ -307,9 +315,7 @@
         $.post(SITEPREFIX + path, JSON.stringify(datamap[idx]), (function(idx) {
           return function(resp) {
             console.log('in del invit', resp, idx, datamap.length);
-            if (idx === (datamap.length - 1)) {
-              recreate();
-            }
+            if (idx === (datamap.length - 1)) recreate();
             return false;
           };
         })(idx));
@@ -317,6 +323,7 @@
       return false;
     };
   };
+
   createOwnerOfGroups = function() {
     $('div#owner_groups').empty();
     return $.getJSON(SITEPREFIX + '/ownerofgroups', function(data) {
@@ -329,13 +336,16 @@
       }
     });
   };
+
   makeOwnerOfGroupsSectionRow = function(s) {
     var frag;
     frag = s.replace(/\//g, '-').replace('@', '_at_').replace(/\./g, '_dot_');
     return [$('<input type="checkbox" name="groupid"/>').attr('value', s), $('<a/>').attr('href', "" + SITEPREFIX + "/explorer/group?fqGroupName=" + s).text(s), $("<span id=\"og_" + frag + "\">"), $("<span id=\"ogi_" + frag + "\">")];
   };
+
   createOwnerOfGroupsSection = function(groups) {
-    var $div, idx, inviteremovehandler, memberremovehandler, ngroup, rows, s, _ref, _results;
+    var $div, idx, inviteremovehandler, memberremovehandler, ngroup, rows, s, _ref, _results,
+      _this = this;
     ngroup = groups.length;
     rows = (function() {
       var _i, _len, _results;
@@ -383,9 +393,10 @@
     $div.delegate('a.xmember', 'click', memberremovehandler);
     _results = [];
     for (idx = 0, _ref = groups.length; 0 <= _ref ? idx < _ref : idx > _ref; 0 <= _ref ? idx++ : idx--) {
-      _results.push($.getJSON(SITEPREFIX + ("/getmembersofgroup?fqGroupName=" + groups[idx]), __bind(function(idx) {
+      _results.push($.getJSON(SITEPREFIX + ("/getmembersofgroup?fqGroupName=" + groups[idx]), (function(idx) {
         return function(data) {
-          var cidx, ele, frag, grouptext, grouptextarray;
+          var cidx, ele, frag, grouptext, grouptextarray,
+            _this = this;
           console.log("data", data);
           frag = groups[idx].replace(/\//g, '-').replace('@', '_at_').replace(/\./g, '_dot_');
           grouptextarray = (function() {
@@ -403,7 +414,7 @@
           grouptext = grouptextarray.join(', ');
           $("#og_" + frag).html(grouptext);
           cidx = idx;
-          return $.getJSON(SITEPREFIX + ("/getinvitationstogroup?fqGroupName=" + groups[cidx]), __bind(function(cidx) {
+          return $.getJSON(SITEPREFIX + ("/getinvitationstogroup?fqGroupName=" + groups[cidx]), (function(cidx) {
             return function(data2) {
               var ele, invitetext, invitetextarray;
               console.log("data2", data2);
@@ -419,34 +430,37 @@
               })();
               invitetext = invitetextarray.join(', ');
               $("#ogi_" + frag).html(invitetext);
-              if (cidx === (groups.length - 1)) {
-                console.log(data2, cidx);
-              }
+              if (cidx === (groups.length - 1)) console.log(data2, cidx);
               if (cidx === (groups.length - 1)) {
                 return $('#owner_groups-table').tablesorter();
               }
             };
-          }, this)(cidx));
+          })(cidx));
         };
-      }, this)(idx)));
+      })(idx)));
     }
     return _results;
   };
+
   noOwnerOfGroups = function() {
     $('div#owner_groups').append(AjaxSolr.theme('section_title', 'No Collaborations you are a owner of'));
     return true;
   };
+
   refreshAll = function() {
     createOwnerOfGroups();
     createPendingInvitations();
     return createMemberOfGroups();
   };
+
   mediator.subscribe('user/login', function(email) {
     root.email = email;
     refreshAll();
     return $('#welcome').text("Welcome, user " + email + "!");
   });
+
   $(function() {
     return $('a.feedback').fancybox();
   });
+
 }).call(this);

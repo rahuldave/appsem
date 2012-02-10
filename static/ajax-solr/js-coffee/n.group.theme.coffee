@@ -37,7 +37,7 @@ AjaxSolr.theme.prototype.saved_formactions = (throwhandler=null, bibtexHandler=n
     .append($('<input class="btn btn-danger small" type="submit" value="Remove" name="action"/>'))
   if throwhandler isnt null
     $thediv.append($('<span>&nbsp;<span class="label"/>&nbsp;</span>'))
-    $thediv.append($('<input class="btn info small" type="button" value="View"/>').click(throwhandler))
+    $thediv.append($('<input class="btn btn-info small" type="button" value="View"/>').click(throwhandler))
   return $thediv
         
 

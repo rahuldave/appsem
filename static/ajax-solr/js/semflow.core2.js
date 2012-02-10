@@ -1,11 +1,17 @@
 (function() {
-  var $, loginHandler, makeConsole, makeMediator, myjsonp, root, setLoggedIn, setLoggedOut;
-  var __slice = Array.prototype.slice;
+  var $, loginHandler, makeConsole, makeMediator, myjsonp, root, setLoggedIn, setLoggedOut,
+    __slice = Array.prototype.slice;
+
   root = typeof exports !== "undefined" && exports !== null ? exports : this;
+
   $ = jQuery;
+
   root.SITEPREFIX = dasiteprefix;
+
   root.STATICPREFIX = dastaticprefix;
+
   root.SOLRURL = "" + root.SITEPREFIX + "/solr/";
+
   makeConsole = function() {
     var console;
     if (typeof console === "undefined" || typeof console.log === "undefined") {
@@ -14,13 +20,13 @@
       };
     }
   };
+
   makeConsole();
+
   makeMediator = function() {
     var publish, subscribe;
     subscribe = function(channel, fn) {
-      if (!mediator.channels[channel]) {
-        mediator.channels[channel] = [];
-      }
+      if (!mediator.channels[channel]) mediator.channels[channel] = [];
       mediator.channels[channel].push({
         context: this,
         callback: fn
@@ -30,9 +36,7 @@
     publish = function() {
       var args, channel, subscription, _i, _len, _ref;
       channel = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
-      if (!mediator.channels[channel]) {
-        return false;
-      }
+      if (!mediator.channels[channel]) return false;
       _ref = mediator.channels[channel];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         subscription = _ref[_i];
@@ -50,16 +54,17 @@
       }
     };
   };
+
   root.mediator = makeMediator();
+
   root.cleanFacetName = function(name, namemap) {
     var _ref;
     return (_ref = namemap[name]) != null ? _ref : name;
   };
+
   root.cleanFacetValue = function(label) {
     var firstChar, idx, l, lastChar;
-    if (label === "") {
-      return label;
-    }
+    if (label === "") return label;
     l = label.length;
     firstChar = label[0];
     lastChar = label[l - 1];
@@ -74,13 +79,14 @@
     }
     return label;
   };
+
   root.searchToText = function(searchTerm, namemap) {
     var ele, n, name, newterms, out, rlist, s, searchpage, term, terms, v, value, _i, _j, _len, _len2, _ref;
     console.log("searchTERM", searchTerm);
     s = ("&" + searchTerm).replace('&q=*%3A*', '');
     terms = s.split(/fq=/);
     console.log(terms);
-    searchpage = terms[0].slice(1, terms[0].length - 1);
+    searchpage = terms[0].slice(1, (terms[0].length - 1));
     terms.shift();
     console.log('TERMS', terms);
     newterms = [];
@@ -114,6 +120,7 @@
       return _results;
     })());
   };
+
   root.fieldname_map = {
     keywords_s: 'Keyword',
     author_s: 'Author',
@@ -141,6 +148,7 @@
     t_resolution_f: 'Temporal resolution',
     bibcode: 'Bibcode'
   };
+
   setLoggedIn = function(email) {
     var addgrouphandler, elem, username, _i, _j, _len, _len2, _ref, _ref2;
     root.myemail = email;
@@ -192,6 +200,7 @@
     });
     return mediator.publish('user/login', email);
   };
+
   setLoggedOut = function() {
     var elem, _i, _j, _len, _len2, _ref, _ref2;
     $('a#brandhref').attr('href', "" + dasiteprefix + "/explorer/user");
@@ -207,9 +216,11 @@
     }
     return mediator.publish('user/logout');
   };
+
   myjsonp = function(data) {
     return data;
   };
+
   loginHandler = function() {
     return $.ajax({
       url: "http://labs.adsabs.harvard.edu" + SITEPREFIX + "/adsjsonp?callback=?",
@@ -233,6 +244,7 @@
       }
     });
   };
+
   $(function() {
     var elem, _i, _len, _ref;
     $('#gosearch').click(function() {
@@ -291,4 +303,5 @@
       }
     });
   });
+
 }).call(this);

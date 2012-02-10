@@ -1,9 +1,12 @@
 (function() {
   var $, changeAllButtons;
+
   $ = jQuery;
+
   AjaxSolr.theme.prototype.section_title = function(text) {
     return $('<h4/>').text(text);
   };
+
   changeAllButtons = function(newstate) {
     return function() {
       var item, _i, _len, _ref;
@@ -15,27 +18,23 @@
       return true;
     };
   };
+
   AjaxSolr.theme.prototype.saved_formactions = function(throwhandler, bibtexHandler, myADSHandler) {
     var $thediv;
-    if (throwhandler == null) {
-      throwhandler = null;
-    }
-    if (bibtexHandler == null) {
-      bibtexHandler = null;
-    }
-    if (myADSHandler == null) {
-      myADSHandler = null;
-    }
+    if (throwhandler == null) throwhandler = null;
+    if (bibtexHandler == null) bibtexHandler = null;
+    if (myADSHandler == null) myADSHandler = null;
     if (!(bibtexHandler === null && myADSHandler === null)) {
       return $('<div class="formactions"/>').append($('<input class="btn small" type="button" value="Mark all"/>').click(changeAllButtons(true))).append($('<input class="btn small" type="button" value="Clear all"/>').click(changeAllButtons(false))).append($('<span>&nbsp;<span class="label"/>&nbsp;</span>')).append($('<input class="btn btn-danger small" type="submit" value="Remove" name="action"/>')).append($('<span>&nbsp;<span class="label"/>&nbsp;</span>')).append($('<input class="btn btn-info small" type="button" value="View"/>').click(throwhandler)).append($('<span>&nbsp;<span class="label"/>&nbsp;</span>')).append($('<input class="btn btn-info small" type="button" value="Get as BibTex"/>').click(bibtexHandler)).append($('<button type="button" name="myads" value="Send to myADS"/>').click(myADSHandler).append($('<img alt="[myADS logo]"/>').attr('src', "" + SITEPREFIX + "/static/images/ADSlabs-button.png")));
     }
     $thediv = $('<div class="formactions"/>').append($('<input class="btn small" type="button" value="Mark all"/>').click(changeAllButtons(true))).append($('<input class="btn small" type="button" value="Clear all"/>').click(changeAllButtons(false))).append($('<span>&nbsp;<span class="label"/>&nbsp;</span>')).append($('<input class="btn btn-danger small" type="submit" value="Remove" name="action"/>'));
     if (throwhandler !== null) {
       $thediv.append($('<span>&nbsp;<span class="label"/>&nbsp;</span>'));
-      $thediv.append($('<input class="btn info small" type="button" value="View"/>').click(throwhandler));
+      $thediv.append($('<input class="btn btn-info small" type="button" value="View"/>').click(throwhandler));
     }
     return $thediv;
   };
+
   AjaxSolr.theme.prototype.saved_tablehead = function(cols) {
     var $tr, name, _i, _len;
     $tr = $('<tr/>').append('<th/>');
@@ -45,6 +44,7 @@
     }
     return $('<thead/>').append($tr);
   };
+
   AjaxSolr.theme.prototype.saved_tablerow = function(row) {
     var $out, value, _i, _len;
     $out = $('<tr class="saveditem"/>');
@@ -54,6 +54,7 @@
     }
     return $out;
   };
+
   AjaxSolr.theme.prototype.saved_items = function(idfrag, cols, rows, throwhandler, bibtexHandler, myADSHandler) {
     var $actions, $out, $table, $tbody, value, _i, _len;
     $out = $('<form action="#"/>').attr('id', "saved-" + idfrag + "-form");
@@ -68,4 +69,5 @@
     $out.append($actions).append($table);
     return $out;
   };
+
 }).call(this);

@@ -360,3 +360,12 @@ ol.normal li{
 .navbar-fixed-top .brand:hover {
   text-decoration: none;
 }
+
+.btn-mini {
+  padding: 1px 4px;
+  font-size: 11px;
+  line-height: 16px;
+}
+.btn-mini .icon {
+  margin-top: -1px;
+}

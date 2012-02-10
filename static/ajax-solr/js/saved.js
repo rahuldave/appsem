@@ -1,6 +1,8 @@
 (function() {
   var $, createSavedObservationSection, createSavedObservations, createSavedPublicationSection, createSavedPublications, createSavedSearchSection, createSavedSearches, createTagsList, doADSProxy, doThrow, getBibTexFromADS, handleItemsWithPK, handleObservations, handlePublications, handleSearches, makeObsvRow, makePubRow, makeSearchRow, makeSearchText, noSavedObservations, noSavedPublications, noSavedSearches, saveToGroup, saveToMyADS, saveToTag, savemap, submitDeleteAction, tsortopts;
+
   $ = jQuery;
+
   Array.prototype.unique = function() {
     var key, output, value, _ref, _results;
     output = {};
@@ -14,20 +16,21 @@
     }
     return _results;
   };
+
   savemap = {
     obsvs: 'obsv',
     searches: 'search',
     pubs: 'pub'
   };
+
   doADSProxy = function(urlpath, callback) {
     return $.post("" + SITEPREFIX + "/adsproxy", JSON.stringify({
       urlpath: urlpath
     }), callback);
   };
+
   submitDeleteAction = function(path, idname, recreate, groupName) {
-    if (groupName == null) {
-      groupName = 'default';
-    }
+    if (groupName == null) groupName = 'default';
     return function() {
       var data, item, map;
       data = (function() {
@@ -56,12 +59,14 @@
       return false;
     };
   };
+
   getBibTexFromADS = function(bibcodes) {
     return doADSProxy('/cgi-bin/nph-bib_query?data_type=BIBTEX&' + bibcodes.map(encodeURIComponent).join('&'), function(resp) {
       $.fancybox("<pre>" + resp + "</pre>");
       return false;
     });
   };
+
   saveToMyADS = function(bibcodes) {
     var item;
     return doADSProxy('/cgi-bin/nph-abs_connect?library=Add&' + ((function() {
@@ -77,6 +82,7 @@
       return false;
     });
   };
+
   handlePublications = function(handler) {
     return function() {
       var data, item;
@@ -98,6 +104,7 @@
       return handler(data);
     };
   };
+
   handleItemsWithPK = function(widgetname, handler, itemstype, recreate) {
     return function() {
       var bcodes, data, ele, faceter, fqGroupName, ihash, item, items, objectsToSave, tagName, thetype, throwhref, throwurlist, _i, _len;
@@ -181,9 +188,11 @@
       return handler(itemstype, data, recreate);
     };
   };
+
   doThrow = function() {
     return false;
   };
+
   saveToGroup = function(itemstype, map, recreate) {
     console.log("inwith", map, "" + SITEPREFIX + "/save" + itemstype + "togroup");
     $.post("" + SITEPREFIX + "/save" + itemstype + "togroup", JSON.stringify(map), function(data) {
@@ -193,6 +202,7 @@
     });
     return false;
   };
+
   saveToTag = function(itemstype, map, recreate) {
     console.log("inwith", map, "" + SITEPREFIX + "/save" + itemstype + "totag");
     $.post("" + SITEPREFIX + "/save" + itemstype + "totag", JSON.stringify(map), function(data) {
@@ -202,6 +212,7 @@
     });
     return false;
   };
+
   handleObservations = function(handler) {
     return function() {
       var data, item;
@@ -223,6 +234,7 @@
       return handler(data);
     };
   };
+
   handleSearches = function(handler) {
     return function() {
       var data, item, ndata, nrows, query;
@@ -272,6 +284,7 @@
       });
     };
   };
+
   tsortopts = {
     headers: {
       0: {
@@ -284,6 +297,7 @@
       return val != null ? val : $(node).text();
     }
   };
+
   createTagsList = function() {
     $('div#tagslist').empty();
     return $.getJSON(SITEPREFIX + '/gettagsforuser', function(data) {
@@ -302,11 +316,10 @@
       return $('div#tagslist').append('<h3>Tags:</h3>').append('<ul/>').append(tagsintext.join(''));
     });
   };
+
   createSavedSearches = function(tagbool) {
     var url;
-    if (tagbool == null) {
-      tagbool = null;
-    }
+    if (tagbool == null) tagbool = null;
     $('div#saved-searches').empty();
     if (datag === 'default') {
       url = '/savedsearches2';
@@ -321,11 +334,10 @@
       } else {
         noSavedSearches();
       }
-      if (!tagbool) {
-        return createTagsList();
-      }
+      if (!tagbool) return createTagsList();
     });
   };
+
   makeSearchText = function(urifrag) {
     var $search, dummy, scpt, scpts;
     scpts = searchToText(urifrag, fieldname_map);
@@ -341,6 +353,7 @@
     })();
     return $search;
   };
+
   makeSearchRow = function(s) {
     var ele, groupsintext, scpts, tagsintext;
     groupsintext = (function() {
@@ -367,6 +380,7 @@
     console.log(s.searchtext, s.searchuri, scpts);
     return [$('<input type="checkbox" name="searchid"/>').attr('value', s.searchuri), $('<span/>').attr('value', s.searchtime).text(s.searchtimestr), $('<a/>').attr('href', "" + SITEPREFIX + "/explorer/" + s.searchuri).text(scpts.join(" | ")), $('<span/>').html(groupsintext.join(', ')), $('<span/>').html(tagsintext.join(', '))];
   };
+
   createSavedSearchSection = function(searches) {
     var $div, nsearch, rows, s;
     nsearch = searches.length;
@@ -385,11 +399,10 @@
     $('#saved-searches-form').submit(submitDeleteAction('/deletesearches', 'searchid', createSavedSearches));
     return $('#saved-searches-table').tablesorter(tsortopts);
   };
+
   createSavedPublications = function(tagbool) {
     var url;
-    if (tagbool == null) {
-      tagbool = null;
-    }
+    if (tagbool == null) tagbool = null;
     $('div#saved-pubs').empty();
     if (datag === 'default') {
       url = '/savedpubs2';
@@ -405,11 +418,10 @@
       } else {
         noSavedPublications();
       }
-      if (!tagbool) {
-        return createTagsList();
-      }
+      if (!tagbool) return createTagsList();
     });
   };
+
   makePubRow = function(p) {
     var ele, groupsintext, tagsintext;
     groupsintext = (function() {
@@ -434,6 +446,7 @@
     })();
     return [$('<input type="checkbox" name="pubid"/>').attr('value', p.pubid).attr('bibcode', p.bibcode), $('<span/>').attr('value', p.pubtime).text(p.pubtimestr), $('<a/>').attr('href', "" + SITEPREFIX + "/explorer/publications#fq=" + p.linkuri + "&q=*%3A*").text(p.linktext), $('<span class="bibcode"/>').text(p.bibcode), $('<span/>').html(groupsintext.join(', ')), $('<span/>').html(tagsintext.join(', '))];
   };
+
   createSavedPublicationSection = function(pubs) {
     var $div, npubs, pub, rows;
     npubs = pubs.length;
@@ -452,11 +465,10 @@
     $('#saved-pubs-form').submit(submitDeleteAction('/deletepubs', 'pubid', createSavedPublications));
     return $('#saved-pubs-table').tablesorter(tsortopts);
   };
+
   createSavedObservations = function(tagbool) {
     var url;
-    if (tagbool == null) {
-      tagbool = null;
-    }
+    if (tagbool == null) tagbool = null;
     $('div#saved-obsvs').empty();
     if (datag === 'default') {
       url = '/savedobsvs2';
@@ -471,11 +483,10 @@
       } else {
         noSavedObservations();
       }
-      if (!tagbool) {
-        return createTagsList();
-      }
+      if (!tagbool) return createTagsList();
     });
   };
+
   makeObsvRow = function(o) {
     var ele, groupsintext, tagsintext;
     console.log(o.tagsin);
@@ -501,6 +512,7 @@
     })();
     return [$('<input type="checkbox" name="obsvid"/>').attr('value', o.obsvid), $('<span/>').attr('value', o.obsvtime).text(o.obsvtimestr), $('<a/>').attr('href', "" + SITEPREFIX + "/explorer/observations#fq=" + o.linkuri + "&q=*%3A*").text(o.linktext), $('<span class="bibcode"/>').text(o.target), $('<span/>').html(groupsintext.join(', ')), $('<span/>').html(tagsintext.join(', '))];
   };
+
   createSavedObservationSection = function(obsvs) {
     var $div, nobsvs, obsv, rows;
     nobsvs = obsvs.length;
@@ -519,22 +531,27 @@
     $('#saved-obsvs-form').submit(submitDeleteAction('/deleteobsvs', 'obsvid', createSavedObservations));
     return $('#saved-obsvs-table').tablesorter(tsortopts);
   };
+
   noSavedSearches = function() {
     $('div#saved-searches').append(AjaxSolr.theme('section_title', 'No saved searches'));
     return true;
   };
+
   noSavedPublications = function() {
     $('div#saved-pubs').append(AjaxSolr.theme('section_title', 'No saved publications'));
     return true;
   };
+
   noSavedObservations = function() {
     $('div#saved-obsvs').append(AjaxSolr.theme('section_title', 'No saved observations'));
     return true;
   };
+
   mediator.subscribe('user/login', function(email) {
     createSavedSearches(true);
     createSavedPublications(true);
     createSavedObservations(true);
     return createTagsList();
   });
+
 }).call(this);

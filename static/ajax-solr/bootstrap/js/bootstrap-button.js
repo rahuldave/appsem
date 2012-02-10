@@ -91,7 +91,14 @@
 
   $(function () {
     $('body').on('click.button.data-api', '[data-toggle^=button]', function ( e ) {
-      $(e.target).button('toggle')
+      //RAHUL using fix from https://github.com/twitter/bootstrap/issues/1478
+      var $target = $(e.target);
+      if ($target.hasClass('btn')){
+          $target.button('toggle');
+      } else {
+          $target.parents('.btn').button('toggle');
+      }
+      //$(e.target).button('toggle')
     })
   })
 

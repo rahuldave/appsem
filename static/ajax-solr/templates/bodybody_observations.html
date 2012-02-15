@@ -26,11 +26,11 @@
     <h5>Missions</h5> 
     <div class="tagcloud" id="missions"></div>
 
-    <h5>Collections</h5> 
-    <div class="tagcloud" id="data_collection"></div>
+    <h5>Collections&nbsp;<button class="btn btn-mini btn-info" data-toggle="button collapse" data-target="#data_collection"><span class="caret"></span></button></h5> 
+    <div class="tagcloud collapse" id="data_collection"></div>
 
-    <h5>Observation Types</h5> 
-    <div class="tagcloud" id="obsvtypes"></div>
+    <h5>Observation Types&nbsp;<button class="btn btn-mini btn-info" data-toggle="button collapse" data-target="#obsvtypes"><span class="caret"></span></button></h5> 
+    <div class="tagcloud collapse" id="obsvtypes"></div>
     
     <h5>Data Product Types</h5> 
     <div class="tagcloud" id="datatypes"></div>
@@ -45,32 +45,53 @@
     <div class="tagcloud" id="targets"></div>
     
     <h5>RA</h5>
+    <br/>
+    <div id="radiv" class="nocollapse">
     <div id="ra"></div>
     <span id="ra_amount" class="rangevalues"></span>
-    
+    </div>
+
     <h5>DEC</h5>
+    <br/>
+    <div id="decdiv" class="nocollapse">
     <div id="dec"></div>
     <span id="dec_amount" class="rangevalues"></span>
+    </div>
     
-    <h5>FOV</h5>
+    <h5>FOV&nbsp;<button class="btn btn-mini btn-info" data-toggle="button collapse" data-target="#fovdiv"><span class="caret"></span></button></h5>
+    <br/>
+    <div id="fovdiv" class="collapse">
     <div id="fov"></div>
     <span id="fov_amount" class="rangevalues"></span>
+    </div>
 
-    <h5>Resolution</h5>
+    <h5>Resolution&nbsp;<button class="btn btn-mini btn-info" data-toggle="button collapse" data-target="#resolutiondiv"><span class="caret"></span></button></h5>
+    <br/>
+    <div id="resolutiondiv" class="collapse">
     <div id="resolution"></div>
     <span id="resolution_amount" class="rangevalues"></span>
+    </div>
 
-    <h5>Time Resolution</h5>
+    <h5>Time Resolution&nbsp;<button class="btn btn-mini btn-info" data-toggle="button collapse" data-target="#t_resolutiondiv"><span class="caret"></span></button></h5
+    <br/>
+    <div id="t_resolutiondiv" class="collapse">
     <div id="t_resolution"></div>
     <span id="t_resolution_amount" class="rangevalues"></span>
+    </div>
 
-    <h5>When Observed?</h5>
+    <h5>When Observed?&nbsp;<button class="btn btn-mini btn-info" data-toggle="button collapse" data-target="#obsvtimediv"><span class="caret"></span></button></h5>
+    <br/>
+    <div id="obsvtimediv" class="collapse">
     <div id="obsvtime"></div>
     <span id="obsvtime_amount" class="rangevalues"></span>
+    </div>
     
-    <h5>Exposure Time (ksec)</h5>
+    <h5>Exposure Time (ksec)&nbsp;<button class="btn btn-mini btn-info" data-toggle="button collapse" data-target="#exptimediv"><span class="caret"></span></button></h5>
+    <br/>
+    <div id="exptimediv" class="collapse">
     <div id="exptime"></div>
     <span id="exptime_amount" class="rangevalues"></span>
+    </div>
     
     <!--h5>Observation Ids</h5> 
     <div class="tagcloud" id="obsids"></div!-->
@@ -83,11 +104,11 @@
 
   <div>
     <h3>Publication Facets</h3>
-    <h5>Top Keywords</h5> 
-    <div class="tagcloud" id="keywords"></div> 
+    <h5>Top Keywords&nbsp;<button class="btn btn-mini btn-info" data-toggle="button collapse" data-target="#keywords"><span class="caret"></span></button></h5> 
+    <div class="tagcloud collapse" id="keywords"></div> 
 
-    <h5>Top Authors</h5> 
-    <div class="tagcloud" id="author"></div>
+    <h5>Top Authors&nbsp;<button class="btn btn-mini btn-info" data-toggle="button collapse" data-target="#author"><span class="caret"></span></button></h5> 
+    <div class="tagcloud collapse" id="author"></div>
 
 
     <!-- Taken out by Doug
@@ -95,9 +116,12 @@
     <div class="tagcloud" id="papertype"></div>
     -->
 
-    <h5>Year of Publication</h5>
+    <h5>Year of Publication&nbsp;<button class="btn btn-mini btn-info" data-toggle="button collapse" data-target="#pubyeardiv"><span class="caret"></span></button></h5>
+    <br/>
+    <div id="pubyeardiv" class="collapse">
     <div id="pubyear"></div>
     <span id="pubyear_amount" class="rangevalues"></span>
+    </div>
    
   </div> 
 
@@ -107,8 +131,8 @@
 
   <div>
     <h3> Object Facets </h3>      
-    <h5>Object Types</h5> 
-    <div class="tagcloud" id="objecttypes"></div>
+    <h5>Object Types&nbsp;<button class="btn btn-mini btn-info" data-toggle="button collapse" data-target="#objecttypes"><span class="caret"></span></button></h5> 
+    <div class="tagcloud collapse" id="objecttypes"></div>
     
     <h5>Object Names</h5> 
     <div class="tagcloud" id="objectnames"></div>
@@ -121,14 +145,14 @@
 
   <div>
     <h3>Proposal Facets</h3>
-    <h5>Proposal Types</h5> 
-    <div class="tagcloud" id="proposaltype"></div>
+    <h5>Proposal Types&nbsp;<button class="btn btn-mini btn-info" data-toggle="button collapse" data-target="#proposaltype"><span class="caret"></span></button></h5> 
+    <div class="tagcloud collapse" id="proposaltype"></div>
     
-    <h5>Proposal PIs</h5> 
-    <div class="tagcloud" id="proposalpi"></div>
+    <h5>Proposal PIs&nbsp;<button class="btn btn-mini btn-info" data-toggle="button collapse" data-target="#proposalpi"><span class="caret"></span></button></h5> 
+    <div class="tagcloud collapse" id="proposalpi"></div>
     
-    <h5>Proposal Ids</h5> 
-    <div class="tagcloud" id="propids"></div>
+    <h5>Proposal Ids&nbsp;<button class="btn btn-mini btn-info" data-toggle="button collapse" data-target="#propids"><span class="caret"></span></button></h5> 
+    <div class="tagcloud collapse" id="propids"></div>
   </div>
 
   <div class="clear"></div> 

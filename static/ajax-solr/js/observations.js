@@ -79,7 +79,7 @@ var SOLRURL2 = SITEPREFIX + '/solr2/';
 
 	    } // renderHeader
 	}));
-	$('#sortselector').append('<option value="obsvtime_d">Observed At</option><option value="exptime_f">Exposure</option>');
+	$('#sortselector').append('<option value="obsvtime_d">Observed At</option><option value="exptime_f">Exposure</option><option value="numpubs_i">Number of Pubs</option>');
     
 	$('#sortselector').change(function(){
 	    var $togglesort=$('#togglesort');

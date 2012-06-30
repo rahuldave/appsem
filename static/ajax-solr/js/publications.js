@@ -87,7 +87,7 @@ var PublicationsManager;
 		});
 	    } // renderHeader
 	}));
-	$('#sortselector').append('<option value="citationcount_i">Citations</option><option value="pubyear_i">PubYear</option>');
+	$('#sortselector').append('<option value="citationcount_i">Citations</option><option value="pubyear_i">PubYear</option><option value="numobsvs_i">Number of Obsvs</option>');
     
 	$('#sortselector').change(function(){
 	    var $togglesort=$('#togglesort');
